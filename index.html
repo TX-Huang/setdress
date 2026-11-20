@@ -76,6 +76,9 @@ body {
 .toast[data-kind="error"] { border-color: var(--danger); color: var(--danger); }
 .ask { position: absolute; left: 12px; right: 12px; top: 50%; transform: translateY(-50%); margin: 0 auto; max-width: 420px; padding: 14px; border-radius: 10px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); display: grid; gap: 10px; font-size: 14px; }
 .ask p { margin: 0; }
+.tool { position: absolute; top: 12px; right: 12px; font: inherit; font-size: 13px; font-weight: 500; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.tool[aria-pressed="true"] { background: #ffd400; border-color: #ffd400; color: #111; }
+.ruler-label { position: absolute; transform: translate(-50%, -140%); margin: 0; padding: 2px 8px; border-radius: 6px; background: #ffd400; color: #111; font-family: var(--font-num); font-size: 13px; font-weight: 700; pointer-events: none; white-space: nowrap; }
 .ask div { display: flex; flex-wrap: wrap; gap: 8px; }
 .caption { margin: 0; color: var(--muted); font-size: 13px; }
 
@@ -131,6 +134,8 @@ select { font: inherit; min-height: 38px; border-radius: 8px; border: 1px solid 
       <canvas id="view" aria-label="房間照片和放進去的商品。拖曳地毯或燈可以移動。"></canvas>
       <p class="hint" id="hint">拖曳地毯或燈來移動</p>
       <p class="mark">示意圖</p>
+      <button class="tool" type="button" id="ruler-btn" aria-pressed="false">量尺</button>
+      <p class="ruler-label" id="ruler-label" hidden></p>
       <p class="toast" id="toast" role="status" aria-live="polite" hidden></p>
       <div class="ask" id="ai-ask" role="dialog" aria-labelledby="ai-ask-text" hidden>
         <p id="ai-ask-text">AI 自動對齊要先下載模型（71 MB，只有第一次，之後存在這台裝置上）。照片不會上傳。</p>
@@ -1048,6 +1053,7 @@ function update() {
   updateLamp();
   updateSelection();
   updateTexts();
+  updateRuler();
   floorGrid.visible = ceilGrid.visible = state.tab === 'align';
   requestRender();
 }
@@ -1072,8 +1078,65 @@ function layout() {
   let w = W, h = W / photo.aspect;
   if (h > maxH) { h = maxH; w = h * photo.aspect; }
   renderer.setSize(Math.round(w), Math.round(h));
+  updateRuler(); // 畫面大小變了，距離的字要跟著移
   requestRender();
 }
+
+// ---------- 量尺（docs/ruler.md）：在照片上點兩下，量兩點的距離 ----------
+// 存的是照片上的位置（u 往右、v 往下，0–1）：拉對齊滑桿時點留在照片上同一處，距離重新算
+const ruler = { on: false, marks: [] };
+const rulerLine = new THREE.Line(
+  new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]),
+  new THREE.LineBasicMaterial({ color: 0xffd400, depthTest: false }),
+);
+const rulerDots = new THREE.Points(
+  new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]),
+  new THREE.PointsMaterial({ color: 0xffd400, size: 9, sizeAttenuation: false, depthTest: false }),
+);
+rulerLine.renderOrder = rulerDots.renderOrder = 20;
+rulerLine.frustumCulled = rulerDots.frustumCulled = false;
+scene.add(rulerLine, rulerDots);
+
+const rulerCam = () => ({ ...state.cam, aspect: photo.aspect });
+const rulerAt = (m) => window.SetdressAlign.rulerPoint(rulerCam(), m.u, m.v, photoDepth);
+function placeRulerLabel(mid, text) {
+  const label = $('ruler-label'), v = new THREE.Vector3(...mid).project(camera);
+  const sr = $('stage').getBoundingClientRect(), cr = canvas.getBoundingClientRect();
+  label.style.left = `${cr.left - sr.left + ((v.x + 1) / 2) * cr.width}px`;
+  label.style.top = `${cr.top - sr.top + ((1 - v.y) / 2) * cr.height}px`;
+  label.textContent = text;
+  label.hidden = false;
+}
+function updateRuler() {
+  const pts = ruler.marks.map(rulerAt).filter(Boolean);
+  rulerDots.visible = pts.length > 0;
+  rulerLine.visible = pts.length === 2;
+  $('ruler-label').hidden = true;
+  if (!pts.length) return;
+  const xyz = pts.map((p) => new THREE.Vector3(...p.point));
+  rulerDots.geometry.setFromPoints(pts.length === 2 ? xyz : [xyz[0], xyz[0]]);
+  if (pts.length < 2) return;
+  rulerLine.geometry.setFromPoints(xyz);
+  const cm = Math.round(xyz[0].distanceTo(xyz[1]) * 100);
+  const mid = xyz[0].clone().add(xyz[1]).multiplyScalar(0.5).toArray();
+  placeRulerLabel(mid, photoDepth ? `${cm} cm` : `${cm} cm（沒有 AI 深度：只量得準地板上的距離）`);
+}
+function addRulerMark(e) {
+  const r = canvas.getBoundingClientRect();
+  const mark = { u: (e.clientX - r.left) / r.width, v: (e.clientY - r.top) / r.height };
+  if (!rulerAt(mark)) { toast('這點量不到：太靠近地平線，點低一點或高一點。', 'info'); return; }
+  ruler.marks = ruler.marks.length >= 2 ? [mark] : [...ruler.marks, mark]; // 第三下：重新量
+  update();
+}
+function setRuler(on) {
+  ruler.on = on;
+  ruler.marks = [];
+  $('ruler-btn').setAttribute('aria-pressed', String(on));
+  canvas.style.cursor = on ? 'crosshair' : 'default';
+  if (on) toast('量尺：在照片上點兩下，量兩點的距離。', 'info');
+  update();
+}
+$('ruler-btn').addEventListener('click', () => setRuler(!ruler.on));
 
 // ---------- 拖曳 ----------
 const raycaster = new THREE.Raycaster();
@@ -1104,6 +1167,7 @@ function select(key) {
 }
 
 canvas.addEventListener('pointerdown', (e) => {
+  if (ruler.on) { e.preventDefault(); addRulerMark(e); return; } // 量尺開著：放點，不拖商品
   setRay(e);
   const hit = pick();
   if (!hit) { select(null); return; }
@@ -1124,6 +1188,7 @@ canvas.addEventListener('pointerdown', (e) => {
   select(key);
 });
 canvas.addEventListener('pointermove', (e) => {
+  if (ruler.on) return;
   setRay(e);
   if (!drag) {
     canvas.style.cursor = pick() ? 'grab' : 'default';
@@ -1301,6 +1366,7 @@ $('file').addEventListener('change', async (e) => {
   placeDefaults();
   state.room.night = 0;
   state.selected = null;
+  ruler.marks = []; // 換照片：量尺清掉
   $('photo-name').textContent = '你的照片';
   syncAll();
   setTab('align');
@@ -1594,5 +1660,5 @@ setTab('place');
 new ResizeObserver(layout).observe($('stage'));
 window.addEventListener('resize', layout);
 // 網址加 #debug 時，讓瀏覽器主控台量得到 3D 物件（檢查尺寸用）
-if (location.hash === '#debug') window.__setdress = { THREE, state, camera, canvas, lampModel, lampGroup, update, syncAll, draw, halo, ai };
+if (location.hash === '#debug') window.__setdress = { THREE, state, camera, canvas, lampModel, lampGroup, update, syncAll, draw, halo, ai, ruler };
 </script>

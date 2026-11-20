@@ -490,6 +490,49 @@
     return { width: w, height: roundHalfEven((w * height) / width) };
   }
 
+  // ---------- 量尺（docs/ruler.md） ----------
+  // 原型的鏡頭（Three.js：往 -z 看、y 往上，旋轉順序 YXZ、y 轉 0）：房間座標 = Rx(-pitch) · Rz(roll) · 鏡頭座標
+  // cam：{ height, pitch, roll, fov（垂直視角，度）, aspect（寬 / 高）, ceiling（公尺或 null） }
+  function camRotation(cam) {
+    const a = -cam.pitch * DEG, b = cam.roll * DEG;
+    const ca = Math.cos(a), sa = Math.sin(a), cb = Math.cos(b), sb = Math.sin(b);
+    return [
+      [cb, -sb, 0],
+      [ca * sb, ca * cb, -sa],
+      [sa * sb, sa * cb, ca],
+    ];
+  }
+  // 照片上的位置（u 往右、v 往下，0–1）在深度圖裡的距離（往正前方，公尺）；沒有是 0
+  function depthAt(depth, u, v) {
+    if (!depth || !depth.meters) return 0;
+    const col = Math.min(depth.width - 1, Math.max(0, Math.floor(u * depth.width)));
+    const row = Math.min(depth.height - 1, Math.max(0, Math.floor(v * depth.height)));
+    return depth.meters[row * depth.width + col] || 0;
+  }
+  const along = (o, dir, t) => o.map((x, i) => x + dir[i] * t);
+  // 打到地板（往下看）或天花板（往上看、知道天花板多高）；線幾乎水平就量不到
+  function planePoint(o, dir, cam) {
+    const EPS = 1e-6;
+    if (dir[1] < -EPS) return { point: along(o, dir, -o[1] / dir[1]), from: 'floor' };
+    if (dir[1] > EPS && cam.ceiling != null) return { point: along(o, dir, (cam.ceiling - o[1]) / dir[1]), from: 'ceiling' };
+    return null;
+  }
+  // 照片上的一點 → 房間裡的點：有深度用深度，沒有就打到地板或天花板。回傳 { point, from } 或 null（量不到）
+  function rulerPoint(cam, u, v, depth) {
+    const t = Math.tan((cam.fov * DEG) / 2), c = [(2 * u - 1) * t * cam.aspect, (1 - 2 * v) * t, -1];
+    const R = camRotation(cam), dir = R.map((r) => r[0] * c[0] + r[1] * c[1] + r[2] * c[2]);
+    const o = [0, cam.height, 0], d = depthAt(depth, u, v);
+    // 鏡頭座標的 z 是 -1，乘上 d 剛好往正前方 d 公尺
+    return d > 0 ? { point: along(o, dir, d), from: 'depth' } : planePoint(o, dir, cam);
+  }
+  // 房間裡的一點 → 照片上的位置 { u, v }
+  function projectToPhoto(cam, p) {
+    const R = camRotation(cam), w = [p[0], p[1] - cam.height, p[2]];
+    const c = [0, 1, 2].map((j) => R[0][j] * w[0] + R[1][j] * w[1] + R[2][j] * w[2]); // R 的轉置
+    const t = Math.tan((cam.fov * DEG) / 2);
+    return { u: (c[0] / -c[2] / (t * cam.aspect) + 1) / 2, v: (1 - c[1] / -c[2] / t) / 2 };
+  }
+
   // 跟本機服務（server.py）回傳的一樣：5 個滑桿的值＋遮擋深度圖（mm 是 Uint16Array）
   function alignResult(map, fy, opts) {
     const fit = fitCamera(map, fy, opts);
@@ -505,7 +548,7 @@
 
   return {
     NoFloorError, fitCamera, upVector, tiltDeg, occluderDepthMm, recoverFocalShift, modelOutputToPoints,
-    tokenGrid, modelInputSize, alignResult,
+    tokenGrid, modelInputSize, alignResult, rulerPoint, projectToPhoto,
     _internal: { layers, focalShiftSamples, focalShiftCost }, // 只給測試用
   };
 });
