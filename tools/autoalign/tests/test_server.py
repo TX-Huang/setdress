@@ -51,6 +51,7 @@ def site(tmp_path: Path) -> Path:
     folder.mkdir()
     (folder / "index.html").write_text("<title>Setdress 原型</title>", encoding="utf-8")
     (folder / "lamps.js").write_text("// 燈具目錄 LAMPS", encoding="utf-8")
+    (folder / "catalog.js").write_text("// 爬到的燈 SetdressCatalog", encoding="utf-8")
     (folder / "notes.txt").write_text("不要給別人看", encoding="utf-8")
     (folder / "webalign.js").write_text("// 網頁版對齊 SetdressAlign", encoding="utf-8")
     (folder / "models").mkdir()
@@ -219,6 +220,14 @@ def test_serves_the_lamp_catalog(url: str) -> None:
         assert res.status == 200
         assert "javascript" in res.headers["Content-Type"]
         assert "LAMPS" in res.read().decode("utf-8")
+
+
+def test_serves_the_crawled_lamp_catalog(url: str) -> None:
+    # 爬到的燈（docs/catalog.md 第 14 句）：本機的服務也要給
+    with urllib.request.urlopen(url + "/catalog.js", timeout=10) as res:
+        assert res.status == 200
+        assert "javascript" in res.headers["Content-Type"]
+        assert "SetdressCatalog" in res.read().decode("utf-8")
 
 
 def test_serves_the_web_align_script_and_model(url: str) -> None:

@@ -361,6 +361,32 @@
     return { ...lamp, parts, light };
   }
 
+  // ---------- 爬到的燈（catalog.js；docs/catalog.md） ----------
+  // entry.lathe：從商品照片自動描的輪廓（公分，真實大小）；entry.bands：照片量的顏色，一段一段由下往上
+  // [{ to: 這段的頂, m: 'shade' 淺色燈罩 | 'metal' 深色, c: 顏色 }]。燈罩那幾段裡面也會亮
+  const bandAt = (bands, y) => bands.find((b) => y <= b.to) || bands[bands.length - 1];
+  function catalogLamp(entry) {
+    const cuts = entry.bands.slice(0, -1).map((b) => b.to);
+    const pts = splitAtHeights(closedOutline(entry.lathe), cuts);
+    const parts = [];
+    let src = null;
+    for (let i = 1; i < pts.length; i++) {
+      const band = bandAt(entry.bands, (pts[i - 1][1] + pts[i][1]) / 2);
+      const look = { m: band.m, c: band.c, inner: band.m === 'shade' };
+      if (src && sameLook(look, src)) parts[parts.length - 1].pts.push(pts[i]);
+      else parts.push(lathePart([pts[i - 1], pts[i]], look));
+      src = look;
+    }
+    // 連結：最便宜（有現貨優先）那家的商品頁
+    return { ...entry, source: 'catalog', page: bestOffer(entry.offers).offer.url, parts };
+  }
+  // 搜尋：空白分開的每個字都要出現在品牌、型號、類別或款式裡（不分大小寫）
+  function searchLamps(lamps, query) {
+    const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    const text = (l) => `${l.brand} ${l.name} ${l.category} ${l.variant || ''}`.toLowerCase();
+    return lamps.filter((l) => words.every((w) => text(l).includes(w)));
+  }
+
   // ---------- 放在哪個高度 ----------
   // place：{ hang 吊燈最低點離地, table 桌面高度, wallY 壁燈中心離地 }（公尺）
   function mountY(lamp, place, ceiling) {
@@ -390,13 +416,17 @@
       ? { offer: cheapest(inStock), noneInStock: false }
       : { offer: cheapest(offers), noneInStock: true };
   }
-  const sizeLabel = (lamp) => (lamp.size.h === undefined
-    ? `寬 ${lamp.size.w} cm`
-    : `寬 ${lamp.size.w} × 高 ${lamp.size.h} cm`);
+  // hEst：爬到的燈店家沒標高度時，照片的比例估的高度（docs/catalog.md）
+  const sizeLabel = (lamp) => {
+    const { w, h, hEst } = lamp.size;
+    if (h !== undefined) return `寬 ${w} × 高 ${h} cm`;
+    return hEst === undefined ? `寬 ${w} cm` : `寬 ${w} cm · 高約 ${hEst} cm（照片估的）`;
+  };
 
   return {
     LAMPS, CATEGORIES, MOUNTS, STOCK, UPDATED, MIN_CORD,
     partBounds, designBounds, lampFit, fittedBounds, lampHeight,
     mountY, maxHang, clampHang, cordSpan, bestOffer, sizeLabel, dragPlane, withShape,
+    catalogLamp, searchLamps,
   };
 });

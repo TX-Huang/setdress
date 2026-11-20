@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 import json
 import pathlib
+import re
 import sqlite3
 import sys
 from collections import Counter
@@ -33,6 +34,15 @@ ROUND_TOLERANCE = 0.10  # 寬和深差這麼多以內，算圓的
 RATIO_LIMIT_PCT = 15  # 照片的高寬比跟標的差超過這麼多，要人看
 MAX_SIDE = 600  # 照片縮到這麼大再描（跟 run_photos.py 一樣）
 RETRY = ("download_failed",)  # 這些狀態下次跑會再試
+
+WALL = re.compile(r"wall|壁燈|壁掛|壁式", re.IGNORECASE)
+CEILING = re.compile(r"ceiling|吸頂", re.IGNORECASE)
+
+
+def wall_name(name: str) -> bool:
+    """名字寫壁燈、沒寫吸頂：店家分類分錯了（Codex 審查：Clessidra Wall Lamp 被分到吸頂燈）。"""
+    return bool(WALL.search(name or "")) and not CEILING.search(name or "")
+
 
 NO_ROUND_SIZE = "沒有圓的尺寸（要有直徑，或寬和深差不到一成）"
 NO_PHOTO = "沒有照片"
@@ -80,7 +90,7 @@ class Result:
 
 # ---------------------------------------------------------------- 挑商品
 _SQL = f"""
-SELECT p.product_id, v.variant_id, v.width_mm, v.depth_mm, v.height_mm, v.diameter_mm,
+SELECT p.product_id, p.model, v.variant_id, v.width_mm, v.depth_mm, v.height_mm, v.diameter_mm,
        (SELECT src_url FROM image i WHERE i.product_id = p.product_id
         ORDER BY i.position, i.image_id LIMIT 1)
 FROM product p LEFT JOIN variant v ON v.product_id = p.product_id
@@ -113,7 +123,7 @@ def _rows_by_product(path) -> dict[str, list[tuple]]:
     with _open_ro(path) as db:
         rows = db.execute(_SQL, ROUND_KINDS).fetchall()
     grouped: dict[str, list[tuple]] = {}
-    for pid, *rest in rows:
+    for pid, _model, *rest in (r for r in rows if not wall_name(r[1])):
         grouped.setdefault(pid, []).append(tuple(rest))
     return grouped
 

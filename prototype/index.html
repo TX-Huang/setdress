@@ -100,7 +100,8 @@ body {
 .ctl label, .ctl-label { font-size: 13.5px; }
 output { font-family: var(--font-num); font-variant-numeric: tabular-nums; font-size: 13px; color: var(--muted); }
 input[type="range"] { width: 100%; accent-color: var(--accent); margin: 0; min-height: 28px; }
-select { font: inherit; min-height: 38px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 0 10px; }
+/* width + min-width：選單跟著欄位寬，不被很長的燈名撐開（不然整頁會左右捲） */
+select, input[type="search"] { width: 100%; min-width: 0; font: inherit; min-height: 38px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 0 10px; }
 .switch { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
 .switch input { width: 18px; height: 18px; accent-color: var(--accent); margin: 0; }
 .seg { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
@@ -184,8 +185,10 @@ select { font: inherit; min-height: 38px; border-radius: 8px; border: 1px solid 
         </details>
         <label class="switch"><input type="checkbox" id="lamp-visible"> 放進照片</label>
         <div class="ctl">
-          <label for="lamp-pick">換一盞燈（lampclub.tw 上的真燈）</label>
+          <label for="lamp-pick">換一盞燈</label>
+          <input type="search" id="lamp-search" placeholder="搜尋品牌、型號，例如 PH 5" aria-label="搜尋燈">
           <select id="lamp-pick"></select>
+          <p class="spec" id="lamp-count"></p>
         </div>
         <div class="ctl">
           <label for="lamp-shape">形狀</label>
@@ -215,7 +218,7 @@ select { font: inherit; min-height: 38px; border-radius: 8px; border: 1px solid 
       </article>
 
       <div class="total"><span>總計</span><strong id="total"></strong></div>
-      <p class="note">不含運費、安裝。燈的價格是 2026-11-20 從 lampclub.tw 抄的，以通路頁面為準；地毯是假的。</p>
+      <p class="note">不含運費、安裝。<span id="price-source"></span>，以通路頁面為準；地毯是假的。</p>
     </div>
 
     <div class="tabpanel" role="tabpanel" id="panel-light" aria-labelledby="tab-light" hidden>
@@ -287,6 +290,7 @@ select { font: inherit; min-height: 38px; border-radius: 8px; border: 1px solid 
 </main>
 
 <script src="lamps.js"></script>
+<script src="catalog.js"></script>
 <script src="webalign.js"></script>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
@@ -294,7 +298,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.m
 // 燈具目錄和擺放、價格的計算在 lamps.js（有 Node 測試：prototype/tests/）
 const {
   LAMPS, CATEGORIES, UPDATED, lampFit, fittedBounds, mountY, clampHang, maxHang, cordSpan, bestOffer, sizeLabel,
-  dragPlane, withShape,
+  dragPlane, withShape, catalogLamp, searchLamps,
 } = window.SetdressLamps;
 
 const DEG = Math.PI / 180;
@@ -311,8 +315,12 @@ const PRODUCTS = {
     },
   },
 };
-const lampById = (id) => LAMPS.find((l) => l.id === id);
-const STOCK_TEXT = { in: '有現貨', out: '預購', unknown: '沒標示' };
+// 精選 14 盞（手描，lamps.js）＋爬到的燈（照片自動描，catalog.js；docs/catalog.md）
+const CATALOG = (window.SetdressCatalog ? window.SetdressCatalog.lamps : []).map(catalogLamp);
+const ALL_LAMPS = [...LAMPS, ...CATALOG];
+const LAMP_BY_ID = new Map(ALL_LAMPS.map((l) => [l.id, l]));
+const lampById = (id) => LAMP_BY_ID.get(id);
+const STOCK_TEXT = { in: '有現貨', out: '沒現貨／預購', unknown: '沒標示' };
 
 // 示範房間就是用這組鏡頭畫的，所以預設對齊是準的
 const DEMO_CAM = { height: 1.35, pitch: 10, fov: 55, roll: 0, ceiling: 2.7 };
@@ -1030,24 +1038,34 @@ function updateTexts() {
   $('total').textContent = fmtNT(total);
 }
 
+// 連到外面的網站：開新分頁
+function outLink(href, text) {
+  const a = document.createElement('a');
+  a.href = href;
+  a.target = '_blank';
+  a.rel = 'noopener';
+  a.textContent = text;
+  return a;
+}
+
 // 燈的卡片：名稱、尺寸、最便宜的通路、各家價格（換燈時才需要重畫）
 function renderLampCard(lamp) {
   const best = bestOffer(lamp.offers);
   $('lamp-name').textContent = `${lamp.brand} ${lamp.name}`;
-  $('lamp-spec').textContent = `${lamp.category} · ${lamp.variant} · ${sizeLabel(lamp)}`;
+  $('lamp-spec').textContent = [lamp.category, lamp.variant, sizeLabel(lamp)].filter(Boolean).join(' · ');
   const shop = $('lamp-shop');
+  const date = lamp.updated || UPDATED;
+  $('price-source').textContent = lamp.source === 'catalog'
+    ? `燈的價格是 ${date} 從各家通路的網站抓的`
+    : `燈的價格是 ${UPDATED} 從 lampclub.tw 抄的`;
   shop.textContent = best.noneInStock
-    ? `最便宜：${best.offer.store}（沒有一家標示有現貨）· 更新於 ${UPDATED} · `
-    : `最便宜有現貨：${best.offer.store} · 更新於 ${UPDATED} · `;
-  const link = document.createElement('a');
-  link.href = lamp.page;
-  link.target = '_blank';
-  link.rel = 'noopener';
-  link.textContent = '看各家價格 ↗';
+    ? `最便宜：${best.offer.store}（沒有一家標示有現貨）· 更新於 ${date} · `
+    : `最便宜有現貨：${best.offer.store} · 更新於 ${date} · `;
+  const link = outLink(lamp.page, lamp.source === 'catalog' ? `到 ${best.offer.store} 看 ↗` : '看各家價格 ↗');
   shop.append(link);
   $('lamp-offers').replaceChildren(...lamp.offers.map((o) => {
     const li = document.createElement('li');
-    const name = document.createElement('span');
+    const name = o.url ? outLink(o.url, '') : document.createElement('span');
     name.textContent = `${o.store}（${STOCK_TEXT[o.stock]}）`;
     const price = document.createElement('span');
     price.className = 'price';
@@ -1267,12 +1285,32 @@ bindRange('rug-rot', () => state.rug.rot, (v) => { state.rug.rot = v; }, deg(0))
 
 bindCheck('lamp-visible', () => state.lamp.visible, (v) => { state.lamp.visible = v; });
 const lampPick = $('lamp-pick');
-for (const c of CATEGORIES) {
-  const group = document.createElement('optgroup');
-  group.label = c;
-  for (const l of LAMPS.filter((x) => x.category === c)) group.append(new Option(`${l.brand} ${l.name}`, l.id));
-  lampPick.append(group);
+const lampSearch = $('lamp-search');
+const byName = (a, b) => `${a.brand} ${a.name}`.localeCompare(`${b.brand} ${b.name}`, 'zh-TW');
+// 換燈的選單：先列精選，再列爬到的，各自照類別分組。搜尋框只列出符合的；正在用的那盞一定列著
+function fillLampPick() {
+  const found = searchLamps(ALL_LAMPS, lampSearch.value);
+  const current = lampById(state.lamp.id);
+  const shown = found.includes(current) ? found : [current, ...found];
+  const groups = [];
+  for (const [label, source] of [['精選', undefined], ['爬到的', 'catalog']]) {
+    for (const c of CATEGORIES) {
+      const list = shown.filter((l) => l.source === source && l.category === c).sort(byName);
+      if (!list.length) continue;
+      const group = document.createElement('optgroup');
+      group.label = `${label}・${c}`;
+      for (const l of list) group.append(new Option(`${l.brand} ${l.name}${source && l.variant ? `（${l.variant}）` : ''}`, l.id));
+      groups.push(group);
+    }
+  }
+  lampPick.replaceChildren(...groups);
+  lampPick.value = state.lamp.id;
+  $('lamp-count').textContent = lampSearch.value.trim()
+    ? `找到 ${found.length} 盞`
+    : `精選 ${LAMPS.length} 盞（手描）、爬到的 ${CATALOG.length} 盞（照片自動描）`;
 }
+lampSearch.addEventListener('input', fillLampPick);
+fillLampPick();
 lampPick.addEventListener('change', () => {
   state.lamp.id = lampPick.value; // 位置、旋轉都不變（壁燈換壁燈還是貼著同一面牆）
   renderLampCard(currentLamp());
@@ -1287,11 +1325,14 @@ lampShape.addEventListener('change', () => {
 });
 syncers.push(() => {
   const traced = hasTraced(state.lamp.id);
-  lampShape.value = traced ? state.lamp.shape : 'hand';
+  const fromCatalog = lampById(state.lamp.id).source === 'catalog';
+  lampShape.value = fromCatalog ? 'traced' : traced ? state.lamp.shape : 'hand';
   lampShape.disabled = !traced;
-  $('lamp-shape-note').textContent = traced
-    ? '自動描：去背、量每一列的寬度、繞中心轉一圈；大小照店家標的尺寸（docs/outline.md）'
-    : '這盞不是「轉一圈」的形狀（有提把、支架或是壁燈），只有手描的';
+  $('lamp-shape-note').textContent = fromCatalog
+    ? '從商品照片自動描的（爬到的燈沒有手描）；顏色是照片量的，一段一段'
+    : traced
+      ? '自動描：去背、量每一列的寬度、繞中心轉一圈；大小照店家標的尺寸（docs/outline.md）'
+      : '這盞不是「轉一圈」的形狀（有提把、支架或是壁燈），只有手描的';
 });
 bindRange('lamp-hang', () => state.lamp.hang, (v) => { state.lamp.hang = v; }, meters);
 bindRange('lamp-table', () => state.lamp.table, (v) => { state.lamp.table = v; }, meters);

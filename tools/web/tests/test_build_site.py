@@ -18,6 +18,7 @@ def project(tmp_path: Path) -> Path:
     files = {
         "prototype/index.html": "<title>Setdress 原型</title>",
         "prototype/lamps.js": "// lamps",
+        "prototype/catalog.js": "// catalog",  # 爬到的燈（docs/catalog.md 第 14 句）
         "prototype/webalign.js": "// align",
         MODEL: "onnx",
         "tools/web/README.md": "# Setdress 網頁版",

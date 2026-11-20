@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SITE: dict[str, str | None] = {
     "index.html": "prototype/index.html",
     "lamps.js": "prototype/lamps.js",
+    "catalog.js": "prototype/catalog.js",
     "webalign.js": "prototype/webalign.js",
     "models/moge-2-s-fp16.onnx": "prototype/models/moge-2-s-fp16.onnx",
     "models/LICENSE-MoGe.txt": "prototype/models/LICENSE-MoGe.txt",

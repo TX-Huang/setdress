@@ -16,7 +16,7 @@ import outline as ol
 import photos
 
 SCHEMA = """
-CREATE TABLE product(product_id TEXT PRIMARY KEY, cat1 TEXT, cat2 TEXT);
+CREATE TABLE product(product_id TEXT PRIMARY KEY, cat1 TEXT, cat2 TEXT, model TEXT);
 CREATE TABLE variant(variant_id INTEGER PRIMARY KEY, product_id TEXT,
                      width_mm REAL, depth_mm REAL, height_mm REAL, diameter_mm REAL);
 CREATE TABLE image(image_id INTEGER PRIMARY KEY, product_id TEXT, src_url TEXT, position INTEGER);
@@ -28,7 +28,7 @@ def make_db(path, products, cat1="lighting"):
     db = sqlite3.connect(path)
     db.executescript(SCHEMA)
     for pid, cat2, sizes, images in products:
-        db.execute("INSERT INTO product VALUES (?, ?, ?)", (pid, cat1, cat2))
+        db.execute("INSERT INTO product VALUES (?, ?, ?, ?)", (pid, cat1, cat2, pid))
         for w, d, h, dia in sizes:
             db.execute(
                 "INSERT INTO variant(product_id, width_mm, depth_mm, height_mm, diameter_mm)"
@@ -338,3 +338,9 @@ class TestCodexReview:
         assert not hasattr(args, "photos"), "照片的位置不能改：只放 tools/outline/out/photos"
         assert batch.PHOTOS == batch.HERE / "out" / "photos"
         assert batch.REVIEW == batch.HERE / "out" / "review.png"
+
+
+class TestWallNames:
+    def test_a_ceiling_lamp_named_wall_lamp_is_not_a_candidate(self, tmp_path):
+        db = make_db(tmp_path / "a.db", [("Clessidra Wall Lamp", "ceiling", ROUND, {0: "u"})])
+        assert batch.candidates([db]) == []
