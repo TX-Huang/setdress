@@ -130,10 +130,23 @@ class TestParse:
         recs = shopline.parse(URL, page(product("HAY Kid's \"Mini\" 椅 </b>", [variation("紅", 1200)])))
         assert recs[0].title_raw == "HAY Kid's \"Mini\" 椅 </b>"
 
-    def test_no_text_or_images_are_collected(self, shopline):
-        r = shopline.parse(URL, page(product("HAY 邊桌", [variation("黑色", 8000)])))[0]
+    def test_no_text_but_image_links_are_collected(self, shopline):
+        # 圖片只存連結（policy.py）；規格自己的照片排第一（做那個顏色的 3D 要用）
+        v = variation("黑色", 8000)
+        v["media"] = {"images": {"original": {"url": "https://img.test/black.jpg"}}}
+        prod = product("HAY 邊桌", [v], media=[
+            {"images": {"original": {"url": "https://img.test/main.jpg"}}},
+            {"images": {"original": {"url": "https://img.test/black.jpg"}}},
+        ])
+        r = shopline.parse(URL, page(prod))[0]
         assert r.description is None
-        assert r.images == []
+        assert r.images == ["https://img.test/black.jpg", "https://img.test/main.jpg"]
+
+    def test_image_links_survive_the_slim_cache(self, shopline):
+        prod = product("HAY 邊桌", [variation("黑色", 8000)],
+                       media=[{"images": {"original": {"url": "https://img.test/main.jpg"}}}])
+        raw = page(prod)
+        assert shopline.parse(URL, slim_product_page(raw))[0].images == ["https://img.test/main.jpg"]
 
     def test_a_page_without_product_data_gives_nothing(self, shopline):
         assert shopline.parse(URL, "<html><body>找不到商品</body></html>") == []
@@ -199,13 +212,15 @@ class TestDiscover:
 
 
 class TestSlimDropsUnusedFields:
-    def test_images_and_settings_are_not_kept(self):
+    def test_settings_and_image_details_are_not_kept_only_the_image_link(self):
         prod = product("HAY 邊桌", [variation("黑色", 8000)],
-                       media=[{"images": {"original": {"url": "https://img.test/a.jpg"}}}],
+                       media=[{"images": {"original": {"url": "https://img.test/a.jpg"}},
+                               "blurhash": "LKO2?U%2Tw=w", "thumb_image_url": "https://img.test/a-thumb.jpg"}],
                        blacklisted_payment_ids=["x"] * 50)
         slim = slim_product_page(page(prod))
-        assert "img.test" not in slim
-        assert "blacklisted_payment_ids" not in slim
+        assert "https://img.test/a.jpg" in slim
+        for gone in ("blurhash", "a-thumb.jpg", "blacklisted_payment_ids"):
+            assert gone not in slim
         assert "title_translations" in slim
 
 

@@ -128,9 +128,19 @@ class TestParse:
         r = adapter.parse(URL, page(product(offers=offer())))[0]
         assert r.size_raw == "寬 128 x 深 93 x 高 40"
 
-    def test_no_text_or_images(self, adapter):
+    def test_no_text_but_image_links(self, adapter):
         r = adapter.parse(URL, page(product(offers=offer())))[0]
-        assert (r.description, r.images) == (None, [])
+        assert (r.description, r.images) == (None, ["https://img.test/a.jpg"])
+
+    @pytest.mark.parametrize("image, want", [
+        (["https://img.test/1.jpg", "https://img.test/2.jpg"], ["https://img.test/1.jpg", "https://img.test/2.jpg"]),
+        ({"@type": "ImageObject", "url": "https://img.test/o.jpg"}, ["https://img.test/o.jpg"]),
+        ([{"@type": "ImageObject", "contentUrl": "https://img.test/c.jpg"}], ["https://img.test/c.jpg"]),
+        (None, []),
+        ("不是網址", []),
+    ])
+    def test_image_written_in_different_ways(self, adapter, image, want):
+        assert adapter.parse(URL, page(product(offers=offer(), image=image)))[0].images == want
 
     @pytest.mark.parametrize("html", ["<html>沒有商品資料</html>", page(crumbs("首頁")),
                                       "<script type='application/ld+json'>{壞掉的 json</script>"])

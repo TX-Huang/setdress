@@ -1,6 +1,9 @@
-"""只存事實：商品說明文字和圖片有著作權，預設不存（docs：CHANNELS.md「人工看條款」）。
+"""只存事實：商品介紹文字有著作權，預設不存（docs：CHANNELS.md「人工看條款」）。
 
-事實 = 品名、品牌、價格、尺寸、庫存、SKU、連結。站方同意時，sites.yaml 打開 keep_content 才存內容。
+事實 = 品名、品牌、價格、尺寸、庫存、SKU、連結。
+圖片只存「連結」（網址），不下載圖檔（2026-11-20 Isaac 同意）：做 3D 模型、並排檢查要用。
+公開上線前要拿到授權（docs/mvp-spec.md「風險：版權」）。
+站方同意時，sites.yaml 打開 keep_content 才存介紹文字。
 """
 
 import json
@@ -41,23 +44,22 @@ def test_by_default_sites_do_not_keep_content():
     assert _site().keep_content is False
 
 
-def test_drops_description_and_images_but_keeps_the_facts():
+def test_drops_the_description_but_keeps_the_facts_and_image_links():
     r = facts_only(_record(), _site())
     assert r.description is None
-    assert r.images == []
+    assert r.images == ["https://cdn.shopify.com/bell.jpg"], "圖片只存連結，3D 和並排檢查要用"
     assert (r.price, r.sku, r.url, r.brand, r.model, r.size_raw, r.in_stock) == (
         10600, "TOD1", "https://www.luxurylife.com.tw/products/bell?variant=1",
         "Tom Dixon", "Bell", "Ø19 x H28 cm", True,
     )
 
 
-def test_keeps_content_only_when_the_site_allows_it():
+def test_keeps_the_description_only_when_the_site_allows_it():
     r = facts_only(_record(), _site(keep_content=True))
     assert r.description == "<p>這段介紹文字有著作權</p>"
-    assert r.images == ["https://cdn.shopify.com/bell.jpg"]
 
 
-def test_crawling_a_real_shopify_page_stores_no_description_or_images(tmp_path):
+def test_crawling_a_real_shopify_page_stores_image_links_but_no_description(tmp_path):
     page1 = (FIX / "shopify_products.json").read_text(encoding="utf-8")
     raw = json.loads(page1)["products"]
     assert any(p.get("body_html") for p in raw) and any(p.get("images") for p in raw)  # 素材真的有內容
@@ -71,6 +73,8 @@ def test_crawling_a_real_shopify_page_stores_no_description_or_images(tmp_path):
     store = Store(tmp_path / "t.db", SCHEMA)
     store.upsert(records, "2026-11-20")
     assert store.query("SELECT COUNT(*) FROM product WHERE description IS NOT NULL")[0][0] == 0
-    assert store.count("image") == 0
+    assert store.count("image") > 0
+    assert store.query("SELECT COUNT(*) FROM image WHERE local_path IS NOT NULL")[0][0] == 0, "只存連結，不下載"
+    assert store.query("SELECT COUNT(*) FROM image WHERE credit IS NULL")[0][0] == 0, "每張圖都要記來源"
     assert store.query("SELECT COUNT(*) FROM listing WHERE price IS NOT NULL")[0][0] > 0
     store.close()

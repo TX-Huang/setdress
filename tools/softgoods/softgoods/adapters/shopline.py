@@ -52,9 +52,37 @@ def _only(data: dict, keys: tuple[str, ...]) -> dict:
     return {k: data[k] for k in keys if k in data}
 
 
+def _media_url(media) -> str | None:
+    """Shopline 的一張圖：{"images": {"original": {"url": …}}}。"""
+    if not isinstance(media, dict):
+        return None
+    return ((media.get("images") or {}).get("original") or {}).get("url")
+
+
+def _product_image_urls(product: dict) -> list[str]:
+    urls = product.get("image_urls") or [_media_url(m) for m in product.get("media") or []]
+    return [u for u in urls if u]
+
+
+def _variation_image_url(variation: dict | None) -> str | None:
+    variation = variation or {}
+    return variation.get("image_url") or _media_url(variation.get("media"))
+
+
+def _image_urls(product: dict, variation: dict | None) -> list[str]:
+    """圖片連結：規格自己的照片排第一（做那個顏色的 3D 要用），再來是商品的；同一張不重複。"""
+    urls = [_variation_image_url(variation), *_product_image_urls(product)]
+    return list(dict.fromkeys(u for u in urls if u))
+
+
 def _slim_product(product: dict) -> dict:
+    """只留用得到的欄位；圖片只留原圖連結（媒體清單原本很大）。"""
     out = _only(product, _KEEP_PRODUCT)
-    out["variations"] = [_only(v, _KEEP_VARIATION) for v in product.get("variations") or []]
+    out["image_urls"] = _product_image_urls(product)
+    out["variations"] = [
+        {**_only(v, _KEEP_VARIATION), "image_url": _variation_image_url(v)}
+        for v in product.get("variations") or []
+    ]
     return out
 
 
@@ -231,6 +259,7 @@ class ShoplineAdapter(Adapter):
             in_stock=in_stock,
             stock_text=stock_text,
             is_official=self.site.kind == "brand_official",
+            images=_image_urls(product, variation),
             source_site_id=self.site.site_id,
             source_url=url,
         )

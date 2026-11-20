@@ -87,6 +87,20 @@ def _name(value) -> str:
     return str(value).strip() if isinstance(value, (str, int, float)) else ""
 
 
+def _image_url(value) -> str | None:
+    """一張圖可能寫成網址，或 {"@type": "ImageObject", "url" 或 "contentUrl": …}。"""
+    if isinstance(value, dict):
+        value = value.get("url") or value.get("contentUrl")
+    return value if isinstance(value, str) and value.startswith(("http://", "https://")) else None
+
+
+def _images(product: dict) -> list[str]:
+    """圖片連結（只存連結，不下載；policy.py）。"""
+    value = product.get("image")
+    values = value if isinstance(value, list) else [value]
+    return list(dict.fromkeys(u for u in map(_image_url, values) if u))
+
+
 def _offers(product: dict) -> list[dict]:
     offers = product.get("offers")
     offers = offers if isinstance(offers, list) else [offers]
@@ -288,6 +302,7 @@ class SchemaOrgAdapter(Adapter):
             in_stock=in_stock,
             stock_text=stock_text,
             is_official=self.site.kind == "brand_official",
+            images=_images(product),
             source_site_id=self.site.site_id,
             source_url=url,
         )

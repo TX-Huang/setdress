@@ -98,7 +98,7 @@ softgoods/
   fetcher.py          抓取層（快取 / robots / 限速 / 重試）—— 所有站共用一份
   normalize.py        正規化（尺寸→mm、品牌收斂、分類對應、標題清理）
   sizes.py            從介紹文字只抽出尺寸那一行（SIZES.md）
-  policy.py           只存事實：介紹文字和圖片預設不存
+  policy.py           只存事實：介紹文字預設不存；圖片只存連結
   store.py            寫 SQLite（重跑不會弄亂資料、價格變了才記歷史）
   models.py           SiteConfig 和 Record
   registry.py         站台清單 + adapter 查表
