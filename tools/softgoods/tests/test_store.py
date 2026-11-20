@@ -269,3 +269,45 @@ class TestGone:
         store.mark_gone(site_id="demo", seen_date="2026-11-21")
         store.upsert([rec()], seen_date="2026-11-22")
         assert store.query("SELECT gone_at FROM listing")[0][0] is None
+
+
+class TestRecrawlUpdatesSizes:
+    """尺寸解析變好之後重跑，上架那一筆要看到新尺寸（Codex 審查 2026-11-20）。"""
+
+    @staticmethod
+    def _listing_size(store):
+        return store.query("SELECT v.width_mm, v.height_mm FROM listing l JOIN variant v USING(variant_id)")
+
+    def test_a_size_found_later_reaches_the_listing(self, store):
+        store.upsert([rec(variant_name="米色", size_raw=None)], seen_date="2026-11-20")
+        store.upsert([rec(variant_name="米色", size_raw="寬 20 x 高 30 cm")], seen_date="2026-11-21")
+        assert self._listing_size(store) == [(200, 300)]
+
+    def test_a_later_crawl_without_a_size_keeps_the_size(self, store):
+        # 這次商品頁沒抓到（404），不要把上次的尺寸弄丟
+        store.upsert([rec(variant_name="米色", size_raw="寬 20 x 高 30 cm")], seen_date="2026-11-20")
+        store.upsert([rec(variant_name="米色", size_raw=None)], seen_date="2026-11-21")
+        assert self._listing_size(store) == [(200, 300)]
+
+    def test_a_corrected_size_replaces_the_old_one(self, store):
+        store.upsert([rec(variant_name="米色", size_raw="寬 20 x 高 30 cm")], seen_date="2026-11-20")
+        store.upsert([rec(variant_name="米色", size_raw="寬 25 x 高 35 cm")], seen_date="2026-11-21")
+        assert self._listing_size(store) == [(250, 350)]
+
+
+class TestSameNameDifferentSize:
+    def test_two_pages_with_the_same_model_and_colour_but_different_sizes_stay_apart(self, store):
+        # 真實情況（潤舍）：Nebra 立燈和 Nebra 桌燈，品名清理後都是「Nebra」、規格都叫「白色」。
+        # 以前兩筆共用一個規格，尺寸互相蓋掉
+        floor = rec(url="https://demo.test/p/floor", variant_name="白色", size_raw="Ø40 x 高 150 cm")
+        table = rec(url="https://demo.test/p/table", variant_name="白色", size_raw="Ø 25 x 高 45 cm")
+        store.upsert([floor, table], seen_date="2026-11-20")
+        got = dict(store.query("SELECT l.url, v.diameter_mm FROM listing l JOIN variant v USING(variant_id)"))
+        assert got == {"https://demo.test/p/floor": 400, "https://demo.test/p/table": 250}
+
+    def test_two_stores_selling_the_same_size_still_share_one_spec(self, store):
+        # 這是比價的前提：同款、同尺寸、不同店 → 同一個規格
+        a = rec(site_id="a", url="https://a.test/1", variant_name="白色", size_raw="Ø 25 x 高 45 cm")
+        b = rec(site_id="b", url="https://b.test/1", variant_name="白色", size_raw="Ø25 x H45cm")
+        store.upsert([a, b], seen_date="2026-11-20")
+        assert store.query("SELECT COUNT(DISTINCT variant_id) FROM listing") == [(1,)]

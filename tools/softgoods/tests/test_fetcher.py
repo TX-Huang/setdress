@@ -259,3 +259,18 @@ class TestRetry:
         with pytest.raises(FetchError):
             f(url)
         assert f.transport.hits(url) == 1
+
+
+class TestFailuresAreAlsoPolite:
+    def test_a_failed_download_still_waits_before_the_next_request(self, site, tmp_path, slept):
+        """失敗也要等：不然一連串 404 會連珠炮打過去（Codex 審查 2026-11-20）。"""
+        url = "https://demo.test/gone"
+        f = make(site, tmp_path, {
+            "https://demo.test/robots.txt": [(200, ROBOTS_OPEN)],
+            url: [(404, "")],
+        }, slept, max_retry=3)
+        f.allowed(url)  # 先把 robots.txt 讀好，它自己的等待不算
+        slept.clear()
+        with pytest.raises(FetchError):
+            f(url)
+        assert slept and slept[-1] >= site.crawl_delay_sec

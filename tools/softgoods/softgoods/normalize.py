@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Iterator
 from decimal import ROUND_HALF_UP, Decimal
 
 # 全形轉半形，順便把各種乘號統一成 x
@@ -48,21 +49,23 @@ _UNIT_RE = "|".join(sorted((re.escape(u) for u in _UNIT_MM), key=len, reverse=Tr
 
 # 標籤 → 欄位。一樣長的排前面；單字母 W/D/H/L 放最後，免得吃掉中文詞
 _LABEL_FIELDS: list[tuple[str, str]] = [
-    (r"圓直徑|直徑|口徑|外徑|徑|diameter|dia\.?|Ø|ø|⌀|φ", "diameter_mm"),
+    (r"圓直徑|直徑|口徑|外徑|徑|diameter|dia\.?|Ø|ø|⌀|∅|φ", "diameter_mm"),
     (r"寬度|寬|長度|長|width|length", "width_mm"),
     (r"深度|深|厚度|厚|depth", "depth_mm"),
     (r"高度|高|height", "height_mm"),
-    (r"W|L", "width_mm"),
-    (r"D", "depth_mm"),
-    (r"H", "height_mm"),
+    # 前面不能接英文字母（乘號 x 除外）：「LED」的 D 不是「深」
+    (r"(?<![A-WYZa-wyz])(?:W|L)", "width_mm"),
+    (r"(?<![A-WYZa-wyz])D", "depth_mm"),
+    (r"(?<![A-WYZa-wyz])H", "height_mm"),
 ]
 _LABEL_RE = "|".join(p for p, _ in _LABEL_FIELDS)
 
 _TOKEN_RE = re.compile(
-    rf"(?P<pre>{_LABEL_RE})?\s*"
+    rf"(?P<pre>{_LABEL_RE})?\s*(?:約\s*)?"  # 「整高約 390 cm」
     rf"(?P<num>\d+(?:\.\d+)?)\s*"
-    rf"(?P<unit>{_UNIT_RE})?\s*"
-    rf"(?P<post>{_LABEL_RE})?",
+    rf"(?P<unit>(?:{_UNIT_RE})(?![A-Za-z]))?\s*"  # 「200 min」的 m 不是公尺
+    # 後置標籤後面不能緊接數字：「W1000 D600」的 D 是 600 的，不是 1000 的
+    rf"(?P<post>(?:{_LABEL_RE})(?!\s*\d))?",
     re.IGNORECASE,
 )
 
@@ -70,7 +73,7 @@ _TOKEN_RE = re.compile(
 # 「桌燈 · Ø28 x 高 42.5 cm，電線長 200 cm」的 200 cm 是電線，不是桌燈寬 2 公尺。
 # 這是跑真實資料才發現的 —— 因為「長」也是寬度的標籤之一。
 _ACCESSORY_LEN = re.compile(
-    rf"(?:充電線|延長線|電線|吊線|吊繩|線|鍊|鏈|繩|帶)長\s*(?:約)?\s*"
+    rf"(?:充電線|延長線|電線|吊線|吊繩|線|鍊|鏈|繩|帶)長度?\s*(?:約)?\s*"
     rf"\d+(?:\.\d+)?\s*(?:{_UNIT_RE})?",
     re.IGNORECASE,
 )
@@ -100,17 +103,42 @@ def _tokenize(text: str) -> list[tuple[str | None, str, str | None]]:
     return found
 
 
+_MM_GUESS = Decimal(400)
+
+
 def _fallback_scale(tokens: list[tuple[str | None, str, str | None]]) -> str:
-    """整串只出現一種單位時，沒寫單位的數字就跟著它。否則預設公分。"""
+    """沒寫單位的數字用什麼單位。
+
+    整串只出現一種單位 → 跟著它。完全沒寫單位 → 最大的數字 ≥ 400 當 mm
+    （Sheeper「W 1,200 × D 600 × H 320」都是 mm；4 m 以上的軟裝很少見），不然當公分（床墊「180x200」）。
+    單位混著用 → 公分。
+    """
     units = {u.lower() for _, _, u in tokens if u}
-    return _UNIT_MM[units.pop()] if len(units) == 1 else "10"
+    if len(units) == 1:
+        return _UNIT_MM[units.pop()]
+    return _guess_unitless(tokens) if not units else "10"
+
+
+def _guess_unitless(tokens: list[tuple[str | None, str, str | None]]) -> str:
+    biggest = max((Decimal(n) for _, n, _ in tokens), default=Decimal(0))
+    return "1" if biggest >= _MM_GUESS else "10"
+
+
+def _long_and_wide(tokens) -> bool:
+    """「長」和「寬」都寫了（「長 × 寬 × 高：130 × 120 × 73」）。"""
+    words = {(label or "")[:1] for label, _, _ in tokens}
+    return {"長", "寬"} <= words
 
 
 def _dims_from_labels(tokens, fallback: str) -> dict[str, int]:
-    """看得到標籤（寬/高/Ø/W/D/H）就只採信標籤。"""
+    """看得到標籤（寬/高/Ø/W/D/H）就只採信標籤。
+
+    長和寬都寫了：長是寬（長邊），寬是深。不然兩個都算寬，深就不見了。
+    """
     out: dict[str, int] = {}
+    swap = _long_and_wide(tokens)
     for label, num, unit in tokens:
-        fieldname = _field_for(label)
+        fieldname = "depth_mm" if swap and (label or "").startswith("寬") else _field_for(label)
         if fieldname:
             out.setdefault(fieldname, _to_mm(num, unit, fallback))
     return out
@@ -127,18 +155,64 @@ def _dims_from_position(tokens, fallback: str) -> dict[str, int]:
     return {_BARE_ORDER[i]: _to_mm(n, u, fallback) for i, (n, u) in enumerate(bare)}
 
 
+# 標籤全寫在前面、數字全寫在後面：「寬 × 高 × 深：285 × 307 × 285 mm」（居雅堂）
+_HEADER_WORD = r"出牆深度|寬度|寬|長度|長|深度|深|高度|高|直徑|W|D|H|L"
+_TIMES = r"\s*[x*]\s*"
+_NUM = r"\d+(?:\.\d+)?"
+_HEADER_RE = re.compile(
+    rf"(?P<labels>(?:{_HEADER_WORD})(?:{_TIMES}(?:{_HEADER_WORD}))+)\s*[:：]?\s*"
+    rf"(?P<nums>{_NUM}(?:{_TIMES}{_NUM})+)",
+    re.IGNORECASE,
+)
+
+
+def _pair_header(m: re.Match) -> str:
+    labels = re.split(_TIMES, m.group("labels"), flags=re.IGNORECASE)
+    nums = re.split(_TIMES, m.group("nums"), flags=re.IGNORECASE)
+    if len(labels) != len(nums):
+        return " "  # 標籤和數字個數對不上，哪個是哪個說不準 —— 整段不採用，不要照位置猜
+    return " x ".join(f"{lab} {num}" for lab, num in zip(labels, nums, strict=True))
+
+
+# 不是尺寸的數字，先拿掉：
+#   電壓「110-240V」原本被當成寬 110 cm、深 240 cm
+#   色溫「3000K」、燈座「E27」
+#   瓦數「40W」（但「180W x 90D」的 W 是寬，後面接著 x 的不拿）
+_END = r"(?![A-Za-z0-9])"  # 不用 \b：「110-240V電壓」的 V 後面直接接中文，\b 會失效
+_NOT_A_SIZE = re.compile(
+    r"(?<![\d\s.])x\d+|"  # 數量「箱型×1」「鋼板x1」（乘號直接黏在字後面、數字前面）
+    rf"{_NUM}(?:\s*[-/~]\s*{_NUM})*\s*[Vv]{_END}"
+    rf"|{_NUM}\s*[Kk]{_END}"
+    rf"|(?<![A-Za-z])E\d\d{_END}"
+    rf"|{_NUM}\s*W{_END}(?!\s*[x*])"
+)
+_THOUSANDS = re.compile(r"(?<=\d),(?=\d{3}(?!\d))")  # 「1,200」→「1200」
+# 沒標籤的數字要用 x 串起來才算尺寸：「180x200」「200 x 300 cm」。色號「RAL 6020」、型號「FCL7029-04」不算
+_CHAIN = re.compile(
+    rf"{_NUM}\s*(?:{_UNIT_RE})?(?:\s*[x*]\s*{_NUM}\s*(?:{_UNIT_RE})?)+", re.IGNORECASE
+)
+
+
+def _dims_without_labels(text: str) -> dict[str, int]:
+    chain = _CHAIN.search(text)
+    if not chain:
+        return {}
+    bare = _tokenize(chain.group())
+    return _dims_from_position(bare, _fallback_scale(bare))
+
+
 def parse_dimensions(raw) -> dict[str, int]:
     """尺寸字串 → {width_mm, depth_mm, height_mm, diameter_mm}，單位一律 mm。"""
     text = _ACCESSORY_LEN.sub(" ", _half(raw))  # 先把電線長那種配件長度剔掉
+    text = _THOUSANDS.sub("", _NOT_A_SIZE.sub(" ", text))
+    text = _HEADER_RE.sub(_pair_header, text)  # 「寬 × 高：30 × 40」→「寬 30 x 高 40」
     if not text or not re.search(r"\d", text):
         return {}
 
-    tokens = _tokenize(text)
-    if not tokens:
-        return {}
-
-    fallback = _fallback_scale(tokens)
-    return _dims_from_labels(tokens, fallback) or _dims_from_position(tokens, fallback)
+    labelled = [t for t in _tokenize(text) if _field_for(t[0])]
+    if labelled:  # 看得到標籤（寬/高/Ø/W/D/H）就只採信標籤
+        return _dims_from_labels(labelled, _fallback_scale(labelled))
+    return _dims_without_labels(text)
 
 
 # ======================================================== 價格
@@ -167,7 +241,20 @@ def brand_id(name, aliases: dict[str, list[str]] | None = None) -> str:
 
 # ======================================================== 分類
 
-_CAT_SEPARATORS = re.compile(r"[/、,|｜>＞]")
+_CAT_SEPARATORS = re.compile(r"[/／、,|｜>＞]")
+_BRACKET_NOTE = re.compile(r"\s*[(（][^)）]*[)）]")  # 「吧檯椅(高)」的「(高)」
+_CJK_RUN = re.compile(r"[\u3400-\u9fff]+")  # 「吊燈 Pendant」的「吊燈」
+_LATIN_RUN = re.compile(r"[a-z](?:[a-z &'-]*[a-z])?", re.IGNORECASE)  # 「Light燈飾」的「Light」
+
+
+def _category_candidates(text: str) -> Iterator[str]:
+    """整串 → 斜線拆開的每一段；每一段再試「去掉括號註記」和「中英拆開」。"""
+    for part in (text, *_CAT_SEPARATORS.split(text)):
+        bare = _BRACKET_NOTE.sub("", part)
+        yield part
+        yield bare
+        yield from _CJK_RUN.findall(bare)
+        yield from _LATIN_RUN.findall(bare)
 
 
 def _lookup_category(key: str, mapping: dict) -> tuple[str, str | None] | None:
@@ -189,14 +276,47 @@ def map_category(raw, mapping: dict) -> tuple[str | None, str | None]:
     還是對不到就回 (None, None)，不要猜。
     這樣你才查得出「還有哪些分類沒對應」，去 category_map.yaml 補。
     """
-    if not raw or not str(raw).strip():
-        return (None, None)
-    text = str(raw).strip()
-    for candidate in (text, *_CAT_SEPARATORS.split(text)):
-        hit = _lookup_category(candidate, mapping)
-        if hit:
-            return hit
-    return (None, None)
+    text = str(raw or "").strip()
+    hits = [h for c in _category_candidates(text) if (h := _lookup_category(c, mapping))]
+    return _most_specific(hits)
+
+
+def _most_specific(hits: list[tuple[str, str | None]]) -> tuple[str | None, str | None]:
+    """有小分類的優先：「Light燈飾 Pendant」要吊燈，不要只是「燈」。都沒有回 (None, None)。"""
+    specific = [h for h in hits if h[1]]
+    return (specific or hits or [(None, None)])[0]
+
+
+def _last_position(text: str, word: str) -> int | None:
+    """word 在 text 裡最後一次出現的結尾位置。英文要整個字對到（'pot' 不能從 'Teapot' 找到）。"""
+    if not word.isascii():
+        start = text.rfind(word)
+        return start + len(word) if start >= 0 else None
+    hits = list(re.finditer(rf"(?<![a-z0-9]){re.escape(word)}(?![a-z0-9])", text))
+    return hits[-1].end() if hits else None
+
+
+def _subcategory_hits(text: str, cat1: str, mapping: dict) -> Iterator[tuple[int, int, str]]:
+    for name, value in mapping.items():
+        if value[0] != cat1 or len(value) < 2 or not value[1]:
+            continue
+        word = str(name).strip().casefold()
+        end = _last_position(text, word)
+        if end is not None:
+            yield (end, len(word), value[1])
+
+
+def subcategory_from_title(title, cat1: str, mapping: dict) -> str | None:
+    """網站分類太粗（NOSA 的燈全寫「燈具」）時，從標題找小分類。
+
+    只在同一個大分類（cat1）裡找。標題是「品名在前、類別詞在後」
+    （「Audo TR Bulb 吊燈」的 Bulb 是品名），所以取最後出現的類別詞。
+    找不到回 None，不要猜。
+    """
+    if not title:
+        return None
+    best = max(_subcategory_hits(str(title).casefold(), cat1, mapping), default=None)
+    return best[2] if best else None
 
 
 # ======================================================== 庫存 / 交期

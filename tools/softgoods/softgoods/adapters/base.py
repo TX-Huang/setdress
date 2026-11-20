@@ -22,7 +22,7 @@ from ..models import Record, SiteConfig
 
 DATA_DIR = pathlib.Path(__file__).resolve().parent.parent / "data"
 
-Fetch = Callable[[str], str]
+Fetch = Callable[..., str]  # fetch(url) 或 fetch(url, trim=...)：見 fetcher.Fetcher
 
 
 @functools.cache

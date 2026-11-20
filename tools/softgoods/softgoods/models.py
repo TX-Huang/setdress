@@ -40,6 +40,8 @@ class SiteConfig:
 
     # 存不存商品說明文字和圖片（有著作權）。預設不存，只存事實；站方同意才打開（policy.py）
     keep_content: bool = False
+    # 尺寸只寫在商品頁、商品清單 JSON 拿不到的店（潤舍）才打開：一件多開一頁（SIZES.md）
+    size_from_page: bool = False
 
     # check_site.py 的判定結果記在這
     blocks_bots: bool = False

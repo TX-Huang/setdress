@@ -101,9 +101,13 @@ class Store:
         # 五盞組，規格字串一模一樣（都是「吊燈 · Ø20 x H22 cm」），
         # 不分開的話 167,000 的五盞組會被當成 31,100 那盞的另一個報價。
         pack = rec.variant_attrs.get("pack", 1)
-        vid = f"{product_id}__{_hid(name, pack)}"
         size_raw = rec.size_raw or rec.variant_name
         dims = nz.parse_dimensions(size_raw)
+        # 尺寸也算進規格的身分。真實案例（潤舍）：Nebra 立燈和 Nebra 桌燈，品名清理後
+        # 都是「Nebra」、規格都叫「白色」—— 不分開的話兩筆共用一個規格，尺寸互相蓋掉。
+        # 不同店賣同款同尺寸，還是同一個規格（比價靠這個）。
+        size_key = [dims.get(k) for k in ("width_mm", "depth_mm", "height_mm", "diameter_mm")]
+        vid = f"{product_id}__{_hid(name, pack, *size_key)}"
         self.con.execute(
             """INSERT INTO variant
                  (variant_id, product_id, name, color, color_family, material_main,
@@ -130,6 +134,14 @@ class Store:
                   first_seen_at, last_seen_at)
                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                ON CONFLICT(listing_id) DO UPDATE SET
+                 -- 指向這次看到的規格（尺寸解析變好了就換過去）；
+                 -- 但這次沒抓到尺寸、上次有的話，留在上次那個，不要把尺寸弄丟
+                 variant_id     = CASE
+                   WHEN (SELECT COALESCE(width_mm, depth_mm, height_mm, diameter_mm)
+                           FROM variant WHERE variant_id = excluded.variant_id) IS NOT NULL
+                     OR (SELECT COALESCE(width_mm, depth_mm, height_mm, diameter_mm)
+                           FROM variant WHERE variant_id = listing.variant_id) IS NULL
+                   THEN excluded.variant_id ELSE listing.variant_id END,
                  price          = excluded.price,
                  price_original = excluded.price_original,
                  in_stock       = excluded.in_stock,

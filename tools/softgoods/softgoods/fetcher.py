@@ -129,12 +129,16 @@ class Fetcher:
                 self.sleeper(self.delay * attempt * 2)  # 退讓：每次等更久
 
         self.stats["failed"] += 1
+        self.sleeper(self.delay)  # 失敗也要等，不然一連串 404 會連珠炮打過去
         raise FetchError(f"抓取失敗（{last}）: {url}")
 
     # --------------------------------------------------------- 主要入口
 
-    def __call__(self, url: str) -> str:
-        """抓一個網址。順序是：快取 → robots → 下載 → 等待。"""
+    def __call__(self, url: str, trim: Callable[[str], str] | None = None) -> str:
+        """抓一個網址。順序是：快取 → robots → 下載 → 等待。
+
+        trim：存快取前先瘦身（整頁商品頁 0.7 MB，只要看得到的文字）。快取裡存的是瘦身後的。
+        """
         path = self.cache_path(url)
         if path.exists():
             self.stats["cached"] += 1
@@ -145,6 +149,8 @@ class Fetcher:
             raise Blocked(f"robots.txt 不允許: {url}")
 
         body = self._download(url)
+        if trim:
+            body = trim(body)
 
         # 成功才寫快取。失敗寫進去，下次重跑會永遠拿到空的。
         path.parent.mkdir(parents=True, exist_ok=True)

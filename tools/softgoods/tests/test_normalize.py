@@ -46,6 +46,56 @@ class TestParseDimensions:
             ('24" 寬', {"width_mm": 610}),
             # --- 全形數字和符號也要吃
             ("寬１８０ｘ高７５cm", {"width_mm": 1800, "height_mm": 750}),
+            # --- 標籤全寫在前面、數字全寫在後面（居雅堂 2026-11-20）。要照順序對：第二個是高
+            (
+                "寬 × 高 × 深：285 × 307 × 285 mm",
+                {"width_mm": 285, "height_mm": 307, "depth_mm": 285},
+            ),
+            (
+                "寬 × 高 × 出牆深度：200 × 236 × 323 mm",
+                {"width_mm": 200, "height_mm": 236, "depth_mm": 323},
+            ),
+            ("W x D x H: 60 x 45 x 80 cm", {"width_mm": 600, "depth_mm": 450, "height_mm": 800}),
+            # --- 電壓不是尺寸（潤舍的規格名、lampclub 的規格字串都有）
+            ("透明玻璃｜黑色底座 (110-240V 適用)", {}),
+            ("吊燈 · 110/220V", {}),
+            ("110V (Ø40)", {"diameter_mm": 400}),
+            ("煙燻灰 (LED 110V)", {}),
+            ("白色大理石 (110-240V電壓適用)", {}),  # V 後面直接接中文
+            ("暖光 3000K色溫", {}),
+            ("230 / 3000k / DALI", {}),  # 小寫 k 也是色溫
+            # --- 人工抽查 30 件找到的（2026-11-20）
+            ("預購 / W1000 D600 H2080 / White 白", {"width_mm": 1000, "depth_mm": 600, "height_mm": 2080}),
+            ("燈罩：∅ 50 x 高 10 cm，電線長度 300 cm", {"diameter_mm": 500, "height_mm": 100}),
+            ("Type B 箱型×1＋分隔×2 / Texture White 霧面白", {}),
+            ("W600 D400 H625 / Deep Yellow / 金屬鋼板x1、PC板x1", {"width_mm": 600, "depth_mm": 400, "height_mm": 625}),
+            # --- 長和寬都寫了：長是寬（長邊），寬是深。不然深會不見（人工抽查 2026-11-20）
+            ("長 × 寬 × 高：130 × 120 × 73 cm", {"width_mm": 1300, "depth_mm": 1200, "height_mm": 730}),
+            ("寬 65 cm x 長 65 cm x 高 73 cm", {"width_mm": 650, "depth_mm": 650, "height_mm": 730}),
+            ("長 182 cm，寬 50 cm，高 212 cm", {"width_mm": 1820, "depth_mm": 500, "height_mm": 2120}),
+            # --- 單位後面不能接英文字母：「200 min」的 m 不是公尺
+            ("寬 130 cm，總高度 200 min - 405 cm", {"width_mm": 1300, "height_mm": 2000}),
+            # --- 沒寫單位（人工抽查 2026-11-20：5500 筆規格名沒有單位）
+            # 數字大（≥ 400）當 mm：Sheeper 都寫 mm 不寫單位；4 m 以上的軟裝很少見
+            ("W 1,200 × D 600 × H 320", {"width_mm": 1200, "depth_mm": 600, "height_mm": 320}),
+            ("預購 / W730 x D300", {"width_mm": 730, "depth_mm": 300}),
+            # 數字小當公分：床墊、地毯
+            ("180x200 / Roller Slate / Oak", {"width_mm": 1800, "depth_mm": 2000}),
+            # 沒標籤的數字要用 x 串起來才算尺寸；色號、型號不是
+            ("Natural Oak 天然橡木 / Cabanon Soft FCL7029-04 復古綠", {}),
+            ("2 Seater / Heritage 18011 / Olive Green Lacquered", {}),
+            ("深色橡木 / PC0 皮革・Sierra 1611", {}),
+            ("Ariette 1 (80x80 cm)", {"width_mm": 800, "depth_mm": 800}),
+            # --- 標籤和數字個數對不上：不猜（Codex 審查 2026-11-20）
+            ("寬 × 高 × 深：285 × 307 mm", {}),
+            # --- 色溫、瓦數、燈座、型號裡的字母都不是尺寸（居雅堂的規格名）
+            ("Brown Opal / High Lustre Chrome / LED 27K", {}),  # LED 的 D 不是「深」
+            ("LED D2W / Brass PVD", {}),
+            ("230 / 3000K / Matt Black / Dimmer on Board", {}),
+            ("燈泡規格：E27 40W", {}),
+            ("180W x 90D x 75H cm", {"width_mm": 1800, "depth_mm": 900, "height_mm": 750}),
+            # --- 「約」夾在標籤和數字中間
+            ("圖示整高約390 cm，底座直徑47 cm", {"height_mm": 3900, "diameter_mm": 470}),
         ],
     )
     def test_parses_real_world_strings(self, raw, want):
@@ -150,12 +200,81 @@ class TestMapCategory:
         mapping = {"雕塑": ("decor", "sculpture")}
         assert nz.map_category(f"擺飾{sep}雕塑", mapping) == ("decor", "sculpture")
 
+    @pytest.mark.parametrize(
+        "raw, want",
+        [
+            # 真實資料：居雅堂、Sheeper 的 product_type 是中英黏在一起
+            ("吊燈 Pendant", ("lighting", "pendant")),
+            ("吊燈 Pendant Lamp", ("lighting", "pendant")),
+            ("椅子 Accent Chair", ("furniture", "chair")),
+            ("Accent Chair單椅", ("furniture", "chair")),
+        ],
+    )
+    def test_chinese_and_english_glued_together_try_each_half(self, raw, want):
+        assert nz.map_category(raw, self.MAPPING) == want
+
+    @pytest.mark.parametrize("raw", ["吊燈(大)", "吊燈（大）", "吊燈 (中)"])
+    def test_a_note_in_brackets_is_ignored(self, raw):
+        # 真實資料：NOSA 寫「吧檯椅(中)」「吧檯椅(高)」
+        assert nz.map_category(raw, self.MAPPING) == ("lighting", "pendant")
+
+    def test_a_broad_name_gives_only_the_big_category(self):
+        # 真實資料：NOSA 所有的燈都寫「燈具」，分不出吊燈還是壁燈
+        assert nz.map_category("燈具", {"燈具": ("lighting",)}) == ("lighting", None)
+
+    def test_a_specific_match_beats_a_broad_one(self):
+        # 「Light燈飾 Pendant」：燈飾只說是燈，Pendant 說是吊燈 —— 要吊燈
+        mapping = {"燈飾": ("lighting",), "pendant": ("lighting", "pendant")}
+        assert nz.map_category("Light燈飾 Pendant", mapping) == ("lighting", "pendant")
+
     def test_unmapped_returns_none_so_you_can_find_the_gaps(self):
         # 回 None 而不是猜，這樣才查得出「還有哪些分類沒對應」
         assert nz.map_category("按摩椅", self.MAPPING) == (None, None)
 
     def test_empty_returns_none(self):
         assert nz.map_category("", self.MAPPING) == (None, None)
+
+
+class TestSubcategoryFromTitle:
+    """網站分類太粗（只寫「燈具」）時，從標題找小分類。只在同一個大分類裡找。"""
+
+    MAPPING: ClassVar[dict] = {
+        "吊燈": ("lighting", "pendant"),
+        "壁燈": ("lighting", "wall"),
+        "吸頂燈": ("lighting", "ceiling"),
+        "pendant lamp": ("lighting", "pendant"),
+        "bulb": ("lighting", "bulb"),
+        "掛飾": ("decor", "wall_decor"),
+        "pot": ("greenery", "planter"),
+    }
+
+    @pytest.mark.parametrize(
+        "title, want",
+        [
+            # 真實標題（NOSA）
+            ("Ingo Maurer - Zettel'z 6 吊燈", "pendant"),
+            # 標題是「品名在前、類別詞在後」，所以取最後出現的那個
+            ("Ingo Maurer - 18x18 壁燈／吸頂燈", "ceiling"),
+            ("Audo Copenhagen - TR Bulb 吊燈", "pendant"),  # 'Bulb' 是品名，不是燈泡
+            ("Audo TR Bulb Pendant Lamp", "pendant"),
+        ],
+    )
+    def test_finds_the_type_word_in_the_title(self, title, want):
+        assert nz.subcategory_from_title(title, "lighting", self.MAPPING) == want
+
+    def test_stays_inside_the_big_category(self):
+        # 家飾的標題裡出現「吊燈」，也不能變成燈
+        assert nz.subcategory_from_title("吊燈造型掛飾", "decor", self.MAPPING) == "wall_decor"
+        assert nz.subcategory_from_title("吊燈造型擺件", "decor", self.MAPPING) is None
+
+    def test_english_words_must_be_whole_words(self):
+        # 'pot' 不能從 'Teapot' 裡面找到
+        assert nz.subcategory_from_title("Teapot", "greenery", self.MAPPING) is None
+        assert nz.subcategory_from_title("Clay Pot 30", "greenery", self.MAPPING) == "planter"
+
+    @pytest.mark.parametrize("title", ["", None, "Zettel'z 6"])
+    def test_nothing_found_returns_none(self, title):
+        assert nz.subcategory_from_title(title, "lighting", self.MAPPING) is None
 
 
 # ---------------------------------------------------------- 交期

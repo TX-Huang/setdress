@@ -42,6 +42,10 @@ python check_site.py https://新網站.com.tw
 怎麼知道是不是 Shopify？開 `https://網站/products.json?limit=3`，
 有 JSON 出來就是。
 
+尺寸會從商品介紹文字裡只抽出「尺寸那一行」（`sizes.py`，規格在 `SIZES.md`），
+介紹文字本身不存。有些店（潤舍）尺寸只寫在商品頁、JSON 裡沒有，
+那一站加 `size_from_page: true`：分得出類別、清單裡沒尺寸的商品，一件多開一頁。
+
 ### 如果要自己解析 HTML
 
 寫一個 adapter，只要兩個方法：
@@ -65,6 +69,8 @@ class 新站Adapter(Adapter):
 softgoods/
   fetcher.py          抓取層（快取 / robots / 限速 / 重試）—— 所有站共用一份
   normalize.py        正規化（尺寸→mm、品牌收斂、分類對應、標題清理）
+  sizes.py            從介紹文字只抽出尺寸那一行（SIZES.md）
+  policy.py           只存事實：介紹文字和圖片預設不存
   store.py            寫 SQLite（重跑不會弄亂資料、價格變了才記歷史）
   models.py           SiteConfig 和 Record
   registry.py         站台清單 + adapter 查表
@@ -111,13 +117,20 @@ FROM product WHERE cat1 = 'unknown' OR cat2 IS NULL;
 
 把缺的補進 `data/category_map.yaml` 就好，不用改程式。
 
+不用另外加的：「吊燈 Pendant」「Light燈飾」這種中英黏在一起的、「吧檯椅(高)」這種帶括號的，
+程式會拆開各試一次。網站分類太粗（NOSA 的燈全寫「燈具」）時，小分類從標題找。
+
+**改了分類對應，要重建資料庫**：商品的分類只在第一次寫入時決定（好幾家店共用同一個商品）。
+把 `softgoods.db` 移走、重跑 `crawl`，會全部從本機快取讀，不會再打網站。
+尺寸不用：重跑時解析得出尺寸，就會更新舊的；這次沒抓到尺寸，不會蓋掉舊的。
+
 ## 測試
 
 ```powershell
 python -m pytest tests/ -q
 ```
 
-167 個測試，完全不碰網路（網路層是注入的）。
+296 個測試（8 個要 lampclub 頁面副本，沒有就跳過），完全不碰網路（網路層是注入的）。
 測試素材是真的抓回來的頁面，放在 `tests/fixtures/`。
 
 交出去前跑：

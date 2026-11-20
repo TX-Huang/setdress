@@ -28,8 +28,11 @@ sites:
     kind: dealer
     platform: shopify
     crawl_delay_sec: 2.0
+    size_from_page: true
     notes: >
       Shopify 店，/products.json 可用（已實測）。
+      尺寸不在 products.json，在商品頁「商品資訊」那一塊（Shopify metafield），
+      所以打開 size_from_page：分得出類別、清單裡沒尺寸的商品，一件多開一頁（約 1050 頁）。
       Flos / Tom Dixon 等品牌的台灣通路。
       check_site 2026-11-20：條款找到了、沒禁止。
 

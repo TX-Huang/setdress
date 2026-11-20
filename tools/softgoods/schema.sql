@@ -109,7 +109,9 @@ CREATE TABLE IF NOT EXISTS variant (
   -- （都是「吊燈 · Ø20 x H22 cm」），但 31,100 和 167,000 不是同一個東西。
   pack         INTEGER NOT NULL DEFAULT 1,
   attrs        TEXT DEFAULT '{}',
-  UNIQUE(product_id, name, pack)
+  -- 尺寸也在身分裡：同一個品名下，規格名一樣（「白色」）但尺寸不同的是不同東西
+  -- （潤舍的 Nebra 立燈和 Nebra 桌燈）。2026-11-20 前建的資料庫是舊的限制，要重建
+  UNIQUE(product_id, name, pack, width_mm, depth_mm, height_mm, diameter_mm)
 );
 CREATE INDEX IF NOT EXISTS ix_variant_product ON variant(product_id);
 
