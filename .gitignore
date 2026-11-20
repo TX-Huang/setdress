@@ -2,6 +2,8 @@
 tools/autoalign/photos/*
 !tools/autoalign/photos/.gitkeep
 tools/autoalign/out/
+# 自動描批次：店家的照片和結果只放本機
+tools/outline/out/
 tools/autoalign/.venv/
 __pycache__/
 .pytest_cache/

@@ -123,6 +123,43 @@ class TestProfile:
         assert abs(dict(prof)[0] - 60) <= 1.5
 
 
+class TestPhotoProblem:
+    """批次用：照片能不能拿來描。要單色背景的側面、轉一圈的形狀（docs/outline.md 第 8、9 句）。"""
+
+    def test_a_clean_side_view_is_fine(self):
+        assert ol.photo_problem(ol.foreground(draw(cone))) is None
+
+    def test_a_pendant_cord_touching_the_top_is_fine(self):
+        assert ol.photo_problem(ol.foreground(draw(cone, cord=True))) is None
+
+    def test_touching_the_bottom_is_fine(self):
+        # 立燈拍到照片底部。底座只佔邊框一小段（寬到佔一成以上，那個顏色就會被當成背景色）
+        assert ol.photo_problem(ol.foreground(draw(lambda h: 25, bottom=H - 1))) is None
+
+    def test_touching_the_left_edge_means_the_photo_is_cut_or_not_plain(self):
+        assert ol.photo_problem(ol.foreground(draw(cone, cx=40))) == ol.CUT_OFF
+
+    def test_touching_the_right_edge_too(self):
+        assert ol.photo_problem(ol.foreground(draw(cone, cx=W - 40))) == ol.CUT_OFF
+
+    def test_an_arm_sticking_out_on_one_side_is_lopsided(self):
+        # 細桿（半徑 15）的上面三成，右邊伸出一支手臂：不是轉一圈的形狀
+        img = draw(lambda h: 15)
+        img[20:80, 100:180] = (40, 40, 40)
+        assert ol.photo_problem(ol.foreground(img)) == ol.LOPSIDED
+
+    def test_a_short_arm_on_a_seventh_of_the_height_is_still_caught(self):
+        img = draw(lambda h: 15)
+        img[60:90, 100:180] = (40, 40, 40)  # 30 列，佔 201 列的 15%
+        assert ol.photo_problem(ol.foreground(img)) == ol.LOPSIDED
+
+    def test_a_shadow_on_one_side_of_the_bottom_tenth_is_not_lopsided(self):
+        img = draw(cone)
+        # 底下一成（201 列的最後 21 列）右邊一片影子。這一成如果也算，第 90 百分位就會落在影子上
+        img[200:221, 100:190] = (200, 200, 200)
+        assert ol.photo_problem(ol.foreground(img)) is None
+
+
 class TestScale:
     def test_scales_by_the_real_width(self):
         prof = [(0, 50.0), (100, 25.0), (200, 0.0)]  # (高 px, 半寬 px)
@@ -181,8 +218,10 @@ class TestCompare:
         assert prof[20.0] == 9, "平的邊取外面那圈"
 
     def test_a_thin_part_between_samples_is_not_lost(self):
-        parts = [{"k": "cyl", "r": 2, "h": 10, "at": [0, 5, 0]},
-                 {"k": "cyl", "r": 8, "h": 0.2, "at": [0, 2.2, 0]}]  # 2.1 到 2.3 cm 的薄凸緣
+        parts = [
+            {"k": "cyl", "r": 2, "h": 10, "at": [0, 5, 0]},
+            {"k": "cyl", "r": 8, "h": 0.2, "at": [0, 2.2, 0]},
+        ]  # 2.1 到 2.3 cm 的薄凸緣
         assert max(r for r, _ in ol.parts_profile(parts, step=0.5)) == 8
 
     def test_a_lamp_with_nothing_on_the_axis_has_no_profile(self):

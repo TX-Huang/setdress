@@ -27,8 +27,9 @@ SUSPECT_PCT = 15  # 量出來的高度跟店家標的差超過這麼多：照片
 def load_lamps() -> dict[str, dict]:
     """原型的燈（lamps.js 是 JavaScript，用 Node 讀）。"""
     code = "console.log(JSON.stringify(require('./prototype/lamps.js').LAMPS))"
-    out = subprocess.run(["node", "-e", code], cwd=ROOT, capture_output=True, check=True,
-                         text=True, encoding="utf-8")
+    out = subprocess.run(
+        ["node", "-e", code], cwd=ROOT, capture_output=True, check=True, text=True, encoding="utf-8"
+    )
     return {lamp["id"]: lamp for lamp in json.loads(out.stdout)}
 
 
@@ -97,8 +98,11 @@ def measure(lamp: dict, photo: pathlib.Path, out_dir: pathlib.Path) -> dict:
     hand = hand_profile(lamp, width)
     error = _error_pct(auto_h, height)
     return {
-        "id": lamp["id"], "category": lamp["category"],
-        "real_h": height, "auto_h": round(auto_h, 1), "height_error_pct": error,
+        "id": lamp["id"],
+        "category": lamp["category"],
+        "real_h": height,
+        "auto_h": round(auto_h, 1),
+        "height_error_pct": error,
         "suspect": error is not None and abs(error) > SUSPECT_PCT,
         "overlap_with_hand": round(ol.overlap(width_only, hand), 3) if hand else None,
         "points": len(simple),
@@ -129,8 +133,10 @@ def report(r: dict) -> str:
     if "error" in r:
         return f"{r['id']:28} {r['category']:4} 沒描到：{r['error']}"
     flag = "  ← 照片角度要人看" if r["suspect"] else ""
-    return (f"{r['id']:28} {r['category']:4} 高 實際 {r['real_h']} / 描出 {r['auto_h']}"
-            f"（差 {r['height_error_pct']}%）  跟手描重疊 {r['overlap_with_hand']}{flag}")
+    return (
+        f"{r['id']:28} {r['category']:4} 高 實際 {r['real_h']} / 描出 {r['auto_h']}"
+        f"（差 {r['height_error_pct']}%）  跟手描重疊 {r['overlap_with_hand']}{flag}"
+    )
 
 
 def main(photo_dir: pathlib.Path, out_dir: pathlib.Path) -> None:

@@ -30,6 +30,13 @@ CORD_WOBBLE = 2  # 電線一路跟最上面一樣細：寬度最多多這麼多 
 CORD_MIN_SHARE = 0.05  # 而且要夠長（佔整個高度這麼多以上）；尖頂只會細短短幾列
 BORDER_SHARE = 0.1  # 邊框上佔這麼多以上的顏色，都算背景色（白牆加灰地板這種）
 UPPER_SHARE = 0.5  # 中心軸只看上面這一半：影子落在底部
+SHADOW_SHARE = 0.1  # 檢查左右對稱時不看最底下這一成（影子落在底部的一邊）
+LOPSIDED_PCT = 90  # 各列左右差的第幾百分位
+# 超過最寬半寬的這麼多就算不對稱。33 張已知答案的照片：好的最多 0.07、歪的最少 0.20
+LOPSIDED_LIMIT = 0.12
+
+CUT_OFF = "照片切到商品，或背景不是單色"
+LOPSIDED = "左右不對稱，不是轉一圈的形狀"
 
 
 class NoProductError(ValueError):
@@ -152,14 +159,44 @@ def _cord_rows(rows: np.ndarray, widths: np.ndarray) -> int:
     return run if run >= CORD_MIN_SHARE * len(widths) else 0
 
 
-def _half_widths(left: np.ndarray, right: np.ndarray) -> np.ndarray:
-    """每一列的半寬：中心軸到比較近的那一邊。影子只會讓一邊變寬。
-
-    中心軸是上半部各列中點的中位數：影子落在底部，拖得很長也不會把中心軸拉走。
-    """
+def _axis(left: np.ndarray, right: np.ndarray) -> float:
+    """中心軸：上半部各列中點的中位數。影子落在底部，拖得很長也不會把中心軸拉走。"""
     upper = max(1, int(len(left) * UPPER_SHARE))
-    axis = float(np.median((left[:upper] + right[:upper]) / 2))
+    return float(np.median((left[:upper] + right[:upper]) / 2))
+
+
+def _half_widths(left: np.ndarray, right: np.ndarray) -> np.ndarray:
+    """每一列的半寬：中心軸到比較近的那一邊。影子只會讓一邊變寬。"""
+    axis = _axis(left, right)
     return np.clip(np.minimum(axis - left, right - axis), 0, None)
+
+
+def _lopsided(left: np.ndarray, right: np.ndarray) -> bool:
+    """左右不對稱：每一列「中心軸到左邊」和「到右邊」差多少，看第 90 百分位。
+
+    底下一成不看（影子）。轉一圈的東西從側面看一定左右對稱；側邊有支架、手臂的不是。
+    """
+    axis = _axis(left, right)
+    to_left, to_right = axis - left, right - axis
+    widest = max(float(to_left.max()), float(to_right.max()), 1.0)
+    keep = max(1, int(len(left) * (1 - SHADOW_SHARE)))  # 列是由上往下排的
+    diff = np.abs(to_left - to_right)[:keep] / widest
+    return float(np.percentile(diff, LOPSIDED_PCT)) > LOPSIDED_LIMIT
+
+
+def photo_problem(mask: np.ndarray) -> str | None:
+    """這張照片能不能拿來描。可以的話回 None，不行回原因（CUT_OFF 或 LOPSIDED）。
+
+    商品碰到左右邊：實景照、開箱照、近拍，背景長不進來，整片都被當成商品。
+    碰到上下邊沒關係（吊燈的電線、立燈拍到底）。
+    """
+    rows, left, right = _row_extents(mask)
+    if len(rows) == 0:
+        raise NoProductError("照片裡找不到商品（整張都是背景）")
+    if left.min() == 0 or right.max() == mask.shape[1] - 1:
+        return CUT_OFF
+    cut = _cord_rows(rows, right - left)
+    return LOPSIDED if _lopsided(left[cut:], right[cut:]) else None
 
 
 def profile(mask: np.ndarray) -> PixelProfile:
