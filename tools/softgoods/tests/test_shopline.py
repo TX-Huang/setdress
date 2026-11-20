@@ -320,3 +320,21 @@ class TestBrandAtTheEnd:
     def test_by_inside_a_word_is_not_a_brand(self):
         a = ShoplineAdapter(SiteConfig(site_id="d", name="d", base_url=BASE, adapter="shopline"), brand_names=[])
         assert a.parse(URL, page(product("Standby 桌燈", [variation("白", 1000)])))[0].brand == ""
+
+
+class TestBrandField:
+    """Shopline 的商品資料有 brand 欄位（WOW 的 Yama Coffee Table 寫 LAGO），標題裡常常沒有品牌。"""
+
+    def test_the_brand_field_comes_first(self, shopline):
+        r = shopline.parse(URL, page(product("Yama Coffee Table 咖啡桌", [variation("白", 45000)], brand="LAGO")))[0]
+        assert r.brand == "LAGO"
+
+    def test_an_empty_brand_field_falls_back_to_the_title(self, shopline):
+        r = shopline.parse(URL, page(product("Artemide Teti 吸頂燈", [variation("白", 5600)], brand="")))[0]
+        assert r.brand == "Artemide"
+
+    def test_a_known_brand_keeps_our_spelling(self):
+        a = ShoplineAdapter(SiteConfig(site_id="d", name="d", base_url=BASE, adapter="shopline"),
+                            brand_names=["Louis Poulsen"])
+        r = a.parse(URL, page(product("PH 5 吊燈", [variation("白", 39900)], brand="LOUIS POULSEN")))[0]
+        assert r.brand == "Louis Poulsen"

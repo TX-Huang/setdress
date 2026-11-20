@@ -243,10 +243,17 @@ class ShoplineAdapter(Adapter):
     def _brand(self, title: str) -> str:
         return brand_from_title(title, self.brand_names)
 
-    def _brand_and_model(self, title: str) -> tuple[str, str, str | None]:
-        """品牌：標題最後的「by 品牌」→ 標題開頭的已知品牌 → 店家自己的牌子。再從標題清出型號。"""
+    def _known(self, name: str) -> str:
+        """品牌在已知名單裡就用名單的寫法（「LOUIS POULSEN」→「Louis Poulsen」）。"""
+        return next((n for n in self.brand_names if n.casefold() == name.casefold()), name)
+
+    def _brand_and_model(self, title: str, field: str) -> tuple[str, str, str | None]:
+        """品牌：商品資料的 brand 欄位 → 標題最後的「by 品牌」→ 標題開頭的已知品牌 → 店家自己的牌子。
+
+        很多店的標題裡沒有品牌（WOW「Yama Coffee Table 咖啡桌」），但 brand 欄位有填（LAGO）。
+        """
         core, by_brand = split_by_brand(title, self.brand_names)
-        brand = by_brand or self._brand(title) or self.site.house_brand
+        brand = self._known(field) if field else by_brand or self._brand(title) or self.site.house_brand
         model, color_hint = nz.clean_title(core, brand)
         return brand, model, color_hint
 
@@ -265,7 +272,7 @@ class ShoplineAdapter(Adapter):
 
     def _record(self, url: str, page: str, product: dict, variation: dict | None, i: int = 0) -> Record:
         title = _zh(product.get("title_translations"))
-        brand, model, color_hint = self._brand_and_model(title)
+        brand, model, color_hint = self._brand_and_model(title, _text(product.get("brand")).strip())
         cat1, cat2 = self._category(title)
         source = variation or product
         variant_name = _zh(source.get("fields_translations")) or None
