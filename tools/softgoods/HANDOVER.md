@@ -13,10 +13,43 @@ lampclub.tw 的使用條款寫「請勿以程式大量擷取本站資料」（�
 
 所以這批資料是在站方同意下取得的，不是違反條款抓的。
 
-**公開發布**：Isaac 2026-11-20 確認，抓下來的資料可以公開。
+**公開發布**：Isaac 說資料可以公開；但 lampclub 同意的是「抓取」，「公開發布那份資料」還沒跟對方確認，所以資料先放私人 repo，公開前先問 lampclub（lampclub 的聯絡信箱在它的條款頁）。
 
 加其他新站時不要重複我的錯：`check_site.py` 第 7 項會查使用條款，
 一定要跑，不要只看 robots.txt。robots.txt 是請求，條款是合約。
+
+---
+
+## 東西現在在哪（2026-11-20 交接完成）
+
+| 東西 | 位置 | 公開嗎 |
+|---|---|---|
+| **程式**（框架、測試、工具、文件、通路清單 `CHANNELS.md`） | [TX-Huang/setdress](https://github.com/TX-Huang/setdress) 的 `tools/softgoods/` | 公開 |
+| **資料**（`out/*.csv`、`softgoods.db`） | [TX-Huang/softgoods](https://github.com/TX-Huang/softgoods)（說明見它的 `DATA.md`）；本機放在 `tools/softgoods/` 底下，被 `.gitignore` 擋著 | **私人** |
+| **原始網頁快取**（59 MB） | 只在 Isaac 的另一台電腦 | 沒上傳 |
+
+**改程式推到 setdress 的 `tools/softgoods/`**，softgoods repo 只放資料。
+
+資料是「抓齊了沒」的基準：改成直接抓各家通路之後，拿它對照有沒有漏。
+
+---
+
+## 還沒解決的問題
+
+**1. lampclub 的授權範圍** ← 最重要
+
+對方同意「抓取」，「公開發布那份資料」沒問到。要公開之前先問清楚。
+
+**2. `tests/fixtures/shopify_products.json` 在公開 repo 裡**
+
+那是潤舍（luxurylife）的 3 個商品（標題、價格、SKU），當測試素材用。
+潤舍的條款沒有禁止爬取，3 個商品算極少量，所以判斷可以留。
+要更保守的話換成自己編的假資料，代價是測不到真實世界的髒資料。
+
+**3. `lamp_scraper.py` 要不要刪**
+
+已被 `softgoods/` 完全取代，留著的理由寫在它的檔頭（**它每次跑完都會整個覆蓋
+`out/*.csv`**，不要在有資料的資料夾裡跑）。問 Isaac 決定。
 
 ---
 

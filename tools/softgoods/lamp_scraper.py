@@ -10,6 +10,10 @@ lampclub.tw 爬蟲練習（已被 softgoods/ 取代，留著當參考）
   它的 parse_lamp 複雜度 C (15)，沒有拆 —— 刻意不整理，因為整理它
   等於維護兩份做同一件事的程式。要刪掉它請問 Isaac。
 
+⚠ 陷阱（我自己踩過）：這支每次跑完都會「整個覆蓋」out/*.csv。
+  所以 `python lamp_scraper.py 5` 會把完整的 2142 列 CSV 蓋成 5 列。
+  想試跑請先備份 out/，或直接用 `python lamp_scraper.py all`（走快取、零下載）。
+
 正式的用法看 README.md：
     python -m softgoods crawl lampclub
 
