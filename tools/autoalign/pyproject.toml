@@ -1,0 +1,23 @@
+[project]
+name = "setdress-autoalign"
+version = "0.1.0"
+description = "Estimate camera height, tilt, field of view and ceiling height from a room depth map."
+requires-python = ">=3.11"
+dependencies = ["numpy>=2.0"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "C90", "N", "RUF"]
+# 註解、說明和錯誤訊息用繁體中文寫，全形標點是中文的正確寫法，不是打錯的字元。
+# 只放行這幾個標點；其他長得像 ASCII 的字元（例如西里爾字母）還是會被抓。
+allowed-confusables = ["：", "，", "；", "（", "）"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 6

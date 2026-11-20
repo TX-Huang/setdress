@@ -1,0 +1,14 @@
+# 使用者家裡的照片是隱私，不進版本控制
+tools/autoalign/photos/*
+!tools/autoalign/photos/.gitkeep
+tools/autoalign/out/
+tools/autoalign/.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+
+# 本機開發工具設定（有這台電腦的路徑）
+.claude/
+# 舊的私人 repo 的改動紀錄（本機備份，不上傳）
+.git-private-backup/
+.web-publish/

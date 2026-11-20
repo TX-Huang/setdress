@@ -1,0 +1,56 @@
+# 推到 main：先跑測試，全過才更新網站（https://tx-huang.github.io/setdress-web/）。
+# 網站只放 tools/web/build_site.py 白名單上的檔案：照片、文件、測試都不會出去。
+name: 測試並更新網站
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: 原型的測試（燈具、網頁版 AI 對齊、量尺）
+        working-directory: prototype
+        run: node --test
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 裝 Python 測試要的套件
+        run: pip install numpy pillow pytest
+      - name: AI 對齊工具的測試（假房間，不用 AI 模型）
+        working-directory: tools/autoalign
+        run: python -m pytest -q
+      - name: 網站白名單的測試
+        working-directory: tools/web
+        run: python -m pytest -q
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: 只把網站的檔案放進 _site
+        run: python3 tools/web/build_site.py --dest _site
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
