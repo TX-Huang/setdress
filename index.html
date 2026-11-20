@@ -1,0 +1,1598 @@
+<title>Setdress 原型</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: the room photo is the stage (left on desktop, top on phones); a narrow control panel sits beside or below it. */
+:root {
+  --bg: #eceff1;
+  --surface: #ffffff;
+  --surface-2: #f5f7f8;
+  --ink: #1a1f23;
+  --muted: #5a636b;
+  --line: #d5dbe0;
+  --accent: #a9640f;
+  --accent-ink: #84500c;
+  --accent-soft: #f5e6cf;
+  --stage: #101315;
+  --on-stage: #f3f5f6;
+  --scrim: rgba(10, 12, 14, 0.62);
+  --danger: #b3261e;
+  --font-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --font-num: "Space Grotesk", "Noto Sans TC", system-ui, sans-serif;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111416; --surface: #1a1e21; --surface-2: #212629; --ink: #e7eaec; --muted: #9ba4ab; --line: #2d3338;
+    --accent: #e8a14a; --accent-ink: #f1b670; --accent-soft: #3a2b18; --stage: #08090a; --on-stage: #f3f5f6;
+    --scrim: rgba(10, 12, 14, 0.62); --danger: #ff8a80;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111416; --surface: #1a1e21; --surface-2: #212629; --ink: #e7eaec; --muted: #9ba4ab; --line: #2d3338;
+  --accent: #e8a14a; --accent-ink: #f1b670; --accent-soft: #3a2b18; --stage: #08090a; --on-stage: #f3f5f6;
+  --scrim: rgba(10, 12, 14, 0.62); --danger: #ff8a80;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding-block: 14px 12px; max-width: 1400px; margin-inline: auto; }
+.brand { display: flex; align-items: center; gap: 8px; }
+.wordmark { font-family: var(--font-num); font-weight: 700; font-size: 22px; letter-spacing: -0.01em; }
+.chip { font-size: 12px; font-weight: 500; padding: 2px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-ink); }
+.tagline { margin: 0; color: var(--muted); flex: 1 1 220px; min-width: 0; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; font-weight: 500; cursor: pointer; }
+.btn-primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+#file:focus-visible + .btn { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.app { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); max-width: 1400px; margin-inline: auto; padding-block-end: 28px; }
+@media (min-width: 900px) {
+  .app { grid-template-columns: minmax(0, 1fr) 340px; align-items: start; }
+  .panel { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); }
+}
+.stage-col { min-width: 0; display: grid; gap: 8px; }
+.stage { position: relative; display: grid; place-items: center; background: var(--stage); border-radius: var(--radius); overflow: hidden; min-height: 220px; }
+.stage canvas { display: block; touch-action: none; }
+.hint, .mark { position: absolute; margin: 0; font-size: 12.5px; color: var(--on-stage); background: var(--scrim); padding: 4px 10px; border-radius: 999px; pointer-events: none; }
+.hint { top: 12px; left: 12px; }
+.mark { bottom: 12px; left: 12px; }
+.toast { position: absolute; left: 12px; right: 12px; bottom: 48px; margin: 0; padding: 10px 12px; border-radius: 8px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); font-size: 14px; }
+.toast[data-kind="error"] { border-color: var(--danger); color: var(--danger); }
+.ask { position: absolute; left: 12px; right: 12px; top: 50%; transform: translateY(-50%); margin: 0 auto; max-width: 420px; padding: 14px; border-radius: 10px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); display: grid; gap: 10px; font-size: 14px; }
+.ask p { margin: 0; }
+.ask div { display: flex; flex-wrap: wrap; gap: 8px; }
+.caption { margin: 0; color: var(--muted); font-size: 13px; }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); min-width: 0; }
+.tabs { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--line); }
+.tabs button { font: inherit; font-weight: 500; background: none; border: 0; padding: 12px 8px; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.tabpanel { padding: 16px; display: grid; gap: 14px; }
+
+.item { border: 1px solid var(--line); border-radius: 8px; padding: 12px; display: grid; gap: 12px; background: var(--surface-2); }
+.item.is-selected { border-color: var(--accent); }
+.item-head { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
+.item h3 { margin: 0; font-size: 15.5px; }
+.spec { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+.price { font-family: var(--font-num); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.ctl { display: grid; gap: 4px; }
+.ctl-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.ctl label, .ctl-label { font-size: 13.5px; }
+output { font-family: var(--font-num); font-variant-numeric: tabular-nums; font-size: 13px; color: var(--muted); }
+input[type="range"] { width: 100%; accent-color: var(--accent); margin: 0; min-height: 28px; }
+select { font: inherit; min-height: 38px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 0 10px; }
+.switch { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
+.switch input { width: 18px; height: 18px; accent-color: var(--accent); margin: 0; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { font: inherit; border: 0; background: var(--surface); color: var(--muted); min-height: 36px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent-ink); font-weight: 700; }
+.swatch { display: inline-block; width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--line); vertical-align: -2px; margin-right: 6px; }
+
+.total { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+.total strong { font-family: var(--font-num); font-size: 22px; font-variant-numeric: tabular-nums; }
+.group-title { margin: 4px 0 0; font-size: 12.5px; color: var(--muted); font-weight: 700; }
+.note { margin: 0; font-size: 12.5px; color: var(--muted); }
+.lead { margin: 0; font-size: 14px; }
+.spec a { color: var(--accent-ink); }
+.offers summary { cursor: pointer; font-size: 13px; color: var(--muted); }
+.offers ul { margin: 6px 0 0; padding: 0; list-style: none; display: grid; gap: 2px; font-size: 13px; }
+.offers li { display: flex; justify-content: space-between; gap: 8px; }
+.offers li .price { font-weight: 500; }
+</style>
+
+<header class="bar">
+  <div class="brand"><span class="wordmark">Setdress</span><span class="chip">原型 v0</span></div>
+  <p class="tagline">把燈和地毯放進你家照片，邊看邊算總價。</p>
+  <input id="file" type="file" accept="image/*,.heic,.heif" class="sr-only">
+  <label class="btn btn-primary" for="file">上傳你家照片</label>
+</header>
+
+<main class="app">
+  <section class="stage-col" aria-label="照片舞台">
+    <div class="stage" id="stage">
+      <canvas id="view" aria-label="房間照片和放進去的商品。拖曳地毯或燈可以移動。"></canvas>
+      <p class="hint" id="hint">拖曳地毯或燈來移動</p>
+      <p class="mark">示意圖</p>
+      <p class="toast" id="toast" role="status" aria-live="polite" hidden></p>
+      <div class="ask" id="ai-ask" role="dialog" aria-labelledby="ai-ask-text" hidden>
+        <p id="ai-ask-text">AI 自動對齊要先下載模型（71 MB，只有第一次，之後存在這台裝置上）。照片不會上傳。</p>
+        <div><button class="btn btn-primary" type="button" id="ai-yes">下載並對齊</button><button class="btn" type="button" id="ai-no">先手動對齊</button></div>
+      </div>
+    </div>
+    <p class="caption"><span id="photo-name">示範房間（電腦畫的）</span>。照片只在這台電腦上處理，不會傳到網路上。</p>
+  </section>
+
+  <aside class="panel">
+    <div class="tabs" role="tablist" aria-label="控制面板">
+      <button type="button" role="tab" id="tab-place" data-tab="place" aria-controls="panel-place">擺放</button>
+      <button type="button" role="tab" id="tab-light" data-tab="light" aria-controls="panel-light">燈光</button>
+      <button type="button" role="tab" id="tab-align" data-tab="align" aria-controls="panel-align">對齊照片</button>
+    </div>
+
+    <div class="tabpanel" role="tabpanel" id="panel-place" aria-labelledby="tab-place">
+      <article class="item" id="card-rug">
+        <div class="item-head">
+          <div><h3>羊毛幾何地毯</h3><p class="spec" id="rug-spec">160 × 230 cm · 羊毛</p></div>
+          <span class="price" id="rug-price"></span>
+        </div>
+        <label class="switch"><input type="checkbox" id="rug-visible"> 放進照片</label>
+        <div class="ctl">
+          <label for="rug-size">尺寸</label>
+          <select id="rug-size">
+            <option value="160x230">160 × 230 cm</option>
+            <option value="200x290">200 × 290 cm</option>
+          </select>
+        </div>
+        <div class="ctl">
+          <div class="ctl-head"><label for="rug-rot">旋轉</label><output id="rug-rot-out" for="rug-rot"></output></div>
+          <input type="range" id="rug-rot" min="-90" max="90" step="1">
+        </div>
+      </article>
+
+      <article class="item" id="card-lamp">
+        <div class="item-head">
+          <div><h3 id="lamp-name"></h3><p class="spec" id="lamp-spec"></p></div>
+          <span class="price" id="lamp-price"></span>
+        </div>
+        <p class="spec" id="lamp-shop"></p>
+        <details class="offers">
+          <summary>各家價格</summary>
+          <ul id="lamp-offers"></ul>
+        </details>
+        <label class="switch"><input type="checkbox" id="lamp-visible"> 放進照片</label>
+        <div class="ctl">
+          <label for="lamp-pick">換一盞燈（lampclub.tw 上的真燈）</label>
+          <select id="lamp-pick"></select>
+        </div>
+        <div class="ctl" id="row-hang">
+          <div class="ctl-head"><label for="lamp-hang">燈罩離地</label><output id="lamp-hang-out" for="lamp-hang"></output></div>
+          <input type="range" id="lamp-hang" min="0.8" max="2.6" step="0.01">
+        </div>
+        <div class="ctl" id="row-table">
+          <div class="ctl-head"><label for="lamp-table">桌面高度</label><output id="lamp-table-out" for="lamp-table"></output></div>
+          <input type="range" id="lamp-table" min="0" max="1.2" step="0.01">
+        </div>
+        <div class="ctl" id="row-wall">
+          <div class="ctl-head"><label for="lamp-wall">離地高度</label><output id="lamp-wall-out" for="lamp-wall"></output></div>
+          <input type="range" id="lamp-wall" min="0.3" max="2.5" step="0.01">
+        </div>
+        <div class="ctl">
+          <div class="ctl-head"><label for="lamp-rot">旋轉</label><output id="lamp-rot-out" for="lamp-rot"></output></div>
+          <input type="range" id="lamp-rot" min="-180" max="180" step="1">
+        </div>
+        <p class="note">3D 是照尺寸做的示意形狀，不是原廠模型。</p>
+      </article>
+
+      <div class="total"><span>總計</span><strong id="total"></strong></div>
+      <p class="note">不含運費、安裝。燈的價格是 2026-11-20 從 lampclub.tw 抄的，以通路頁面為準；地毯是假的。</p>
+    </div>
+
+    <div class="tabpanel" role="tabpanel" id="panel-light" aria-labelledby="tab-light" hidden>
+      <h3 class="group-title">燈</h3>
+      <label class="switch"><input type="checkbox" id="lamp-on"> 開燈</label>
+      <div class="ctl">
+        <div class="ctl-head"><label for="lamp-lumen">亮度</label><output id="lamp-lumen-out" for="lamp-lumen"></output></div>
+        <input type="range" id="lamp-lumen" min="200" max="1600" step="50">
+      </div>
+      <div class="ctl">
+        <div class="ctl-head"><label for="lamp-kelvin">色溫</label><span><span class="swatch" id="kelvin-swatch"></span><output id="lamp-kelvin-out" for="lamp-kelvin"></output></span></div>
+        <input type="range" id="lamp-kelvin" min="2700" max="6500" step="100">
+      </div>
+
+      <h3 class="group-title">房間</h3>
+      <div class="ctl">
+        <div class="ctl-head"><label for="room-night">白天 ↔ 晚上</label><output id="room-night-out" for="room-night"></output></div>
+        <input type="range" id="room-night" min="0" max="1" step="0.01">
+      </div>
+      <div class="ctl">
+        <div class="ctl-head"><label for="room-ambient">房間亮度</label><output id="room-ambient-out" for="room-ambient"></output></div>
+        <input type="range" id="room-ambient" min="0.3" max="2" step="0.05">
+      </div>
+      <div class="ctl">
+        <div class="ctl-head"><label for="sun-az">窗戶光方向</label><output id="sun-az-out" for="sun-az"></output></div>
+        <input type="range" id="sun-az" min="-180" max="180" step="1">
+      </div>
+      <div class="ctl">
+        <div class="ctl-head"><label for="sun-el">窗戶光高度</label><output id="sun-el-out" for="sun-el"></output></div>
+        <input type="range" id="sun-el" min="10" max="80" step="1">
+      </div>
+      <div class="ctl">
+        <div class="ctl-head"><label for="sun-power">窗戶光強度</label><output id="sun-power-out" for="sun-power"></output></div>
+        <input type="range" id="sun-power" min="0" max="2" step="0.05">
+      </div>
+      <div class="ctl">
+        <div class="ctl-head"><label for="room-shadow">影子濃度</label><output id="room-shadow-out" for="room-shadow"></output></div>
+        <input type="range" id="room-shadow" min="0" max="1" step="0.05">
+      </div>
+      <p class="note">燈光照到牆面和地板的效果是估算的，只是示意。</p>
+    </div>
+
+    <div class="tabpanel" role="tabpanel" id="panel-align" aria-labelledby="tab-align" hidden>
+      <p class="lead">拉滑桿，讓藍色格線貼齊照片裡的地板。一格是 1 公尺。上面那層比較淡的格線是天花板。</p>
+      <div class="ctl">
+        <div class="ctl-head"><label for="cam-height">鏡頭離地</label><output id="cam-height-out" for="cam-height"></output></div>
+        <input type="range" id="cam-height" min="0.3" max="2.5" step="0.01">
+      </div>
+      <div class="ctl">
+        <div class="ctl-head"><label for="cam-pitch">往下看的角度</label><output id="cam-pitch-out" for="cam-pitch"></output></div>
+        <input type="range" id="cam-pitch" min="-20" max="50" step="0.5">
+      </div>
+      <div class="ctl">
+        <div class="ctl-head"><label for="cam-fov">視角（廣角程度）</label><output id="cam-fov-out" for="cam-fov"></output></div>
+        <input type="range" id="cam-fov" min="30" max="100" step="0.5">
+      </div>
+      <div class="ctl">
+        <div class="ctl-head"><label for="cam-roll">歪斜</label><output id="cam-roll-out" for="cam-roll"></output></div>
+        <input type="range" id="cam-roll" min="-15" max="15" step="0.1">
+      </div>
+      <div class="ctl">
+        <div class="ctl-head"><label for="cam-ceiling">天花板高度</label><output id="cam-ceiling-out" for="cam-ceiling"></output></div>
+        <input type="range" id="cam-ceiling" min="2" max="4" step="0.01">
+      </div>
+      <button class="btn" id="cam-reset" type="button">重設對齊</button>
+      <p class="note">上傳照片後 AI 會自動對齊：有開本機對齊服務（tools/autoalign/server.py）就用它，沒有的話直接在瀏覽器裡跑（第一次要下載 71 MB 的模型）。照片都不會上傳。</p>
+    </div>
+  </aside>
+</main>
+
+<script src="lamps.js"></script>
+<script src="webalign.js"></script>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
+
+// 燈具目錄和擺放、價格的計算在 lamps.js（有 Node 測試：prototype/tests/）
+const {
+  LAMPS, CATEGORIES, UPDATED, lampFit, fittedBounds, mountY, clampHang, maxHang, cordSpan, bestOffer, sizeLabel,
+  dragPlane,
+} = window.SetdressLamps;
+
+const DEG = Math.PI / 180;
+const $ = (id) => document.getElementById(id);
+const fmtNT = (n) => 'NT$ ' + n.toLocaleString('zh-TW');
+const FLOOR = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+
+// ---------- 商品（地毯是假資料；燈在 lamps.js） ----------
+const PRODUCTS = {
+  rug: {
+    sizes: {
+      '160x230': { w: 2.3, d: 1.6, price: 8900, label: '160 × 230 cm · 羊毛' },
+      '200x290': { w: 2.9, d: 2.0, price: 13800, label: '200 × 290 cm · 羊毛' },
+    },
+  },
+};
+const lampById = (id) => LAMPS.find((l) => l.id === id);
+const STOCK_TEXT = { in: '有現貨', out: '預購', unknown: '沒標示' };
+
+// 示範房間就是用這組鏡頭畫的，所以預設對齊是準的
+const DEMO_CAM = { height: 1.35, pitch: 10, fov: 55, roll: 0, ceiling: 2.7 };
+
+const state = {
+  cam: { ...DEMO_CAM },
+  camDefaults: { ...DEMO_CAM },
+  room: { night: 0, ambient: 1, sunAz: -72, sunEl: 34, sunPower: 1, shadow: 0.5 },
+  // hang：吊燈最低點離地；table：桌面高度；wallY：壁燈中心離地（公尺）
+  lamp: {
+    id: 'louis-poulsen-panthella', visible: true, on: true, lumen: 800, kelvin: 2700,
+    hang: 1.7, table: 0.75, wallY: 1.6, rot: 0, x: 1.6, z: -4.0,
+  },
+  rug: { size: '160x230', visible: true, x: 0, z: -3.2, rot: 0 },
+  selected: null,
+  tab: 'place',
+  dragged: false,
+};
+
+// ---------- 小工具 ----------
+function seeded(seed) {
+  let s = seed;
+  return () => (s = (s * 16807) % 2147483647) / 2147483647;
+}
+function smooth(a, b, x) {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
+}
+function canvasOf(w, h) {
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  return c;
+}
+function kelvinToColor(k, out) {
+  const t = k / 100;
+  let r, g, b;
+  if (t <= 66) {
+    r = 255;
+    g = 99.4708025861 * Math.log(t) - 161.1195681661;
+    b = t <= 19 ? 0 : 138.5177312231 * Math.log(t - 10) - 305.0447927307;
+  } else {
+    r = 329.698727446 * Math.pow(t - 60, -0.1332047592);
+    g = 288.1221695283 * Math.pow(t - 60, -0.0755148492);
+    b = 255;
+  }
+  const c = (v) => Math.min(255, Math.max(0, v)) / 255;
+  return out.setRGB(c(r), c(g), c(b), THREE.SRGBColorSpace);
+}
+
+// ---------- 貼圖 ----------
+function woodTexture(widthM, depthM) {
+  const W = 1024, H = Math.round(W * depthM / widthM);
+  const c = canvasOf(W, H), g = c.getContext('2d'), rnd = seeded(7);
+  const pxPerM = W / widthM, plankW = 0.19 * pxPerM;
+  for (let x = 0; x < W; x += plankW) {
+    let y = -rnd() * 1.6 * pxPerM;
+    while (y < H) {
+      const len = (1.1 + rnd() * 0.9) * pxPerM;
+      const l = 54 + rnd() * 10, hue = 30 + rnd() * 6;
+      g.fillStyle = `hsl(${hue}, 38%, ${l}%)`;
+      g.fillRect(x, y, plankW, len);
+      g.strokeStyle = `hsla(${hue}, 40%, ${l - 14}%, 0.18)`;
+      g.lineWidth = 1;
+      for (let i = 0; i < 6; i++) {
+        const gx = x + 3 + rnd() * (plankW - 6);
+        g.beginPath();
+        g.moveTo(gx, y);
+        g.bezierCurveTo(gx + 3, y + len * 0.3, gx - 3, y + len * 0.6, gx + rnd() * 4 - 2, y + len);
+        g.stroke();
+      }
+      g.fillStyle = 'rgba(40, 28, 18, 0.35)';
+      g.fillRect(x, y, plankW, 1.5);
+      y += len;
+    }
+    g.fillStyle = 'rgba(40, 28, 18, 0.4)';
+    g.fillRect(x, 0, 1.5, H);
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 8;
+  return t;
+}
+
+function artTexture() {
+  const c = canvasOf(512, 340), g = c.getContext('2d');
+  g.fillStyle = '#e9e3d7'; g.fillRect(0, 0, 512, 340);
+  g.fillStyle = '#6f8293'; g.beginPath(); g.arc(200, 180, 110, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#c39a5a'; g.fillRect(250, 70, 170, 200);
+  g.strokeStyle = '#2f2d2b'; g.lineWidth = 6; g.beginPath(); g.moveTo(60, 290); g.lineTo(460, 60); g.stroke();
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+function rugTexture() {
+  const W = 1150, H = 800, c = canvasOf(W, H), g = c.getContext('2d');
+  g.fillStyle = '#d8cebd'; g.fillRect(0, 0, W, H);
+  const b = 46, bw = 30;
+  g.fillStyle = '#3e3b37';
+  g.fillRect(b, b, W - 2 * b, bw); g.fillRect(b, H - b - bw, W - 2 * b, bw);
+  g.fillRect(b, b, bw, H - 2 * b); g.fillRect(W - b - bw, b, bw, H - 2 * b);
+  const il = b + bw + 22;
+  g.strokeStyle = '#3e3b37'; g.lineWidth = 4; g.strokeRect(il, il, W - 2 * il, H - 2 * il);
+  const x0 = il + 30, y0 = il + 30, x1 = W - il - 30, y1 = H - il - 30;
+  g.save();
+  g.beginPath(); g.rect(x0, y0, x1 - x0, y1 - y0); g.clip();
+  const step = 92, r = step / 2 * 0.9;
+  let row = 0;
+  for (let y = y0 - step / 2; y < y1 + step; y += step / 2, row++) {
+    for (let x = x0 - step + (row % 2 ? step / 2 : 0); x < x1 + step; x += step) {
+      g.beginPath();
+      g.moveTo(x, y - r); g.lineTo(x + r, y); g.lineTo(x, y + r); g.lineTo(x - r, y); g.closePath();
+      g.fillStyle = row % 3 === 0 ? '#9aa48e' : '#cbbfac';
+      g.fill();
+      g.strokeStyle = 'rgba(62, 59, 55, 0.55)'; g.lineWidth = 3; g.stroke();
+    }
+  }
+  g.restore();
+  const rnd = seeded(11);
+  for (let i = 0; i < 26000; i++) {
+    const v = rnd() < 0.5 ? 0 : 255;
+    g.fillStyle = `rgba(${v}, ${v}, ${v}, 0.05)`;
+    g.fillRect(rnd() * W, rnd() * H, 2, 2);
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 8;
+  return t;
+}
+
+// 點光源照在地板上的亮度：1 / (1 + (r/h)^2)^1.5。平面邊長 = 8h，所以同一張圖適用所有高度。
+function glowTexture(cone) {
+  const N = 256, c = canvasOf(N, N), g = c.getContext('2d'), img = g.createImageData(N, N), U = 4;
+  for (let y = 0; y < N; y++) {
+    for (let x = 0; x < N; x++) {
+      const dx = (x + 0.5) / N * 2 - 1, dy = (y + 0.5) / N * 2 - 1;
+      const r = Math.hypot(dx, dy), u = r * U;
+      let v = Math.pow(1 + u * u, -1.5);
+      if (cone) v *= 1 - smooth(1.1, 1.8, u);
+      v *= 1 - smooth(0.82, 1, r);
+      const k = (y * N + x) * 4, q = Math.round(Math.min(1, v) * 255);
+      img.data[k] = img.data[k + 1] = img.data[k + 2] = q;
+      img.data[k + 3] = 255;
+    }
+  }
+  g.putImageData(img, 0, 0);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.NoColorSpace;
+  return t;
+}
+
+function radialTexture(rgb, stops) {
+  const N = 128, c = canvasOf(N, N), g = c.getContext('2d');
+  const grad = g.createRadialGradient(N / 2, N / 2, 0, N / 2, N / 2, N / 2);
+  stops.forEach(([at, a]) => grad.addColorStop(at, `rgba(${rgb}, ${a})`));
+  g.fillStyle = grad; g.fillRect(0, 0, N, N);
+  return new THREE.CanvasTexture(c);
+}
+
+// ---------- 示範房間：用電腦畫一張「照片」 ----------
+function renderDemoRoom() {
+  const w = 1600, h = 1200;
+  const c = canvasOf(w, h);
+  const r = new THREE.WebGLRenderer({ canvas: c, antialias: true, preserveDrawingBuffer: true });
+  r.shadowMap.enabled = true;
+  r.shadowMap.type = THREE.PCFSoftShadowMap;
+  r.toneMapping = THREE.NeutralToneMapping;
+  const s = new THREE.Scene();
+  const X = 2.6, ZB = -5.2, ZF = 1.0, H = 2.7, D = ZF - ZB, ZM = (ZF + ZB) / 2;
+
+  const add = (geo, mat, { cast = true, receive = true } = {}) => {
+    const m = new THREE.Mesh(geo, mat);
+    m.castShadow = cast; m.receiveShadow = receive;
+    s.add(m);
+    return m;
+  };
+  const wallMat = new THREE.MeshStandardMaterial({ color: 0xe6e2da, roughness: 0.95 });
+  const flat = { cast: false };
+  const floor = add(new THREE.PlaneGeometry(2 * X, D), new THREE.MeshStandardMaterial({ map: woodTexture(2 * X, D), roughness: 0.7 }), flat);
+  floor.rotation.x = -Math.PI / 2; floor.position.set(0, 0, ZM);
+  add(new THREE.PlaneGeometry(2 * X, H), wallMat, flat).position.set(0, H / 2, ZB);
+  const left = add(new THREE.PlaneGeometry(D, H), wallMat, flat);
+  left.rotation.y = Math.PI / 2; left.position.set(-X, H / 2, ZM);
+  const right = add(new THREE.PlaneGeometry(D, H), wallMat, flat);
+  right.rotation.y = -Math.PI / 2; right.position.set(X, H / 2, ZM);
+  const ceil = add(new THREE.PlaneGeometry(2 * X, D), new THREE.MeshStandardMaterial({ color: 0xf1efea, roughness: 1 }), flat);
+  ceil.rotation.x = Math.PI / 2; ceil.position.set(0, H, ZM);
+
+  const trim = new THREE.MeshStandardMaterial({ color: 0xf4f2ee, roughness: 0.6 });
+  add(new THREE.BoxGeometry(2 * X, 0.08, 0.015), trim, flat).position.set(0, 0.04, ZB + 0.008);
+  add(new THREE.BoxGeometry(0.015, 0.08, D), trim, flat).position.set(-X + 0.008, 0.04, ZM);
+  add(new THREE.BoxGeometry(0.015, 0.08, D), trim, flat).position.set(X - 0.008, 0.04, ZM);
+
+  // 左牆的窗
+  const win = add(new THREE.PlaneGeometry(1.6, 1.45), new THREE.MeshBasicMaterial({ color: 0xfdfbf5 }), { cast: false, receive: false });
+  win.rotation.y = Math.PI / 2; win.position.set(-X + 0.01, 1.5, -4.0);
+  const frameMat = new THREE.MeshStandardMaterial({ color: 0x3a3d40, roughness: 0.5 });
+  [[0, 2.225, 1.7, 0.05], [0, 0.775, 1.7, 0.05], [0, 1.5, 0.05, 1.5]].forEach(([dz, y, len, hgt]) => {
+    add(new THREE.BoxGeometry(0.04, hgt, len), frameMat, flat).position.set(-X + 0.02, y, -4.0 + dz);
+  });
+  [-0.8, 0.8].forEach((dz) => add(new THREE.BoxGeometry(0.04, 1.5, 0.05), frameMat, flat).position.set(-X + 0.02, 1.5, -4.0 + dz));
+
+  // 沙發
+  const fabric = new THREE.MeshStandardMaterial({ color: 0x7e8b80, roughness: 1 });
+  const cushion = new THREE.MeshStandardMaterial({ color: 0x8b988c, roughness: 1 });
+  const legMat = new THREE.MeshStandardMaterial({ color: 0x2c2a28, roughness: 0.6 });
+  const sz = ZB + 0.45;
+  add(new THREE.BoxGeometry(2.4, 0.3, 0.9), fabric).position.set(0, 0.23, sz);
+  add(new THREE.BoxGeometry(2.4, 0.47, 0.22), fabric).position.set(0, 0.615, ZB + 0.11);
+  [-1.1, 1.1].forEach((x) => add(new THREE.BoxGeometry(0.2, 0.55, 0.9), fabric).position.set(x, 0.355, sz));
+  [-0.5, 0.5].forEach((x) => {
+    add(new THREE.BoxGeometry(0.98, 0.12, 0.66), cushion).position.set(x, 0.44, sz + 0.09);
+    const back = add(new THREE.BoxGeometry(0.98, 0.42, 0.16), cushion);
+    back.position.set(x, 0.68, ZB + 0.3); back.rotation.x = -0.15;
+  });
+  [[-1.1, sz - 0.38], [1.1, sz - 0.38], [-1.1, sz + 0.38], [1.1, sz + 0.38]].forEach(([x, z]) => {
+    add(new THREE.CylinderGeometry(0.022, 0.018, 0.08, 12), legMat).position.set(x, 0.04, z);
+  });
+
+  // 牆上的畫
+  add(new THREE.BoxGeometry(1.1, 0.75, 0.03), new THREE.MeshStandardMaterial({ color: 0x2e2c2a, roughness: 0.5 })).position.set(0, 1.65, ZB + 0.016);
+  add(new THREE.PlaneGeometry(1.0, 0.66), new THREE.MeshStandardMaterial({ map: artTexture(), roughness: 0.9 }), flat).position.set(0, 1.65, ZB + 0.033);
+
+  // 植物
+  const potMat = new THREE.MeshStandardMaterial({ color: 0xc9c2b6, roughness: 0.8 });
+  const leafMat = new THREE.MeshStandardMaterial({ color: 0x4d6a4b, roughness: 0.9 });
+  add(new THREE.CylinderGeometry(0.17, 0.14, 0.38, 32), potMat).position.set(2.1, 0.19, -4.75);
+  [[2.1, 0.75, -4.75, 0.28], [2.0, 1.0, -4.7, 0.22], [2.22, 0.95, -4.85, 0.2], [2.05, 1.18, -4.8, 0.15]].forEach(([x, y, z, rad]) => {
+    add(new THREE.SphereGeometry(rad, 24, 16), leafMat).position.set(x, y, z);
+  });
+
+  // 光
+  s.add(new THREE.HemisphereLight(0xf6f3ee, 0x9a8670, 1.9));
+  const sun = new THREE.DirectionalLight(0xfff1df, 2.6);
+  const az = -72 * DEG, el = 34 * DEG;
+  sun.target.position.set(0.3, 0, -3.8);
+  sun.position.set(0.3 + Math.sin(az) * Math.cos(el) * 10, Math.sin(el) * 10, -3.8 + Math.cos(az) * Math.cos(el) * 10);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  Object.assign(sun.shadow.camera, { left: -5, right: 5, top: 5, bottom: -5, near: 0.5, far: 25 });
+  sun.shadow.normalBias = 0.02;
+  s.add(sun, sun.target);
+  const fill = new THREE.PointLight(0xfff4e8, 1.4, 0, 2);
+  fill.position.set(0, 2.2, -2.2);
+  s.add(fill);
+
+  const cam = new THREE.PerspectiveCamera(DEMO_CAM.fov, w / h, 0.05, 50);
+  cam.rotation.order = 'YXZ';
+  cam.position.set(0, DEMO_CAM.height, 0);
+  cam.rotation.set(-DEMO_CAM.pitch * DEG, 0, 0);
+  r.render(s, cam);
+
+  const out = canvasOf(w, h);
+  out.getContext('2d').drawImage(c, 0, 0);
+  s.traverse((o) => {
+    o.geometry?.dispose();
+    const mats = Array.isArray(o.material) ? o.material : [o.material];
+    mats.forEach((m) => { m?.map?.dispose(); m?.dispose(); });
+  });
+  r.dispose();
+  r.forceContextLoss();
+  return out;
+}
+
+// ---------- 主畫面 ----------
+const canvas = $('view');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.NeutralToneMapping;
+renderer.autoClear = false;
+
+// 第一層：照片
+const bgScene = new THREE.Scene();
+const bgCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 2);
+bgCam.position.z = 1;
+const bgMat = new THREE.MeshBasicMaterial({ toneMapped: false, depthTest: false, depthWrite: false });
+bgScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), bgMat));
+
+// 第二層：3D 商品
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(55, 4 / 3, 0.05, 60);
+camera.rotation.order = 'YXZ';
+
+// 遮擋：把 AI 算的深度（每個像素離鏡頭多遠）寫進深度緩衝區，不畫顏色。
+// 之後畫商品和格線時，比家具、牆還遠的部分就不會畫出來。地板和天花板的深度是 0，不擋東西。
+const OCCLUDE_REL = 0.03, OCCLUDE_ABS = 0.05; // 深度本來就有誤差：遠 3% + 5 cm 以內不算被擋
+const occluderMat = new THREE.ShaderMaterial({
+  uniforms: { depthMap: { value: null }, near: { value: camera.near }, far: { value: camera.far } },
+  vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+  fragmentShader: `
+    uniform sampler2D depthMap;
+    uniform float near, far;
+    varying vec2 vUv;
+    void main() {
+      float d = texture2D(depthMap, vec2(vUv.x, 1.0 - vUv.y)).r; // 深度圖第一列是照片最上面
+      if (d <= 0.0) discard;
+      d = d * ${(1 + OCCLUDE_REL).toFixed(3)} + ${OCCLUDE_ABS.toFixed(3)};
+      float ndc = (far + near) / (far - near) - 2.0 * far * near / ((far - near) * d);
+      gl_FragDepth = clamp(ndc * 0.5 + 0.5, 0.0, 1.0);
+      gl_FragColor = vec4(0.0);
+    }`,
+  // 深度測試要開著（但永遠通過）：WebGL 關掉深度測試時，連深度也不會寫
+  colorWrite: false, depthWrite: true, depthTest: true, depthFunc: THREE.AlwaysDepth,
+});
+const occluder = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), occluderMat);
+occluder.frustumCulled = false;
+occluder.renderOrder = 1;
+occluder.visible = false;
+bgScene.add(occluder);
+
+// depth：對齊服務回傳的 { width, height, mm }（mm 是 base64 的 uint16）；null 就是不遮擋
+// 本機服務傳 base64（little-endian uint16），瀏覽器裡算的直接是 Uint16Array
+function depthMillimeters(depth) {
+  if (!depth) return null;
+  if (depth.mm instanceof Uint16Array) return depth.mm;
+  if (typeof depth.mm !== 'string') return null;
+  let bytes;
+  try {
+    bytes = Uint8Array.from(atob(depth.mm), (ch) => ch.charCodeAt(0));
+  } catch {
+    return null; // base64 壞掉：當成沒有遮擋圖
+  }
+  return bytes.length % 2 ? null : new Uint16Array(bytes.buffer);
+}
+let photoDepth = null; // 照片每個像素離鏡頭多遠（公尺，第 0 列是照片最上面）；燈泡被擋住時不畫光暈
+function setOccluder(depth) {
+  occluderMat.uniforms.depthMap.value?.dispose();
+  occluderMat.uniforms.depthMap.value = null;
+  occluder.visible = false;
+  photoDepth = null;
+  const mm = depthMillimeters(depth);
+  if (!mm || mm.length !== depth.width * depth.height) return;
+  const meters = Float32Array.from(mm, (v) => v / 1000);
+  const tex = new THREE.DataTexture(meters, depth.width, depth.height, THREE.RedFormat, THREE.FloatType);
+  tex.minFilter = tex.magFilter = THREE.NearestFilter;
+  tex.needsUpdate = true;
+  occluderMat.uniforms.depthMap.value = tex;
+  occluder.visible = true;
+  photoDepth = { meters, width: depth.width, height: depth.height };
+}
+// 燈泡被照片裡的家具、牆擋住了嗎（跟遮擋用同一個誤差：遠 3% + 5 cm 以內不算擋住）
+function bulbHidden(p) {
+  if (!photoDepth) return false;
+  const v = p.clone().project(camera);
+  if (Math.abs(v.x) > 1 || Math.abs(v.y) > 1) return false;
+  const col = Math.min(photoDepth.width - 1, Math.floor((v.x + 1) / 2 * photoDepth.width));
+  const row = Math.min(photoDepth.height - 1, Math.floor((1 - v.y) / 2 * photoDepth.height));
+  const d = photoDepth.meters[row * photoDepth.width + col];
+  if (!(d > 0)) return false; // 地板、天花板、沒有深度：不擋
+  const viewZ = -p.clone().applyMatrix4(camera.matrixWorldInverse).z;
+  return d * (1 + OCCLUDE_REL) + OCCLUDE_ABS < viewZ;
+}
+
+const hemi = new THREE.HemisphereLight(0xffffff, 0x887766, 2);
+scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xfff3e2, 2.4);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -5, right: 5, top: 5, bottom: -5, near: 0.5, far: 30 });
+sun.shadow.normalBias = 0.02;
+scene.add(sun, sun.target);
+
+// 只接影子、本身透明的地板
+const catcher = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), new THREE.ShadowMaterial({ opacity: 0.5, depthWrite: false }));
+catcher.rotation.x = -Math.PI / 2;
+catcher.position.set(0, 0, -6);
+catcher.receiveShadow = true;
+scene.add(catcher);
+
+function makeGrid(opacity) {
+  const g = new THREE.GridHelper(14, 14, 0x6fdcff, 0x6fdcff);
+  g.material.transparent = true;
+  g.material.opacity = opacity;
+  g.material.depthWrite = false;
+  g.material.toneMapped = false;
+  g.position.set(0, 0.002, -7);
+  g.renderOrder = 3;
+  scene.add(g);
+  return g;
+}
+const floorGrid = makeGrid(0.9);
+const ceilGrid = makeGrid(0.35);
+
+const selMat = new THREE.MeshBasicMaterial({ color: 0xe8a14a, transparent: true, opacity: 0.95, depthWrite: false, depthTest: false, toneMapped: false });
+
+// 地毯
+const rugGroup = new THREE.Group();
+rugGroup.userData.key = 'rug';
+scene.add(rugGroup);
+const rugTopMat = new THREE.MeshStandardMaterial({ map: rugTexture(), roughness: 1 });
+const rugSideMat = new THREE.MeshStandardMaterial({ color: 0x8c8274, roughness: 1 });
+let rugMesh = null, rugFrame = null, rugBuiltSize = '';
+
+function rectRing(w, d, gap, thick) {
+  const ow = w / 2 + gap + thick, od = d / 2 + gap + thick, iw = w / 2 + gap, id = d / 2 + gap;
+  const shape = new THREE.Shape();
+  shape.moveTo(-ow, -od); shape.lineTo(ow, -od); shape.lineTo(ow, od); shape.lineTo(-ow, od); shape.closePath();
+  const hole = new THREE.Path();
+  hole.moveTo(-iw, -id); hole.lineTo(-iw, id); hole.lineTo(iw, id); hole.lineTo(iw, -id); hole.closePath();
+  shape.holes.push(hole);
+  return new THREE.ShapeGeometry(shape);
+}
+function buildRug() {
+  const s = PRODUCTS.rug.sizes[state.rug.size];
+  if (rugMesh) {
+    rugGroup.remove(rugMesh, rugFrame);
+    rugMesh.geometry.dispose();
+    rugFrame.geometry.dispose();
+  }
+  rugMesh = new THREE.Mesh(new THREE.BoxGeometry(s.w, 0.012, s.d), [rugSideMat, rugSideMat, rugTopMat, rugSideMat, rugSideMat, rugSideMat]);
+  rugMesh.position.y = 0.006;
+  rugMesh.receiveShadow = true;
+  rugFrame = new THREE.Mesh(rectRing(s.w, s.d, 0.04, 0.06), selMat);
+  rugFrame.rotation.x = -Math.PI / 2;
+  rugFrame.position.y = 0.016;
+  rugFrame.renderOrder = 4;
+  rugGroup.add(rugMesh, rugFrame);
+  rugBuiltSize = state.rug.size;
+}
+
+// 燈
+const metalMat = new THREE.MeshStandardMaterial({ color: 0x232629, metalness: 0.55, roughness: 0.4 });
+const innerMat = new THREE.MeshStandardMaterial({ color: 0xf2efe8, roughness: 0.85, side: THREE.BackSide });
+const cordMat = new THREE.MeshStandardMaterial({ color: 0x161616, roughness: 0.6 });
+function part(geo, mat, cast = true) {
+  const m = new THREE.Mesh(geo, mat);
+  m.castShadow = cast;
+  m.receiveShadow = true;
+  return m;
+}
+
+const lampGroup = new THREE.Group();
+lampGroup.userData.key = 'lamp';
+scene.add(lampGroup);
+
+// 燈本體：照 lamps.js 的形狀用公分畫，整組縮放成真實尺寸（換燈時重建）
+const lampModel = new THREE.Group();
+const lamp3d = { id: null, fit: null, glowMats: [] };
+const MATS = {
+  metal: (c) => new THREE.MeshStandardMaterial({ color: c, metalness: 0.55, roughness: 0.4 }),
+  shade: (c) => new THREE.MeshStandardMaterial({ color: c, roughness: 1 }),
+  glass: (c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.3 }),
+  wood: (c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.75 }),
+};
+const GLOWS = new Set(['shade', 'glass']); // 開燈時整個會發亮的材質
+function tubeGeometry(p) {
+  const a = new THREE.Vector3(...p.a), b = new THREE.Vector3(...p.b);
+  const g = new THREE.CylinderGeometry(p.r, p.r, a.distanceTo(b), 12);
+  g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), b.clone().sub(a).normalize()));
+  const mid = a.add(b).multiplyScalar(0.5);
+  return g.translate(mid.x, mid.y, mid.z);
+}
+function cylGeometry(p) {
+  const opened = Boolean(p.open || p.half);
+  const g = new THREE.CylinderGeometry(p.r, p.r2 ?? p.r, p.h, 48, 1, opened, p.half ? -Math.PI / 2 : 0, p.half ? Math.PI : Math.PI * 2);
+  return p.axis === 'z' ? g.rotateX(Math.PI / 2) : g;
+}
+// 旋轉體的點要由下往上排，正面才會朝外
+function latheGeometry(p) {
+  const pts = p.pts[0][1] > p.pts[p.pts.length - 1][1] ? [...p.pts].reverse() : p.pts;
+  return new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(r, y)), 64);
+}
+const GEOMETRY = {
+  lathe: latheGeometry,
+  cyl: cylGeometry,
+  sphere: (p) => new THREE.SphereGeometry(p.r, 32, 16).scale(1, p.sy ?? 1, 1),
+  tube: tubeGeometry,
+  arc: (p) => new THREE.TorusGeometry(p.R, p.r, 12, 24, Math.PI),
+  box: (p) => new THREE.BoxGeometry(...p.s),
+};
+function clearLampModel() {
+  lampModel.traverse((o) => {
+    if (!o.isMesh) return;
+    o.geometry.dispose();
+    if (o.material !== innerMat) o.material.dispose();
+  });
+  lampModel.clear();
+}
+function buildLampModel(lamp) {
+  clearLampModel();
+  lamp3d.glowMats = [];
+  for (const p of lamp.parts) {
+    const geo = GEOMETRY[p.k](p);
+    if (p.k !== 'tube' && p.at) geo.translate(...p.at);
+    const mat = MATS[p.m](p.c);
+    // 有 inner 的燈罩：外面只畫正面、裡面畫會發亮的背面
+    mat.side = p.inner ? THREE.FrontSide : THREE.DoubleSide;
+    if (GLOWS.has(p.m)) lamp3d.glowMats.push(mat);
+    lampModel.add(part(geo, mat));
+    if (p.inner) lampModel.add(part(geo, innerMat, false));
+  }
+  const fit = lampFit(lamp);
+  lampModel.scale.set(...fit.scale);
+  lampModel.position.set(...fit.offset);
+  lamp3d.id = lamp.id;
+  lamp3d.fit = fit;
+}
+const cord = part(new THREE.CylinderGeometry(0.004, 0.004, 1, 8), cordMat);
+const canopy = part(new THREE.CylinderGeometry(0.06, 0.06, 0.03, 32), metalMat);
+const point = new THREE.PointLight(0xffffff, 1, 0, 2);
+const spot = new THREE.SpotLight(0xffffff, 1, 0, 1.0, 0.6, 2);
+const spotTarget = new THREE.Object3D();
+spot.target = spotTarget;
+lampGroup.add(lampModel, cord, canopy, point, spot, spotTarget);
+
+const lampRing = new THREE.Mesh(new THREE.RingGeometry(0.26, 0.32, 64), selMat);
+lampRing.rotation.x = -Math.PI / 2;
+lampRing.renderOrder = 4;
+scene.add(lampRing);
+
+// 光暈：地板光、燈旁的亮光、牆面的淡光、燈座下的接觸影子
+const glowTex = { open: glowTexture(false), cone: glowTexture(true) };
+const glow = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({
+  map: glowTex.open, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false,
+}));
+glow.rotation.x = -Math.PI / 2;
+glow.renderOrder = 1;
+scene.add(glow);
+const spriteMat = (tex) => new THREE.SpriteMaterial({ map: tex, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, toneMapped: false });
+const halo = new THREE.Sprite(spriteMat(radialTexture('255, 255, 255', [[0, 1], [0.18, 0.35], [0.5, 0.08], [1, 0]])));
+halo.renderOrder = 10;
+const wash = new THREE.Sprite(spriteMat(radialTexture('255, 255, 255', [[0, 1], [0.4, 0.45], [1, 0]])));
+wash.renderOrder = 9;
+scene.add(halo, wash);
+const blob = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 0.62), new THREE.MeshBasicMaterial({
+  map: radialTexture('0, 0, 0', [[0, 0.55], [0.5, 0.25], [1, 0]]), transparent: true, depthWrite: false, toneMapped: false,
+}));
+blob.rotation.x = -Math.PI / 2;
+blob.renderOrder = 2;
+scene.add(blob);
+
+// ---------- 照片 ----------
+const photo = { tex: null, aspect: 4 / 3, hemiBase: 2.2 };
+
+function sampleColors(src) {
+  const N = 32, c = canvasOf(N, N), g = c.getContext('2d', { willReadFrequently: true });
+  g.drawImage(src, 0, 0, N, N);
+  const d = g.getImageData(0, 0, N, N).data;
+  const avg = (y0, y1) => {
+    let r = 0, gg = 0, b = 0, n = 0;
+    for (let y = y0; y < y1; y++) {
+      for (let x = 0; x < N; x++) {
+        const i = (y * N + x) * 4;
+        r += d[i]; gg += d[i + 1]; b += d[i + 2]; n++;
+      }
+    }
+    return new THREE.Color().setRGB(r / n / 255, gg / n / 255, b / n / 255, THREE.SRGBColorSpace);
+  };
+  const all = avg(0, N);
+  return { top: avg(0, 10), bottom: avg(22, N), lum: 0.2126 * all.r + 0.7152 * all.g + 0.0722 * all.b };
+}
+function tint(c) {
+  const m = Math.max(c.r, c.g, c.b, 1e-3);
+  return c.clone().multiplyScalar(1 / m).lerp(new THREE.Color(1, 1, 1), 0.45);
+}
+function setPhoto(src, camDefaults) {
+  const tex = new THREE.CanvasTexture(src);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  photo.tex?.dispose();
+  photo.tex = tex;
+  photo.aspect = src.width / src.height;
+  bgMat.map = tex;
+  bgMat.needsUpdate = true;
+  const s = sampleColors(src);
+  hemi.color.copy(tint(s.top));
+  hemi.groundColor.copy(tint(s.bottom));
+  photo.hemiBase = THREE.MathUtils.clamp(1.2 + 6 * s.lum, 1.2, 3.5);
+  state.camDefaults = { ...camDefaults };
+  state.cam = { ...camDefaults };
+  updateCamera();
+  layout();
+}
+function decodeImage(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('decode')); };
+    img.src = url;
+  });
+}
+
+// ---------- 更新畫面 ----------
+const lampColor = new THREE.Color();
+
+function updateCamera() {
+  const c = state.cam;
+  camera.fov = c.fov;
+  camera.aspect = photo.aspect;
+  camera.position.set(0, c.height, 0);
+  camera.rotation.set(-c.pitch * DEG, 0, c.roll * DEG);
+  camera.updateProjectionMatrix();
+  camera.updateMatrixWorld();
+  ceilGrid.position.y = c.ceiling;
+}
+
+function updateLighting() {
+  const r = state.room, n = r.night;
+  hemi.intensity = photo.hemiBase * r.ambient * (1 - 0.85 * n);
+  const az = r.sunAz * DEG, el = r.sunEl * DEG;
+  sun.target.position.set(0, 0, -3.5);
+  sun.position.set(Math.sin(az) * Math.cos(el) * 12, Math.sin(el) * 12, -3.5 + Math.cos(az) * Math.cos(el) * 12);
+  sun.intensity = 2.4 * r.sunPower * (1 - n);
+  catcher.material.opacity = r.shadow * (1 - 0.9 * n);
+  bgMat.color.setScalar(1 - 0.84 * n);
+}
+
+function updateRug() {
+  if (rugBuiltSize !== state.rug.size) buildRug();
+  rugGroup.visible = state.rug.visible;
+  rugGroup.position.set(state.rug.x, 0, state.rug.z);
+  rugGroup.rotation.y = state.rug.rot * DEG;
+}
+
+const currentLamp = () => lampById(state.lamp.id);
+const SITS_ON = new Set(['floor', 'table']); // 底下有東西撐著：畫接觸影子、選取圈畫在底部
+
+// 燈放在哪：位置、旋轉、吊燈的電線。回傳燈泡的世界座標
+function placeLamp(lamp, L, ceiling) {
+  const base = mountY(lamp, L, ceiling);
+  lampGroup.position.set(L.x, base, L.z);
+  lampGroup.rotation.y = L.rot * DEG;
+  const hanging = lamp.mount === 'pendant';
+  cord.visible = canopy.visible = hanging;
+  if (hanging) {
+    const c = cordSpan(lamp, L.hang, ceiling);
+    cord.scale.y = Math.max(0.001, c.length);
+    cord.position.y = (c.from + c.to) / 2 - base;
+    canopy.position.y = ceiling - 0.015 - base;
+  }
+  const bulb = new THREE.Vector3(...lamp3d.fit.light);
+  point.position.copy(bulb);
+  spot.position.copy(bulb);
+  spotTarget.position.set(bulb.x, bulb.y - 1, bulb.z); // 往下照
+  lampGroup.updateMatrixWorld();
+  return lampGroup.localToWorld(bulb);
+}
+
+function updateLamp() {
+  const L = state.lamp, n = state.room.night, k = L.lumen / 800;
+  const lamp = currentLamp(), ceiling = state.cam.ceiling;
+  if (lamp3d.id !== lamp.id) buildLampModel(lamp);
+  if (lamp.mount === 'pendant') L.hang = clampHang(lamp, L.hang, ceiling); // 天花板調低時燈不能穿過去
+  const on = L.on && L.visible, down = lamp.beam === 'down';
+  lampGroup.visible = L.visible;
+  const src = placeLamp(lamp, L, ceiling);
+  const srcY = Math.max(0.15, src.y);
+
+  kelvinToColor(L.kelvin, lampColor);
+  const lightI = on ? 3.2 * k * (0.4 + 0.6 * n) : 0;
+  point.visible = on && !down;
+  spot.visible = on && down;
+  point.color.copy(lampColor);
+  spot.color.copy(lampColor);
+  point.intensity = lightI;
+  spot.intensity = lightI * 2.2;
+
+  const e = on ? (0.4 + 0.8 * k) * (0.4 + 0.6 * n) : 0;
+  for (const m of lamp3d.glowMats) {
+    m.emissive.copy(lampColor);
+    m.emissiveIntensity = e * 0.8;
+  }
+  innerMat.emissive.copy(lampColor);
+  innerMat.emissiveIntensity = e;
+
+  const exposure = 0.1 + 0.9 * n;
+  glow.visible = on;
+  halo.visible = wash.visible = on && !bulbHidden(src); // 這兩個不做深度測試，要自己判斷有沒有被家具擋住
+  glow.material.map = down ? glowTex.cone : glowTex.open;
+  glow.material.color.copy(lampColor).multiplyScalar(0.5 * k * (1.4 / srcY) ** 2 * exposure);
+  glow.scale.set(8 * srcY, 8 * srcY, 1);
+  glow.position.set(src.x, 0.004, src.z);
+
+  halo.position.set(src.x, src.y - (down ? 0.02 : 0), src.z);
+  halo.scale.setScalar((down ? 0.35 : 0.5) + 0.3 * k);
+  halo.material.color.copy(lampColor).multiplyScalar((0.12 + 0.6 * n) * (0.6 + 0.4 * k));
+  wash.position.copy(src);
+  wash.scale.setScalar(3.0);
+  wash.material.color.copy(lampColor).multiplyScalar(0.12 * k * n);
+
+  const w = lamp.size.w / 100;
+  blob.visible = L.visible && SITS_ON.has(lamp.mount);
+  blob.position.set(L.x, lampGroup.position.y + 0.014, L.z);
+  blob.scale.setScalar(Math.max(0.25, w * 1.3) / 0.62);
+
+  $('kelvin-swatch').style.background = '#' + lampColor.getHexString();
+}
+
+function updateSelection() {
+  const sel = state.selected, lamp = currentLamp();
+  if (rugFrame) rugFrame.visible = sel === 'rug';
+  lampRing.visible = sel === 'lamp' && state.lamp.visible;
+  // 地上、桌上的燈：圈在底部；吊的、掛牆的：圈在正下方的地板
+  const b = fittedBounds(lamp), center = new THREE.Vector3((b[0] + b[3]) / 2, 0, (b[2] + b[5]) / 2);
+  lampGroup.localToWorld(center);
+  const ringY = SITS_ON.has(lamp.mount) ? lampGroup.position.y + 0.02 : 0.02;
+  lampRing.position.set(center.x, ringY, center.z);
+  lampRing.scale.setScalar(Math.max(0.12, Math.max(b[3] - b[0], b[5] - b[2]) / 2 + 0.06) / 0.29);
+  $('card-rug').classList.toggle('is-selected', sel === 'rug');
+  $('card-lamp').classList.toggle('is-selected', sel === 'lamp');
+}
+
+function updateTexts() {
+  const rug = PRODUCTS.rug.sizes[state.rug.size];
+  const lampPrice = bestOffer(currentLamp().offers).offer.price;
+  $('rug-spec').textContent = rug.label;
+  $('rug-price').textContent = fmtNT(rug.price);
+  $('lamp-price').textContent = fmtNT(lampPrice);
+  const total = (state.rug.visible ? rug.price : 0) + (state.lamp.visible ? lampPrice : 0);
+  $('total').textContent = fmtNT(total);
+}
+
+// 燈的卡片：名稱、尺寸、最便宜的通路、各家價格（換燈時才需要重畫）
+function renderLampCard(lamp) {
+  const best = bestOffer(lamp.offers);
+  $('lamp-name').textContent = `${lamp.brand} ${lamp.name}`;
+  $('lamp-spec').textContent = `${lamp.category} · ${lamp.variant} · ${sizeLabel(lamp)}`;
+  const shop = $('lamp-shop');
+  shop.textContent = best.noneInStock
+    ? `最便宜：${best.offer.store}（沒有一家標示有現貨）· 更新於 ${UPDATED} · `
+    : `最便宜有現貨：${best.offer.store} · 更新於 ${UPDATED} · `;
+  const link = document.createElement('a');
+  link.href = lamp.page;
+  link.target = '_blank';
+  link.rel = 'noopener';
+  link.textContent = '看各家價格 ↗';
+  shop.append(link);
+  $('lamp-offers').replaceChildren(...lamp.offers.map((o) => {
+    const li = document.createElement('li');
+    const name = document.createElement('span');
+    name.textContent = `${o.store}（${STOCK_TEXT[o.stock]}）`;
+    const price = document.createElement('span');
+    price.className = 'price';
+    price.textContent = fmtNT(o.price);
+    li.append(name, price);
+    return li;
+  }));
+}
+
+function update() {
+  updateCamera();
+  updateRug();
+  updateLighting();
+  updateLamp();
+  updateSelection();
+  updateTexts();
+  floorGrid.visible = ceilGrid.visible = state.tab === 'align';
+  requestRender();
+}
+
+// ---------- 畫 ----------
+let renderQueued = false;
+function requestRender() {
+  if (renderQueued) return;
+  renderQueued = true;
+  requestAnimationFrame(draw);
+}
+function draw() {
+  renderQueued = false;
+  renderer.clear();
+  renderer.render(bgScene, bgCam);
+  renderer.render(scene, camera);
+}
+function layout() {
+  const stage = $('stage');
+  const W = stage.clientWidth;
+  const maxH = Math.max(240, window.innerHeight * (window.innerWidth >= 900 ? 0.78 : 0.56));
+  let w = W, h = W / photo.aspect;
+  if (h > maxH) { h = maxH; w = h * photo.aspect; }
+  renderer.setSize(Math.round(w), Math.round(h));
+  requestRender();
+}
+
+// ---------- 拖曳 ----------
+const raycaster = new THREE.Raycaster();
+const ndc = new THREE.Vector2();
+let drag = null;
+
+function setRay(e) {
+  const r = canvas.getBoundingClientRect();
+  ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+  raycaster.setFromCamera(ndc, camera);
+}
+function isShown(o) {
+  for (let p = o; p; p = p.parent) if (!p.visible) return false;
+  return true;
+}
+function keyOf(o) {
+  let p = o;
+  while (p && !p.userData.key) p = p.parent;
+  return p ? p.userData.key : null;
+}
+function pick() {
+  const hits = raycaster.intersectObjects([rugGroup, lampGroup], true).filter((h) => isShown(h.object) && h.object !== rugFrame);
+  return hits[0] || null;
+}
+function select(key) {
+  state.selected = key;
+  update();
+}
+
+canvas.addEventListener('pointerdown', (e) => {
+  setRay(e);
+  const hit = pick();
+  if (!hit) { select(null); return; }
+  const key = keyOf(hit.object);
+  const obj = state[key];
+  const how = dragPlane(hit.point.y, camera.position.y);
+  const plane = new THREE.Plane();
+  if (how.kind === 'level') plane.set(new THREE.Vector3(0, 1, 0), -how.y);
+  else {
+    // 面對鏡頭的直立平面：法線是鏡頭往前看的水平方向
+    const fwd = camera.getWorldDirection(new THREE.Vector3()).setY(0).normalize();
+    plane.setFromNormalAndCoplanarPoint(fwd, hit.point);
+  }
+  drag = { key, plane, offX: obj.x - hit.point.x, offZ: obj.z - hit.point.z };
+  canvas.setPointerCapture(e.pointerId);
+  canvas.style.cursor = 'grabbing';
+  e.preventDefault();
+  select(key);
+});
+canvas.addEventListener('pointermove', (e) => {
+  setRay(e);
+  if (!drag) {
+    canvas.style.cursor = pick() ? 'grab' : 'default';
+    return;
+  }
+  const p = new THREE.Vector3();
+  if (!raycaster.ray.intersectPlane(drag.plane, p)) return;
+  const obj = state[drag.key];
+  obj.x = THREE.MathUtils.clamp(p.x + drag.offX, -8, 8);
+  obj.z = THREE.MathUtils.clamp(p.z + drag.offZ, -14, -0.4);
+  if (!state.dragged) {
+    state.dragged = true;
+    $('hint').hidden = true;
+  }
+  update();
+});
+function endDrag(e) {
+  if (!drag) return;
+  drag = null;
+  if (canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId);
+  canvas.style.cursor = 'grab';
+}
+canvas.addEventListener('pointerup', endDrag);
+canvas.addEventListener('pointercancel', endDrag);
+
+// ---------- 介面 ----------
+const syncers = [];
+function bindRange(id, get, set, fmt) {
+  const el = $(id), out = $(id + '-out');
+  const show = () => { out.textContent = fmt(Number(el.value)); };
+  el.addEventListener('input', () => { set(Number(el.value)); show(); update(); });
+  syncers.push(() => { el.value = get(); show(); });
+}
+function bindCheck(id, get, set) {
+  const el = $(id);
+  el.addEventListener('change', () => { set(el.checked); update(); });
+  syncers.push(() => { el.checked = get(); });
+}
+// 只顯示這盞燈用得到的高度滑桿；吊燈能拉多高跟著天花板和燈的高度走
+function syncLampControls() {
+  const lamp = currentLamp(), L = state.lamp;
+  $('row-hang').hidden = lamp.mount !== 'pendant';
+  $('row-table').hidden = lamp.mount !== 'table';
+  $('row-wall').hidden = lamp.mount !== 'wall';
+  if (lamp.mount !== 'pendant') return;
+  const el = $('lamp-hang');
+  el.max = maxHang(lamp, state.cam.ceiling).toFixed(2);
+  L.hang = clampHang(lamp, L.hang, state.cam.ceiling);
+  el.value = L.hang;
+  $('lamp-hang-out').textContent = meters(L.hang);
+}
+function syncAll() {
+  syncers.forEach((f) => f());
+  syncLampControls();
+}
+const pct = (v) => `${Math.round(v * 100)}%`;
+const times = (v) => `× ${v.toFixed(2)}`;
+const deg = (d) => (v) => `${v.toFixed(d)}°`;
+const meters = (v) => `${v.toFixed(2)} m`;
+
+bindCheck('rug-visible', () => state.rug.visible, (v) => { state.rug.visible = v; });
+$('rug-size').addEventListener('change', (e) => { state.rug.size = e.target.value; update(); });
+syncers.push(() => { $('rug-size').value = state.rug.size; });
+bindRange('rug-rot', () => state.rug.rot, (v) => { state.rug.rot = v; }, deg(0));
+
+bindCheck('lamp-visible', () => state.lamp.visible, (v) => { state.lamp.visible = v; });
+const lampPick = $('lamp-pick');
+for (const c of CATEGORIES) {
+  const group = document.createElement('optgroup');
+  group.label = c;
+  for (const l of LAMPS.filter((x) => x.category === c)) group.append(new Option(`${l.brand} ${l.name}`, l.id));
+  lampPick.append(group);
+}
+lampPick.addEventListener('change', () => {
+  state.lamp.id = lampPick.value; // 位置、旋轉都不變（壁燈換壁燈還是貼著同一面牆）
+  renderLampCard(currentLamp());
+  syncAll();
+  update();
+});
+syncers.push(() => { lampPick.value = state.lamp.id; });
+bindRange('lamp-hang', () => state.lamp.hang, (v) => { state.lamp.hang = v; }, meters);
+bindRange('lamp-table', () => state.lamp.table, (v) => { state.lamp.table = v; }, meters);
+bindRange('lamp-wall', () => state.lamp.wallY, (v) => { state.lamp.wallY = v; }, meters);
+bindRange('lamp-rot', () => state.lamp.rot, (v) => { state.lamp.rot = v; }, deg(0));
+
+bindCheck('lamp-on', () => state.lamp.on, (v) => { state.lamp.on = v; });
+bindRange('lamp-lumen', () => state.lamp.lumen, (v) => { state.lamp.lumen = v; }, (v) => `${v} lm`);
+bindRange('lamp-kelvin', () => state.lamp.kelvin, (v) => { state.lamp.kelvin = v; }, (v) => `${v} K`);
+bindRange('room-night', () => state.room.night, (v) => { state.room.night = v; }, (v) => (v < 0.2 ? '白天' : v < 0.7 ? '傍晚' : '晚上'));
+bindRange('room-ambient', () => state.room.ambient, (v) => { state.room.ambient = v; }, times);
+bindRange('sun-az', () => state.room.sunAz, (v) => { state.room.sunAz = v; }, deg(0));
+bindRange('sun-el', () => state.room.sunEl, (v) => { state.room.sunEl = v; }, deg(0));
+bindRange('sun-power', () => state.room.sunPower, (v) => { state.room.sunPower = v; }, times);
+bindRange('room-shadow', () => state.room.shadow, (v) => { state.room.shadow = v; }, pct);
+
+bindRange('cam-height', () => state.cam.height, (v) => { state.cam.height = v; }, meters);
+bindRange('cam-pitch', () => state.cam.pitch, (v) => { state.cam.pitch = v; }, deg(1));
+bindRange('cam-fov', () => state.cam.fov, (v) => { state.cam.fov = v; }, deg(1));
+bindRange('cam-roll', () => state.cam.roll, (v) => { state.cam.roll = v; }, deg(1));
+bindRange('cam-ceiling', () => state.cam.ceiling, (v) => { state.cam.ceiling = v; syncLampControls(); }, meters);
+$('cam-reset').addEventListener('click', () => {
+  state.cam = { ...state.camDefaults };
+  syncAll();
+  update();
+});
+
+$('card-rug').addEventListener('click', () => { if (state.selected !== 'rug') select('rug'); });
+$('card-lamp').addEventListener('click', () => { if (state.selected !== 'lamp') select('lamp'); });
+
+function setTab(t) {
+  state.tab = t;
+  document.querySelectorAll('[role="tab"]').forEach((b) => {
+    const on = b.dataset.tab === t;
+    b.setAttribute('aria-selected', String(on));
+    b.tabIndex = on ? 0 : -1;
+  });
+  document.querySelectorAll('[role="tabpanel"]').forEach((p) => { p.hidden = p.id !== 'panel-' + t; });
+  update();
+}
+const tabs = [...document.querySelectorAll('[role="tab"]')];
+tabs.forEach((b, i) => {
+  b.addEventListener('click', () => setTab(b.dataset.tab));
+  b.addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    const next = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+    next.focus();
+    setTab(next.dataset.tab);
+  });
+});
+
+let toastTimer = 0;
+function toast(msg, kind = 'error') {
+  const el = $('toast');
+  el.textContent = msg;
+  el.dataset.kind = kind;
+  el.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.hidden = true; }, 7000);
+}
+
+function floorPointAt(nx, ny) {
+  raycaster.setFromCamera(new THREE.Vector2(nx, ny), camera);
+  const p = new THREE.Vector3();
+  const hit = raycaster.ray.intersectPlane(FLOOR, p);
+  return hit && p.z < -0.8 && p.z > -9 ? p : null;
+}
+function placeDefaults() {
+  const r = floorPointAt(0, -0.55) || new THREE.Vector3(0, 0, -3);
+  Object.assign(state.rug, { x: r.x, z: r.z, rot: 0 });
+  const l = floorPointAt(0.55, -0.25) || new THREE.Vector3(1.2, 0, -3.6);
+  Object.assign(state.lamp, { x: l.x, z: l.z });
+}
+
+$('file').addEventListener('change', async (e) => {
+  const file = e.target.files && e.target.files[0];
+  e.target.value = '';
+  if (!file) return;
+  const isImage = file.type.startsWith('image/') || /\.(heic|heif)$/i.test(file.name);
+  if (!isImage) { toast('只支援照片：JPG、PNG 或 HEIC。'); return; }
+  if (file.size > 20 * 1024 * 1024) { toast('照片超過 20 MB。換一張小一點的再試。'); return; }
+  const ticket = ++alignTicket; // 這張照片的號碼：之後又選了新照片，這張的結果都不用
+  let img;
+  try {
+    img = await decodeImage(file);
+  } catch {
+    if (ticket === alignTicket) toast('這張照片打不開。如果是 iPhone 的 HEIC，先轉成 JPG 再試。');
+    return;
+  }
+  if (ticket !== alignTicket) return; // 解碼比較慢，新照片已經先出來了
+  const max = 2048, sc = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+  const c = canvasOf(Math.round(img.naturalWidth * sc), Math.round(img.naturalHeight * sc));
+  c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+  const portrait = c.height > c.width;
+  setPhoto(c, { height: 1.35, pitch: 8, fov: portrait ? 62 : 48, roll: 0, ceiling: 2.7 });
+  placeDefaults();
+  state.room.night = 0;
+  state.selected = null;
+  $('photo-name').textContent = '你的照片';
+  syncAll();
+  setTab('align');
+  setOccluder(null); // 舊照片的遮擋不能套到新照片上
+  autoAlign(c, ticket);
+});
+
+// ---------- AI 自動對齊 ----------
+// 從這台電腦的對齊服務打開時用服務（tools/autoalign/server.py）；其他地方（放上網、手機、claude.ai）
+// 在瀏覽器裡跑 AI（webalign.js + onnxruntime-web）。照片不會傳到網路上：
+// 本機服務只送到同一個網站（127.0.0.1），不跟著轉址；瀏覽器版完全不送
+const { modelOutputToPoints, alignResult, modelInputSize, NoFloorError } = window.SetdressAlign;
+const MANUAL_HINT = '先對齊：拉滑桿，讓藍色格線貼齊你家的地板。';
+let alignTicket = 0;
+
+function canvasToJpeg(c) {
+  return new Promise((resolve) => c.toBlob(resolve, 'image/jpeg', 0.92));
+}
+const ALIGN_HOSTS = new Set(['127.0.0.1', 'localhost']);
+const FORCE_BROWSER_AI = new URLSearchParams(location.search).get('ai') === 'browser'; // 測試瀏覽器版用
+const noFloorText = (why) => `AI 找不到地板，請用滑桿手動對齊。（${why}）`;
+const isNum = (v) => typeof v === 'number' && Number.isFinite(v);
+// 對齊結果的 5 個數字都要合理，才拿來設滑桿
+function validFit(f) {
+  return Boolean(f) && isNum(f.height_m) && f.height_m > 0 && isNum(f.pitch_deg) && isNum(f.roll_deg)
+    && isNum(f.vfov_deg) && f.vfov_deg > 0 && f.vfov_deg < 180
+    && (f.ceiling_m == null || (isNum(f.ceiling_m) && f.ceiling_m > f.height_m));
+}
+// 有期限的 fetch：超過 ms 毫秒就放棄
+async function fetchWithin(url, opts, ms) {
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), ms);
+  try {
+    return await fetch(url, { ...opts, signal: ctl.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// ----- 本機服務：回傳 { fit }、{ error }，或 null（服務沒開、太久沒回） -----
+const SERVER_TIMEOUT_MS = 60000;
+async function requestServerAlign(c) {
+  let res;
+  try {
+    res = await fetchWithin(new URL('api/align', location.href).href, {
+      method: 'POST', mode: 'same-origin', redirect: 'error',
+      headers: { 'Content-Type': 'image/jpeg' }, body: await canvasToJpeg(c),
+    }, SERVER_TIMEOUT_MS);
+  } catch {
+    return null;
+  }
+  const body = await res.json().catch(() => null);
+  if (res.ok && validFit(body)) return { fit: body };
+  if (body && typeof body.error === 'string' && res.status !== 404) return { error: body.error };
+  return null;
+}
+
+// ----- 瀏覽器裡的 AI -----
+const ORT_DIST = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/';
+const MODEL_URL = new URL('models/moge-2-s-fp16.onnx', location.href).href;
+const MODEL_CACHE = 'setdress-models-v1'; // 換模型時改版本號，舊的就不會再被拿出來用
+const MODEL_BYTES = { min: 10e6, max: 200e6, guess: 71e6 };
+const STALL_MS = 30000; // 下載停住這麼久就放棄
+const TOKENS = { gpu: 2400, cpu: 1200 }; // 有顯示卡用細一點（docs/web-align.md 的準度表）
+const ai = { ort: null, session: null, gpu: false, loading: null, queue: Promise.resolve() };
+
+// 大小合理、而且是 ONNX 檔（第一個欄位 ir_version 的標記是 0x08）
+const looksLikeOnnx = (b) => b.length >= MODEL_BYTES.min && b.length <= MODEL_BYTES.max && b[0] === 0x08;
+async function cachedModel() {
+  try {
+    const hit = await (await caches.open(MODEL_CACHE)).match(MODEL_URL);
+    const bytes = hit ? new Uint8Array(await hit.arrayBuffer()) : null;
+    if (bytes && looksLikeOnnx(bytes)) return bytes;
+    if (bytes) await forgetCachedModel(); // 存壞了：丟掉，重新下載
+    return null;
+  } catch {
+    return null; // 不能用快取（例如不是 https）：就每次下載
+  }
+}
+async function saveModel(bytes) {
+  try {
+    await (await caches.open(MODEL_CACHE)).put(MODEL_URL, new Response(bytes, { headers: { 'Content-Type': 'application/octet-stream' } }));
+  } catch { /* 存不了：下次再下載 */ }
+}
+async function forgetCachedModel() {
+  try { await (await caches.open(MODEL_CACHE)).delete(MODEL_URL); } catch { /* 沒有快取可刪 */ }
+}
+// 只問有沒有這個檔案（HEAD，不下載、也不帶照片）
+async function modelAvailable() {
+  try { return (await fetchWithin(MODEL_URL, { method: 'HEAD' }, 10000)).ok; } catch { return false; }
+}
+// 下載模型：知道大小就先配好記憶體，邊收邊放（不會同時有兩份 71 MB）；停住 30 秒就放棄
+async function downloadModel(onProgress) {
+  const ctl = new AbortController();
+  let stall = setTimeout(() => ctl.abort(), STALL_MS);
+  try {
+    const res = await fetch(MODEL_URL, { signal: ctl.signal });
+    if (!res.ok) throw new Error(`下載模型失敗（${res.status}）`);
+    // 傳輸時有壓縮的話，Content-Length 是壓縮後的大小，不能拿來比
+    const declared = res.headers.get('Content-Encoding') ? 0 : Number(res.headers.get('Content-Length')) || 0;
+    if (declared > MODEL_BYTES.max) throw new Error('模型檔大小不對');
+    const reader = res.body.getReader();
+    let bytes = new Uint8Array(declared || MODEL_BYTES.guess), got = 0;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      clearTimeout(stall);
+      stall = setTimeout(() => ctl.abort(), STALL_MS);
+      if (got + value.length > bytes.length) {
+        if (declared || got + value.length > MODEL_BYTES.max) throw new Error('模型檔大小不對');
+        const bigger = new Uint8Array(Math.min(MODEL_BYTES.max, Math.max(bytes.length * 1.5, got + value.length)));
+        bigger.set(bytes.subarray(0, got));
+        bytes = bigger;
+      }
+      bytes.set(value, got);
+      got += value.length;
+      onProgress(Math.min(1, got / (declared || MODEL_BYTES.guess)));
+    }
+    if (got !== bytes.length) bytes = bytes.slice(0, got);
+    if ((declared && got !== declared) || !looksLikeOnnx(bytes)) throw new Error('下載的模型不完整');
+    return bytes;
+  } finally {
+    clearTimeout(stall);
+  }
+}
+// 第一次要下載模型：先問。回傳 true（下載）或 false（先手動）
+let pendingAsk = null;
+function askDownload() {
+  pendingAsk?.(false);
+  $('toast').hidden = true; // 「AI 對齊中」還沒開始，先藏起來
+  $('ai-ask').hidden = false;
+  return new Promise((resolve) => {
+    pendingAsk = (yes) => { pendingAsk = null; $('ai-ask').hidden = true; resolve(yes); };
+  });
+}
+$('ai-yes').addEventListener('click', () => pendingAsk?.(true));
+$('ai-no').addEventListener('click', () => pendingAsk?.(false));
+
+async function hasWebGpu() {
+  try { return Boolean(navigator.gpu && (await navigator.gpu.requestAdapter())); } catch { return false; }
+}
+async function createSession(bytes) {
+  if (!ai.ort) {
+    ai.ort = await import(ORT_DIST + 'ort.webgpu.min.mjs');
+    ai.ort.env.wasm.wasmPaths = ORT_DIST;
+    ai.ort.env.logLevel = 'error'; // 「有些運算放在 CPU」這類提醒不用印
+  }
+  ai.gpu = await hasWebGpu();
+  if (ai.gpu) {
+    try { return await ai.ort.InferenceSession.create(bytes, { executionProviders: ['webgpu'] }); } catch { ai.gpu = false; }
+  }
+  return ai.ort.InferenceSession.create(bytes, { executionProviders: ['wasm'] });
+}
+// 準備模型：查快取 → 網站有沒有模型 → 問 → 下載 → 建立。整段同時只跑一次（快速換照片也只下載一次）
+// 回傳 true，或 false（使用者選手動、網站沒放模型）
+function ensureSession() {
+  if (ai.session) return Promise.resolve(true);
+  if (!ai.loading) ai.loading = loadModel().finally(() => { ai.loading = null; });
+  return ai.loading;
+}
+async function loadModel() {
+  let bytes = await cachedModel();
+  const fromCache = Boolean(bytes);
+  if (!bytes) {
+    if (!(await modelAvailable())) return false; // 這個網站沒放模型（例如 claude.ai）：直接手動
+    if (!(await askDownload())) return false;
+    bytes = await downloadModel((f) => toast(`下載 AI 模型中…… ${Math.round(f * 100)}%`, 'info'));
+  }
+  toast('AI 模型準備中……', 'info');
+  try {
+    ai.session = await createSession(bytes);
+  } catch (e) {
+    if (fromCache) await forgetCachedModel(); // 存的那份不能用：丟掉，下次重新下載
+    throw e;
+  }
+  if (!fromCache) await saveModel(bytes); // 確定能用才存
+  return true;
+}
+// 顯示卡跑到一半出錯（記憶體不夠、裝置掉了）：改用 CPU
+async function switchToCpu() {
+  const old = ai.session;
+  ai.session = null;
+  ai.gpu = false;
+  old?.release?.().catch(() => {});
+  const bytes = await cachedModel();
+  if (!bytes) throw new Error('顯示卡跑不動，也沒有存好的模型可以改用 CPU');
+  ai.session = await ai.ort.InferenceSession.create(bytes, { executionProviders: ['wasm'] });
+  toast('顯示卡跑不動，改用 CPU（比較慢，大約 10–30 秒）……', 'info');
+}
+// 照片縮成模型要的大小（長寬比不變）→ RGB 0–1、通道在前
+function photoTensor(c, size) {
+  const w = size.width, h = size.height, n = w * h;
+  const tmp = canvasOf(w, h), g = tmp.getContext('2d', { willReadFrequently: true });
+  g.imageSmoothingQuality = 'high';
+  g.drawImage(c, 0, 0, w, h);
+  const px = g.getImageData(0, 0, w, h).data, data = new Float32Array(3 * n);
+  for (let i = 0; i < n; i++) {
+    data[i] = px[i * 4] / 255;
+    data[n + i] = px[i * 4 + 1] / 255;
+    data[2 * n + i] = px[i * 4 + 2] / 255;
+  }
+  return new ai.ort.Tensor('float32', data, [1, 3, h, w]);
+}
+async function inferOnce(c) {
+  const tokens = ai.gpu ? TOKENS.gpu : TOKENS.cpu, size = modelInputSize(c.width, c.height, tokens);
+  const out = await ai.session.run({
+    image: photoTensor(c, size),
+    num_tokens: new ai.ort.Tensor('int64', BigInt64Array.from([BigInt(tokens)]), []),
+  });
+  return { out, size };
+}
+// 跑模型（顯示卡出錯就改用 CPU 再試一次）→ 真實的點 → 5 個數字＋遮擋圖
+async function runBrowserModel(c) {
+  let r;
+  try {
+    r = await inferOnce(c);
+  } catch (e) {
+    if (!ai.gpu) throw e;
+    await switchToCpu();
+    r = await inferOnce(c);
+  }
+  const { out, size } = r;
+  const pts = modelOutputToPoints({
+    points: out.points.data, mask: out.mask.data, metricScale: out.metric_scale.data[0], rows: size.height, cols: size.width,
+  });
+  return alignResult(pts.map, pts.fy, { seed: 0 });
+}
+// 一次只跑一張；輪到的時候如果已經換了照片，就不跑（回傳 null）
+function runQueued(ticket, job) {
+  const run = ai.queue.then(() => (ticket === alignTicket ? job() : null));
+  ai.queue = run.catch(() => {});
+  return run;
+}
+// 回傳 { fit }、{ error }，或 null（使用者選手動、已經換了照片）
+async function browserAlign(c, ticket) {
+  if (!(await ensureSession())) return null;
+  if (ticket !== alignTicket) return null;
+  toast(ai.gpu ? 'AI 對齊中……' : 'AI 對齊中……這台裝置比較慢，大約要 10–30 秒。', 'info');
+  await new Promise((r) => setTimeout(r, 30)); // 讓提示先畫出來
+  try {
+    const fit = await runQueued(ticket, () => runBrowserModel(c));
+    return fit && { fit };
+  } catch (e) {
+    if (e instanceof NoFloorError) return { error: noFloorText(e.message) };
+    throw e;
+  }
+}
+async function requestAlign(c, ticket) {
+  if (!FORCE_BROWSER_AI && ALIGN_HOSTS.has(location.hostname)) {
+    const r = await requestServerAlign(c);
+    if (r) return r; // 服務有開：用服務的結果
+  }
+  return browserAlign(c, ticket);
+}
+
+// 先把遮擋圖弄好（壞掉就不遮擋），再一次設好鏡頭
+function applyFit(f) {
+  setOccluder(f.depth);
+  const cam = { height: f.height_m, pitch: f.pitch_deg, fov: f.vfov_deg, roll: f.roll_deg, ceiling: f.ceiling_m ?? state.cam.ceiling };
+  state.cam = { ...cam };
+  state.camDefaults = { ...cam };
+  updateCamera();
+  placeDefaults();
+  syncAll();
+  update();
+}
+async function autoAlign(c, ticket) {
+  toast('AI 對齊中……', 'info');
+  let r;
+  try {
+    r = await requestAlign(c, ticket);
+    if (ticket !== alignTicket) return; // 又換了一張照片：這個結果是舊的，不要用
+    if (r?.fit && !validFit(r.fit)) throw new Error('AI 算出來的數字不合理');
+    if (r?.fit) applyFit(r.fit);
+  } catch (e) {
+    if (ticket === alignTicket) toast(`AI 對齊失敗（${e?.message || e}），請用滑桿手動對齊。`);
+    return;
+  }
+  if (!r) { toast(MANUAL_HINT, 'info'); return; }
+  if (r.error) { toast(r.error); return; }
+  toast(r.fit.ceiling_m == null
+    ? 'AI 對齊好了，但天花板沒拍到：天花板高度請用滑桿調。'
+    : 'AI 對齊好了。格線沒貼齊地板的話，拉滑桿微調。', 'info');
+}
+
+// ---------- 開始 ----------
+setPhoto(renderDemoRoom(), DEMO_CAM);
+buildRug();
+renderLampCard(currentLamp());
+syncAll();
+setTab('place');
+new ResizeObserver(layout).observe($('stage'));
+window.addEventListener('resize', layout);
+// 網址加 #debug 時，讓瀏覽器主控台量得到 3D 物件（檢查尺寸用）
+if (location.hash === '#debug') window.__setdress = { THREE, state, camera, canvas, lampModel, lampGroup, update, syncAll, draw, halo, ai };
+</script>
