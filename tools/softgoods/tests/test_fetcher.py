@@ -274,3 +274,63 @@ class TestFailuresAreAlsoPolite:
         with pytest.raises(FetchError):
             f(url)
         assert slept and slept[-1] >= site.crawl_delay_sec
+
+
+class TestCodexReview2:
+    """Codex 審查（2026-11-20 第二次）抓到的。"""
+
+    def test_fresh_mode_downloads_again_what_was_cached_before_this_run(self, site, tmp_path, slept):
+        # 定期更新：上次的快取不能當成這次的價格
+        url = "https://demo.test/p/1"
+        script = {"https://demo.test/robots.txt": [(200, ROBOTS_OPEN)], url: [(200, "舊價格"), (200, "新價格")]}
+        old = make(site, tmp_path, script, slept)
+        assert old(url) == "舊價格"
+        import time
+        fresh = make(site, tmp_path, script, slept, fresh_since=time.time() + 1)
+        fresh.transport = old.transport  # 同一個假網路，接著回第二個回應
+        assert fresh(url) == "新價格"
+
+    def test_fresh_mode_still_reuses_what_this_run_already_downloaded(self, site, tmp_path, slept):
+        import time
+        url = "https://demo.test/p/1"
+        f = make(site, tmp_path, {"https://demo.test/robots.txt": [(200, ROBOTS_OPEN)],
+                                  url: [(200, "一次")]}, slept, fresh_since=time.time() - 1)
+        f(url)
+        f(url)
+        assert f.transport.hits(url) == 1
+
+    def test_crawl_delay_is_the_one_meant_for_us(self, site, tmp_path, slept):
+        robots = "User-agent: SomeBot\nCrawl-delay: 1\n\nUser-agent: *\nCrawl-delay: 10\n"
+        f = make(site, tmp_path, {"https://demo.test/robots.txt": [(200, robots)]}, slept)
+        f.allowed("https://demo.test/x")
+        assert f.delay == 10
+
+    def test_a_redirect_into_a_forbidden_path_is_refused(self, site, tmp_path, slept):
+        robots = "User-agent: *\nDisallow: /api/\n"
+        f = make(site, tmp_path, {
+            "https://demo.test/robots.txt": [(200, robots)],
+            "https://demo.test/p/1": [(301, "/api/secret")],
+        }, slept)
+        with pytest.raises(Blocked):
+            f("https://demo.test/p/1")
+        assert f.transport.hits("https://demo.test/api/secret") == 0
+
+    def test_a_redirect_to_another_site_is_not_followed(self, site, tmp_path, slept):
+        f = make(site, tmp_path, {
+            "https://demo.test/robots.txt": [(200, ROBOTS_OPEN)],
+            "https://demo.test/p/1": [(302, "https://elsewhere.test/p/1")],
+        }, slept)
+        with pytest.raises(FetchError):
+            f("https://demo.test/p/1")
+        assert f.transport.hits("https://elsewhere.test/p/1") == 0
+
+    def test_an_allowed_redirect_is_followed_with_a_pause(self, site, tmp_path, slept):
+        f = make(site, tmp_path, {
+            "https://demo.test/robots.txt": [(200, ROBOTS_OPEN)],
+            "https://demo.test/old": [(301, "https://demo.test/new")],
+            "https://demo.test/new": [(200, "到了")],
+        }, slept)
+        f.allowed("https://demo.test/old")
+        slept.clear()
+        assert f("https://demo.test/old") == "到了"
+        assert len(slept) >= 2, "轉址那一下也要等"

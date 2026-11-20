@@ -110,3 +110,40 @@ def test_a_bug_in_one_adapter_is_reported_not_raised(store):
     results = run(store, {"a": lambda s: Broken(s, 0), "b": lambda s: FakeAdapter(s, 1)})
     assert results[0].complete is False and "程式寫錯了" in results[0].error
     assert results[1].complete
+
+
+class TestCodexReview2:
+    def test_skipped_pages_mean_the_run_is_not_complete(self, store):
+        # Shopline：一頁 503 被跳過，那頁的商品這輪沒看到 —— 不能當成下架
+        class Skips(FakeAdapter):
+            skipped = 1
+
+        run(store, {"a": lambda s: FakeAdapter(s, 3)}, date="2026-11-20")
+        results = run(store, {"a": lambda s: Skips(s, 2)}, date="2026-11-27")
+        assert results[0].complete is False
+        assert "1 頁" in results[0].error
+        assert listings(store, "a") == (3, 0)
+
+    def test_a_database_error_stops_the_run_instead_of_hanging(self, store):
+        class BrokenStore:
+            def upsert(self, records, seen_date):
+                raise RuntimeError("磁碟滿了")
+
+            def mark_gone(self, site_id, seen_date):
+                return 0
+
+        done = threading.Event()
+        caught: list = []
+
+        def go():
+            try:
+                update_all([site(f"s{i}") for i in range(3)], BrokenStore(), "2026-11-20",
+                           make_fetch=lambda s: (lambda url, trim=None: ""),
+                           make_adapter=lambda s: FakeAdapter(s, 30000))  # 遠超過佇列的 50 批
+            except RuntimeError as e:
+                caught.append(e)
+            done.set()
+
+        threading.Thread(target=go, daemon=True).start()
+        assert done.wait(timeout=10), "寫資料庫出錯時整個卡住了"
+        assert caught and "磁碟滿了" in str(caught[0])

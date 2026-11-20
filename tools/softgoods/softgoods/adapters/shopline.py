@@ -49,11 +49,13 @@ def _js_string(text: str) -> str:
     return text.replace("\\", "\\\\").replace('"', '\\"').replace("'", "\\'").replace("</", "<\\/")
 
 
+def _only(data: dict, keys: tuple[str, ...]) -> dict:
+    return {k: data[k] for k in keys if k in data}
+
+
 def _slim_product(product: dict) -> dict:
-    out = {k: product[k] for k in _KEEP_PRODUCT if k in product}
-    out["variations"] = [
-        {k: v[k] for k in _KEEP_VARIATION if k in v} for v in product.get("variations") or []
-    ]
+    out = _only(product, _KEEP_PRODUCT)
+    out["variations"] = [_only(v, _KEEP_VARIATION) for v in product.get("variations") or []]
     return out
 
 
@@ -115,10 +117,24 @@ def _product_slug(url: str) -> str | None:
     return m.group("slug")
 
 
-def _pick_sitemap(subs: list[str]) -> str:
-    """sitemap 目錄裡挑中文的那份；沒有就挑預設語言的；再沒有就第一份。"""
-    ranked = [u for want in (f"locale={_LOCALE}", "locale=default") for u in subs if want in u]
-    return (ranked or subs)[0]
+def _pick_sitemaps(subs: list[str]) -> list[str]:
+    """sitemap 目錄裡挑中文的那幾份（可能分好幾份）；沒有就挑預設語言的；再沒有就全部。"""
+    for want in (f"locale={_LOCALE}", "locale=default"):
+        hits = [u for u in subs if want in u]
+        if hits:
+            return hits
+    return subs
+
+
+def _variation_key(variation: dict | None, i: int) -> str | None:
+    """規格的代號；沒有代號就用第幾個（不然兩個規格同一個網址，價格互相蓋掉）。"""
+    if variation is None:
+        return None
+    return variation.get("key") or f"n{i}"
+
+
+def _color(variant_name: str | None, color_hint: str | None) -> str | None:
+    return variant_name if nz.color_family(variant_name) else color_hint
 
 
 def _variant_url(url: str, key: str | None) -> str:
@@ -132,6 +148,7 @@ class ShoplineAdapter(Adapter):
     def __init__(self, site: SiteConfig, *args, brand_names: list[str] | None = None, **kwargs):
         super().__init__(site, *args, **kwargs)
         names = default_brand_names() if brand_names is None else brand_names
+        self.skipped = 0  # 這輪有幾頁抓不到或讀不懂（update.py 看這個決定算不算完整）
         self.brand_names = sorted(names, key=len, reverse=True)  # 長的先比：「Louis Poulsen」勝過「Louis」
 
     # ------------------------------------------------------------ 找商品頁
@@ -142,24 +159,32 @@ class ShoplineAdapter(Adapter):
         locs = [html.unescape(u) for u in _LOC_RE.findall(index)]
         if "<sitemapindex" not in index:
             return locs
-        return [html.unescape(u) for u in _LOC_RE.findall(fetch(_pick_sitemap(locs)))]
+        return [
+            html.unescape(u) for sub in _pick_sitemaps(locs) for u in _LOC_RE.findall(fetch(sub))
+        ]
 
     def discover(self, fetch: Fetch) -> Iterator[str]:
         """商品頁網址，同一件只取一次。"""
         seen: set[str] = set()
+        host = urlparse(self.site.base_url).netloc
         for url in self._sitemap_urls(fetch):
+            if urlparse(url).netloc != host:
+                continue  # sitemap 裡別的網站的網址不抓（那邊的 robots.txt 我們沒讀）
             slug = _product_slug(url)
             if slug and slug not in seen:
                 seen.add(slug)
                 yield url
 
     def crawl(self, fetch: Fetch) -> Iterator[Record]:
+        """一頁抓不到或讀不懂，跳過但記下來（skipped）：這輪就不算完整，不標記下架。"""
+        self.skipped = 0
         for url in self.discover(fetch):
             try:
-                page = fetch(url, trim=slim_product_page)
+                records = self.parse(url, fetch(url, trim=slim_product_page))
             except (FetchError, Blocked):
-                continue  # 一頁抓不到，不影響其他商品
-            yield from self.parse(url, page)
+                records = []
+            self.skipped += not records
+            yield from records
 
     # ------------------------------------------------------------ 讀一頁
 
@@ -185,7 +210,7 @@ class ShoplineAdapter(Adapter):
             return variant_name
         return sizes.size_snippet(page, variant_name, title) or sizes.title_size(title) or variant_name
 
-    def _record(self, url: str, page: str, product: dict, variation: dict | None) -> Record:
+    def _record(self, url: str, page: str, product: dict, variation: dict | None, i: int = 0) -> Record:
         title = _zh(product.get("title_translations"))
         brand = self._brand(title) or self.site.house_brand
         model, color_hint = nz.clean_title(title, brand)
@@ -197,14 +222,14 @@ class ShoplineAdapter(Adapter):
         return Record(
             site_id=self.site.site_id,
             channel=self.site.name,
-            url=_variant_url(url, source.get("key")),
+            url=_variant_url(url, _variation_key(variation, i)),
             title_raw=title,
             brand=brand,
             model=model,
             cat1=cat1 or "unknown",
             cat2=cat2,
             variant_name=variant_name,
-            color=variant_name if nz.color_family(variant_name) else color_hint,
+            color=_color(variant_name, color_hint),
             size_raw=self._size_raw(page, variant_name, title),
             price=price,
             price_original=price_original,
@@ -222,4 +247,4 @@ class ShoplineAdapter(Adapter):
         if not product:
             return []
         variations = product.get("variations") or [None]
-        return [self._record(url, body, product, v) for v in variations]
+        return [self._record(url, body, product, v, i) for i, v in enumerate(variations)]

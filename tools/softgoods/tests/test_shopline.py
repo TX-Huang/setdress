@@ -222,3 +222,44 @@ class TestHouseBrand:
         site = SiteConfig(site_id="x", name="x", base_url=BASE, adapter="shopline", house_brand="店家自己")
         a = ShoplineAdapter(site, brand_names=["HAY"])
         assert a.parse(URL, page(product("HAY 邊桌", [variation("黑", 8000)])))[0].brand == "HAY"
+
+
+class TestCodexReview2:
+    def test_variations_without_a_key_still_get_their_own_url(self, shopline):
+        v1, v2 = variation("黑", 8000, key=""), variation("白", 9000, key="")
+        recs = shopline.parse(URL, page(product("HAY 邊桌", [v1, v2])))
+        assert len({r.url for r in recs}) == 2
+
+    def test_all_chinese_sitemap_shards_are_read(self, shopline):
+        index = f"""<sitemapindex>
+<sitemap><loc>{BASE}/sitemap.xml?locale=zh-hant&amp;page=1</loc></sitemap>
+<sitemap><loc>{BASE}/sitemap.xml?locale=zh-hant&amp;page=2</loc></sitemap>
+<sitemap><loc>{BASE}/sitemap.xml?locale=en</loc></sitemap></sitemapindex>"""
+        pages = {
+            f"{BASE}/sitemap.xml": index,
+            f"{BASE}/sitemap.xml?locale=zh-hant&page=1": f"<urlset><url><loc>{BASE}/zh-hant/products/a</loc></url></urlset>",
+            f"{BASE}/sitemap.xml?locale=zh-hant&page=2": f"<urlset><url><loc>{BASE}/zh-hant/products/b</loc></url></urlset>",
+        }
+        got = list(shopline.discover(lambda url, trim=None: pages[url]))
+        assert got == [f"{BASE}/zh-hant/products/a", f"{BASE}/zh-hant/products/b"]
+
+    def test_sitemap_entries_on_another_site_are_skipped(self, shopline):
+        sm = f"<urlset><url><loc>https://elsewhere.test/products/x</loc></url><url><loc>{BASE}/products/y</loc></url></urlset>"
+        assert list(shopline.discover(lambda url, trim=None: sm)) == [f"{BASE}/products/y"]
+
+    def test_pages_that_fail_or_do_not_decode_are_counted(self, shopline):
+        from softgoods.fetcher import FetchError
+
+        good = page(product("HAY 邊桌", [variation("黑", 8000)]))
+
+        def fetch(url, trim=None):
+            if url.endswith("sitemap.xml"):
+                return SITEMAP_INDEX
+            if "locale=zh-hant" in url:
+                return SITEMAP_ZH
+            if url.endswith("/a"):
+                raise FetchError("HTTP 503")
+            return "<html>改版了，沒有商品資料</html>" if url.endswith("/b") else good
+
+        list(shopline.crawl(fetch))
+        assert shopline.skipped == 2

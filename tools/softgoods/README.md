@@ -5,6 +5,16 @@
 
 ## 跑法
 
+**更新全部通路**（各店同時跑、各照各的速度；只有完整跑完的店才標記下架）：
+
+```powershell
+python -m softgoods crawl all --fresh --mark-gone
+```
+
+`--fresh`：以前的快取不算數，重新抓（不然拿到的是上次的價格）。不加的話全部從快取讀、不打網站 —— 改了解析程式重跑時用。
+`crawl all` 不抓 lampclub（它只拿來對照「抓齊了沒」）。
+
+
 ```powershell
 python -m softgoods sites                    # 列出站台
 python -m softgoods crawl luxurylife         # 抓一個站
@@ -130,7 +140,7 @@ FROM product WHERE cat1 = 'unknown' OR cat2 IS NULL;
 python -m pytest tests/ -q
 ```
 
-296 個測試（8 個要 lampclub 頁面副本，沒有就跳過），完全不碰網路（網路層是注入的）。
+352 個測試（8 個要 lampclub 頁面副本，沒有就跳過），完全不碰網路（網路層是注入的）。
 測試素材是真的抓回來的頁面，放在 `tests/fixtures/`。
 
 交出去前跑：

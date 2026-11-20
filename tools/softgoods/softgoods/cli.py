@@ -13,6 +13,7 @@ import argparse
 import datetime
 import pathlib
 import sys
+import time
 
 from .adapters.base import default_brand_aliases
 from .fetcher import Fetcher
@@ -38,7 +39,7 @@ def pick_sites(sites: dict[str, SiteConfig], names: list[str]) -> list[SiteConfi
     """「all」是全部通路，不含只拿來對照的站（lampclub）；不然照名字挑。"""
     if names == ["all"]:
         return [s for s in sites.values() if not s.baseline]
-    return [sites[n] for n in names]
+    return [sites[n] for n in dict.fromkeys(names)]  # 同一家只跑一個工人，不然會超過它的速度限制
 
 
 def cmd_crawl(args) -> int:
@@ -47,10 +48,12 @@ def cmd_crawl(args) -> int:
     targets = pick_sites(sites, args.site)
     seen_date = args.date or datetime.date.today().isoformat()
     store = Store(args.db, SCHEMA, brand_aliases=default_brand_aliases())
+    # --fresh：這次開始之前存的快取不算數（定期更新要拿到新價格）；這次跑的時候存的照樣用
+    fresh_since = time.time() if args.fresh else None
 
     results = update_all(
         targets, store, seen_date,
-        make_fetch=lambda site: Fetcher(site, cache_dir=args.cache),
+        make_fetch=lambda site: Fetcher(site, cache_dir=args.cache, fresh_since=fresh_since),
         make_adapter=build_adapter,
         mark_gone=args.mark_gone,
         limit=args.limit,
@@ -119,7 +122,8 @@ def build_parser() -> argparse.ArgumentParser:
     c.add_argument("site", nargs="+", help="一個或幾個 site_id，或 all（不含 lampclub）")
     c.add_argument("--limit", type=int, default=None, help="最多抓幾筆（試跑用）")
     c.add_argument("--date", default=None, help="這一輪的日期，預設今天")
-    c.add_argument("--mark-gone", action="store_true", help="這輪沒看到的標記下架")
+    c.add_argument("--mark-gone", action="store_true", help="這輪沒看到的標記下架（只有完整跑完的店）")
+    c.add_argument("--fresh", action="store_true", help="不用以前的快取，重新抓（定期更新用）")
     c.set_defaults(func=cmd_crawl)
 
     r = sub.add_parser("report", help="看資料庫內容")

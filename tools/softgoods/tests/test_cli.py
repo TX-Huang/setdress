@@ -26,3 +26,14 @@ def test_all_leaves_out_the_baseline():
 def test_the_baseline_can_still_be_crawled_by_name():
     args = build_parser().parse_args(["crawl", "lampclub"])
     assert [s.site_id for s in pick_sites(_sites(), args.site)] == ["lampclub"]
+
+
+def test_the_same_store_twice_runs_once():
+    # 同一家跑兩個工人，會超過它的速度限制（Codex 審查 2026-11-20）
+    args = build_parser().parse_args(["crawl", "a", "b", "a"])
+    assert [s.site_id for s in pick_sites(_sites(), args.site)] == ["a", "b"]
+
+
+def test_fresh_flag():
+    assert build_parser().parse_args(["crawl", "all", "--fresh"]).fresh is True
+    assert build_parser().parse_args(["crawl", "all"]).fresh is False
