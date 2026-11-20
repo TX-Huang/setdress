@@ -63,6 +63,23 @@ def brand_from_title(title: str, names: list[str]) -> str:
     return ""
 
 
+_BY_BRAND = re.compile(r"\s+by\s+(?P<brand>[^/|｜]+?)\s*$", re.IGNORECASE)
+
+
+def split_by_brand(title: str, names: list[str]) -> tuple[str, str]:
+    """標題最後寫「by 品牌」（Design Butik：「海芋 / 可攜式桌燈 by Ferm Living」）。
+
+    回 (拿掉這段的標題, 品牌)；沒有就回 (原標題, "")。品牌在已知名單裡就用名單的寫法。
+    「by」前後要有空白：「Standby」不算。
+    """
+    m = _BY_BRAND.search(title or "")
+    if not m:
+        return title, ""
+    said = m.group("brand").strip()
+    known = next((n for n in names if n.casefold() == said.casefold()), said)
+    return title[: m.start()].rstrip(" -–—"), known
+
+
 @functools.cache
 def default_brand_names() -> list[str]:
     """已知的品牌名稱（data/known_brands.txt）。Shopline 沒有品牌欄位，用標題開頭比對。"""

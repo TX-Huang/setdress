@@ -25,10 +25,18 @@ from .. import normalize as nz
 from .. import sizes
 from ..fetcher import Blocked, FetchError
 from ..models import Record, SiteConfig
-from .base import Adapter, Fetch, brand_from_title, default_brand_names, longest_first
+from .base import (
+    Adapter,
+    Fetch,
+    brand_from_title,
+    default_brand_names,
+    longest_first,
+    split_by_brand,
+)
 
 _PRODUCT_RE = re.compile(r"app\.value\('product', JSON\.parse\('(.*?)(?<!\\)'\)\);", re.DOTALL)
 _LDJSON_RE = re.compile(r'<script type="application/ld\+json">.*?</script>', re.DOTALL)
+_OBJECT_START = "app.value('product', {"
 _LOC_RE = re.compile(r"<loc>\s*([^<]+?)\s*</loc>")
 _PRODUCT_PATH = re.compile(r"^/(?:(?P<locale>[a-z]{2}(?:-[a-z]+)?)/)?products/(?P<slug>[^/?#]+)")
 _LOCALE = "zh-hant"
@@ -94,8 +102,8 @@ def slim_product_page(page: str) -> str:
     return keep + sizes.slim_html(page)
 
 
-def _decode_product(page: str) -> dict | None:
-    """app.value('product', JSON.parse('…')) → dict。外層是 JavaScript 字串，裡面才是 JSON。"""
+def _decode_string_form(page: str) -> dict | None:
+    """app.value('product', JSON.parse('…'))：外層是 JavaScript 字串，裡面才是 JSON。"""
     m = _PRODUCT_RE.search(page)
     if not m:
         return None
@@ -104,6 +112,23 @@ def _decode_product(page: str) -> dict | None:
         return json.loads(json.loads(f'"{js}"'))
     except (ValueError, TypeError):
         return None
+
+
+def _decode_object_form(page: str) -> dict | None:
+    """app.value('product', {…})：直接寫成物件（Design Butik）。從 { 開始讀一個完整的 JSON 物件。"""
+    start = page.find(_OBJECT_START)
+    if start < 0:
+        return None
+    try:
+        product, _ = json.JSONDecoder().raw_decode(page, start + len(_OBJECT_START) - 1)
+    except ValueError:
+        return None
+    return product if isinstance(product, dict) else None
+
+
+def _decode_product(page: str) -> dict | None:
+    """Shopline 商品頁裡的商品資料。有兩種寫法，兩種都試。"""
+    return _decode_string_form(page) or _decode_object_form(page)
 
 
 def _text(value) -> str:
@@ -218,6 +243,13 @@ class ShoplineAdapter(Adapter):
     def _brand(self, title: str) -> str:
         return brand_from_title(title, self.brand_names)
 
+    def _brand_and_model(self, title: str) -> tuple[str, str, str | None]:
+        """品牌：標題最後的「by 品牌」→ 標題開頭的已知品牌 → 店家自己的牌子。再從標題清出型號。"""
+        core, by_brand = split_by_brand(title, self.brand_names)
+        brand = by_brand or self._brand(title) or self.site.house_brand
+        model, color_hint = nz.clean_title(core, brand)
+        return brand, model, color_hint
+
     def _category(self, title: str) -> tuple[str | None, str | None]:
         """Shopline 沒有分類欄位，只能看標題：先照分類表對（「吸頂燈／壁燈」），對不到再找類別詞。"""
         cat1, cat2 = nz.map_category(title, self.category_map)
@@ -233,8 +265,7 @@ class ShoplineAdapter(Adapter):
 
     def _record(self, url: str, page: str, product: dict, variation: dict | None, i: int = 0) -> Record:
         title = _zh(product.get("title_translations"))
-        brand = self._brand(title) or self.site.house_brand
-        model, color_hint = nz.clean_title(title, brand)
+        brand, model, color_hint = self._brand_and_model(title)
         cat1, cat2 = self._category(title)
         source = variation or product
         variant_name = _zh(source.get("fields_translations")) or None

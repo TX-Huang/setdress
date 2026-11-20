@@ -278,3 +278,45 @@ class TestCodexReview2:
 
         list(shopline.crawl(fetch))
         assert shopline.skipped == 2
+
+
+class TestPlainObjectForm:
+    """Design Butik（2026-11-20）：商品資料直接寫成物件 app.value('product', {...});
+    不是其他家的 JSON.parse('...')。以前整家 942 頁讀到 0 筆。"""
+
+    @staticmethod
+    def plain_page(prod: dict) -> str:
+        return (f"<html><head><script>app.value('product', {json.dumps(prod, ensure_ascii=False)});\n"
+                "app.value('products', []);</script></head>"
+                "<body><p>尺寸：寬 30 x 高 40 cm</p></body></html>")
+
+    def test_reads_the_plain_object_form(self, shopline):
+        prod = product("HAY 邊桌", [variation("黑色", 8000, qty=2)])
+        recs = shopline.parse(URL, self.plain_page(prod))
+        assert [(r.brand, r.price, r.in_stock) for r in recs] == [("HAY", 8000, True)]
+
+    def test_the_slim_cache_keeps_it(self, shopline):
+        raw = self.plain_page(product("HAY 邊桌", [variation("黑色", 8000)]))
+        slim = shopline.parse(URL, slim_product_page(raw))
+        assert slim, "瘦身後還要讀得到商品"
+        assert slim == shopline.parse(URL, raw)
+
+
+class TestBrandAtTheEnd:
+    """Design Butik 的標題把品牌放最後：「海芋 / 可攜式桌燈 - 深巧克力 by Ferm Living」。"""
+
+    def test_by_brand_at_the_end(self):
+        a = ShoplineAdapter(SiteConfig(site_id="d", name="d", base_url=BASE, adapter="shopline"),
+                            brand_names=["Ferm Living", "HAY"])
+        r = a.parse(URL, page(product("海芋 / 可攜式桌燈 - 深巧克力 by Ferm Living", [variation("咖啡", 8300)])))[0]
+        assert r.brand == "Ferm Living"
+        assert not r.model.endswith("by"), r.model
+
+    def test_an_unknown_brand_after_by_is_still_the_brand(self):
+        a = ShoplineAdapter(SiteConfig(site_id="d", name="d", base_url=BASE, adapter="shopline"), brand_names=[])
+        r = a.parse(URL, page(product("C Rope Stone / 咖啡桌 by CORE", [variation("灰", 52000)])))[0]
+        assert r.brand == "CORE"
+
+    def test_by_inside_a_word_is_not_a_brand(self):
+        a = ShoplineAdapter(SiteConfig(site_id="d", name="d", base_url=BASE, adapter="shopline"), brand_names=[])
+        assert a.parse(URL, page(product("Standby 桌燈", [variation("白", 1000)])))[0].brand == ""
