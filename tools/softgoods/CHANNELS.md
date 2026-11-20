@@ -134,10 +134,11 @@ lampclub 是聚合站，資料都來自這 26 家通路；直接抓通路，就�
 | 加進 sites.yaml 就好（Shopline，人工看過沒禁止） | 喜的、FUNHOUSE、睦叁、Objects Ark | 258 |
 | 加進 sites.yaml 就好（Shopify，人工看過沒禁止） | moonmist | 25 |
 | 要寫新的讀取程式（自架網站，沒禁止） | Loft29（1053）、viithe、MOTTO、OSTI、黑色雋永 | 1413 |
-| **要先問店家**（條款有很廣的智慧財產權條文 🟡） | 瑪黑、北歐櫥窗 | 695 |
-| **要先問店家**（Cloudflare 擋機器人；我們不繞過） | 北歐先生、TH Company | 495 |
+| ✅ **店家同意了**（條款有很廣的智慧財產權條文 🟡，Isaac 2026-11-20 問過） | 瑪黑、北歐櫥窗 | 695 |
+| ✅ **店家同意了**（Cloudflare 擋機器人；我們不繞過，Isaac 2026-11-20 問過） | 北歐先生、TH Company | 495 |
 
-不用問人就能做到的：4455 筆（79%）。剩下 21% 要店家同意。
+2026-11-20 Isaac 寫信問了這 4 家，都同意。所以 26 家全部可以抓，剩下的是技術問題：
+Cloudflare 那兩家要看我們的請求會不會被擋（被擋就請店家把我們放行，不繞過）。
 
 **欄位（lampclub 的 lamps.csv：2142 盞）**
 
@@ -150,3 +151,15 @@ lampclub 是聚合站，資料都來自這 26 家通路；直接抓通路，就�
 | 同一盞燈在不同店歸成一筆 | 部分：同品牌同型號才合得起來（HANDOVER「商品比對」） |
 
 **自己更新**：`python -m softgoods crawl all --mark-gone` —— 各店同時跑、各照各的速度；只有完整跑完的店才標記下架（`update.py`）。
+
+### 自架網站盤點（2026-11-20，每家只打 2～3 個請求）
+
+| 通路 | lampclub 筆數 | 看到的 | 怎麼做 |
+|---|---:|---|---|
+| 北歐櫥窗 | 153 | Laravel；sitemap 有 4115 個 /product/ 頁；商品頁有 schema.org Product（含價格、供貨）；尺寸寫「尺寸：寬 128 x 深 93 x 高 40（公分）」 | 通用的「sitemap ＋ schema.org Product」讀取程式就能讀 |
+| Loft29 | 1053 | sitemap 4280 個 /w/product/detail/ 頁；有 schema.org Product 但**沒有價格** | 通用程式 ＋ 從頁面讀價格 |
+| 黑色雋永 | 11 | sitemap 有 24 個商品頁 | 還沒細看 |
+| 瑪黑 | 542 | Play Framework；**沒有 robots.txt、沒有 sitemap** | 要從分類頁找商品 |
+| viithe | 289 | sitemap 打得開但裡面沒有網址 | 還沒細看 |
+| OSTI | 11 | 沒有 sitemap | 還沒細看 |
+| MOTTO | 49 | robots.txt 和 sitemap 都回 **403（擋我們）** | 要請店家放行，我們不繞過 |

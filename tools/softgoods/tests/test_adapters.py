@@ -2,6 +2,8 @@
 
 測試素材是真的從網站抓回來的檔案（tests/fixtures/），不是我編的。
 編出來的 HTML 測不到真實世界的髒資料。
+例外：shopify_products.json 的介紹文字和圖片網址換成自己寫的（店家的文字有著作權，
+這個 repo 是公開的）；品名、價格、SKU、規格這些事實是真的。
 """
 
 import json
@@ -166,7 +168,7 @@ class TestShopifyAdapter:
 
 
 # ========================================================== lampclub
-# HTML 的站：把原本 lamp_scraper.py 的邏輯搬進 adapter
+# HTML 的站：把最早那支單站腳本的邏輯搬進 adapter
 
 
 class TestSizeFromProductPage:

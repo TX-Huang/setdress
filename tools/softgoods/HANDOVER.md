@@ -41,16 +41,14 @@ lampclub.tw 的使用條款寫「請勿以程式大量擷取本站資料」（�
 
 對方同意抓取，也同意公開那份資料。
 
-**2. `tests/fixtures/shopify_products.json` 在公開 repo 裡**
+**2. ~~`tests/fixtures/shopify_products.json` 在公開 repo 裡~~** —— 已解決（2026-11-20）
 
-那是潤舍（luxurylife）的 3 個商品（標題、價格、SKU），當測試素材用。
-潤舍的條款沒有禁止爬取，3 個商品算極少量，所以判斷可以留。
-要更保守的話換成自己編的假資料，代價是測不到真實世界的髒資料。
+潤舍的 3 個商品：品名、價格、SKU、規格這些事實留真的；介紹文字換成自己寫的、圖片網址換成假的。
+Isaac 同意換。
 
-**3. `lamp_scraper.py` 要不要刪**
+**3. ~~`lamp_scraper.py` 要不要刪~~** —— 已刪（2026-11-20，Isaac 同意）
 
-已被 `softgoods/` 完全取代，留著的理由寫在它的檔頭（**它每次跑完都會整個覆蓋
-`out/*.csv`**，不要在有資料的資料夾裡跑）。問 Isaac 決定。
+最早的單站腳本，已被 `softgoods/` 完全取代；而且每次跑都會整個覆蓋 `out/*.csv`。要看舊版去翻 git 紀錄。
 
 ---
 
@@ -94,11 +92,6 @@ lampclub.tw 的使用條款寫「請勿以程式大量擷取本站資料」（�
 |---|---|
 | `softgoods/`（框架本體） | **0 個**，平均 A (3.2) |
 | `check_site.py` | 0 個 |
-| `lamp_scraper.py` | `parse_lamp` C (15) ← 見下方說明 |
-
-`lamp_scraper.py` 是最早的單站練習腳本，已經被 `softgoods/` 完全取代，
-留著只是當參考（而且它產生了 `cache/` 裡的那批 HTML）。**不要在它上面
-開發**，也不用為它清複雜度。要刪掉它也可以，問 Isaac 一聲就好。
 
 ```
 softgoods/

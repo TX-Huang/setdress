@@ -157,6 +157,76 @@ sites:
       Shopline 店。check_site 2026-11-20：條款找到了、沒禁止。robots.txt Crawl-delay 5、禁止 /api/。
       sitemap 有 543 個商品頁，一頁一頁開（每頁 5 秒）。
 
+  - site_id: mrnordic
+    name: 北歐先生
+    base_url: https://www.mrnordic.com.tw
+    adapter: shopify
+    kind: dealer
+    platform: shopify
+    crawl_delay_sec: 2.0
+    notes: >
+      Shopify 店。Isaac 2026-11-20 問過店家，同意。check_site 曾判 Cloudflare 驗證頁（首頁），但 /products.json 和 robots.txt 直接回 200，沒被擋。
+
+  - site_id: thcompany
+    name: TH Company
+    base_url: https://shop.thcompany.tw
+    adapter: shopify
+    kind: dealer
+    platform: shopify
+    crawl_delay_sec: 2.0
+    notes: >
+      Shopify 店。Isaac 2026-11-20 問過店家，同意。check_site 曾判 Cloudflare 驗證頁（首頁），但 /products.json 和 robots.txt 直接回 200，沒被擋。
+
+  - site_id: moonmist
+    name: moonmist
+    base_url: https://moonmist.tw
+    adapter: shopify
+    kind: dealer
+    platform: shopify
+    crawl_delay_sec: 2.0
+    notes: >
+      Shopify 店。人工看條款 2026-11-20：只有隱私權政策，沒有禁止。
+
+  - site_id: seeddesign
+    name: 喜的
+    base_url: https://shop.seeddesign.tw
+    adapter: shopline
+    kind: dealer
+    platform: shopline
+    crawl_delay_sec: 5.0
+    notes: >
+      Shopline 店。人工看條款 2026-11-20：只有隱私權政策、會員權益，沒有禁止。
+
+  - site_id: funhouse
+    name: FUNHOUSE
+    base_url: https://www.funhouse.biz
+    adapter: shopline
+    kind: dealer
+    platform: shopline
+    crawl_delay_sec: 5.0
+    notes: >
+      Shopline 店。check_site 修正後 2026-11-20：/about/terms 找到條款，沒有禁止。
+
+  - site_id: moodsans
+    name: 睦叁
+    base_url: https://www.moodsans.tw
+    adapter: shopline
+    kind: dealer
+    platform: shopline
+    crawl_delay_sec: 5.0
+    notes: >
+      Shopline 店。人工看條款 2026-11-20：只有退換貨、運送說明，沒有條款。
+
+  - site_id: objectsark
+    name: Objects Ark
+    base_url: https://www.objectsark.com
+    adapter: shopline
+    kind: dealer
+    platform: shopline
+    crawl_delay_sec: 5.0
+    notes: >
+      Shopline 店。人工看條款 2026-11-20：條款頁是空的。
+
 # ---------------------------------------------------------------
 # 要加新站的範本（拿掉註解、填好資料就能跑）
 #
