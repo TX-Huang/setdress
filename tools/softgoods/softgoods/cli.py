@@ -76,7 +76,7 @@ def _print_result(name: str, r) -> None:
         flush=True,
     )
     if r.error:
-        print(f"  沒跑完：{r.error}（沒看到的商品不標記下架）")
+        print(f"  沒跑完：{r.error}")
     if r.gone:
         print(f"  標記下架 {r.gone} 筆")
 
