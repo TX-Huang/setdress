@@ -275,6 +275,8 @@ lighting:      [lighting]
 地燈:          [lighting, floor]
 移動燈:        [lighting, table]
 融蠟燈:        [decor, scent]
+迷你收藏模型:  [decor, sculpture]
+收藏模型:      [decor, sculpture]
 
 家具:          [furniture]
 辦公家具:      [furniture]

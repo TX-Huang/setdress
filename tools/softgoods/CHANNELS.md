@@ -156,8 +156,8 @@ Cloudflare 那兩家要看我們的請求會不會被擋（被擋就請店家把
 
 | 通路 | lampclub 筆數 | 看到的 | 怎麼做 |
 |---|---:|---|---|
-| 北歐櫥窗 | 153 | Laravel；sitemap 有 4115 個 /product/ 頁；商品頁有 schema.org Product（含價格、供貨）；尺寸寫「尺寸：寬 128 x 深 93 x 高 40（公分）」 | 通用的「sitemap ＋ schema.org Product」讀取程式就能讀 |
-| Loft29 | 1053 | sitemap 4280 個 /w/product/detail/ 頁；有 schema.org Product 但**沒有價格** | 通用程式 ＋ 從頁面讀價格 |
+| 北歐櫥窗 | 153 | Laravel；sitemap 有 4115 個 /product/ 頁；商品頁有 schema.org Product（含價格、供貨）；尺寸寫「尺寸：寬 128 x 深 93 x 高 40（公分）」 | ✅ 通用的 `schemaorg` 讀取程式（試跑 20 件：價格、分類、尺寸 20/20） |
+| Loft29 | 1053 | sitemap 4280 個 /w/product/detail/ 頁；有價格的商品，schema.org Product 裡有價格；「歡迎來電洽詢」的沒有。尺寸、規格從 /api/ 來（robots 禁止），拿不到 | ✅ `schemaorg`（試跑 20 件：15 件有價格、0 件有尺寸） |
 | 黑色雋永 | 11 | sitemap 有 24 個商品頁 | 還沒細看 |
 | 瑪黑 | 542 | Play Framework；**沒有 robots.txt、沒有 sitemap** | 要從分類頁找商品 |
 | viithe | 289 | sitemap 打得開但裡面沒有網址 | 還沒細看 |

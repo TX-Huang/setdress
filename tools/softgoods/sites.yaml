@@ -227,6 +227,32 @@ sites:
     notes: >
       Shopline 店。人工看條款 2026-11-20：條款頁是空的。
 
+  - site_id: nordic
+    name: 北歐櫥窗
+    base_url: https://www.nordic.com.tw
+    adapter: schemaorg
+    product_url_pattern: /product/\d+$
+    kind: dealer
+    platform: custom
+    crawl_delay_sec: 2.0
+    notes: >
+      自架（Laravel）。Isaac 2026-11-20 問過店家，同意（條款有很廣的智慧財產權條文）。
+      robots.txt 全部允許、沒寫 Crawl-delay；sitemap 有 4115 個 /product/ 頁；
+      商品頁有 schema.org Product（價格、供貨），尺寸寫在頁面文字。
+
+  - site_id: loft29
+    name: Loft29
+    base_url: https://www.loft29.com.tw
+    adapter: schemaorg
+    product_url_pattern: /w/product/detail/\d+$
+    kind: dealer
+    platform: custom
+    crawl_delay_sec: 2.0
+    notes: >
+      自架（Vue 前台，資料從 /api/ 來，但 robots.txt 禁止 /api/）。人工看條款 2026-11-20：沒有禁止。
+      伺服器給的商品頁只有 schema.org Product（品名、品牌、SKU、價格、供貨）、麵包屑，
+      沒有尺寸。「歡迎來電洽詢」的商品沒有價格。
+
 # ---------------------------------------------------------------
 # 要加新站的範本（拿掉註解、填好資料就能跑）
 #

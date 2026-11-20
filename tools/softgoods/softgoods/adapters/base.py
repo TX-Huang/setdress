@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import functools
 import pathlib
+import re
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterator
 
@@ -39,6 +40,27 @@ def default_category_map() -> dict:
 
 def default_brand_aliases() -> dict:
     return _load_yaml("brands.yaml")
+
+
+_LEADING_TAGS = re.compile(r"^\s*(?:【[^】]*】|\[[^\]]*\]|［[^］]*］)\s*")
+
+
+def longest_first(names: list[str]) -> list[str]:
+    """長的先比：「Louis Poulsen」勝過「Louis」。"""
+    return sorted(names, key=len, reverse=True)
+
+
+def brand_from_title(title: str, names: list[str]) -> str:
+    """標題開頭是已知品牌就是它（names 要先 longest_first）。
+
+    後面要接空白或符號，不能是字母：「Hayden」不是 HAY。開頭的【預購】這種框框先拿掉。
+    """
+    text = _LEADING_TAGS.sub("", title or "").casefold()
+    for name in names:
+        after = text[len(name) : len(name) + 1]
+        if text.startswith(name.casefold()) and not after.isalnum():
+            return name
+    return ""
 
 
 @functools.cache

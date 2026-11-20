@@ -56,6 +56,24 @@ python check_site.py https://新網站.com.tw
 介紹文字本身不存。有些店（潤舍）尺寸只寫在商品頁、JSON 裡沒有，
 那一站加 `size_from_page: true`：分得出類別、清單裡沒尺寸的商品，一件多開一頁。
 
+### 如果它是自架網站，但商品頁有 schema.org Product
+
+開一個商品頁看原始碼，有 `<script type="application/ld+json">` 裡面寫 `"@type": "Product"`
+（北歐櫥窗、Loft29 都有），就**不用寫程式**，用通用的 `schemaorg`：
+
+```yaml
+  - site_id: 某某家居
+    name: 某某家居
+    base_url: https://example.com.tw
+    adapter: schemaorg
+    product_url_pattern: /product/\d+     # sitemap 裡哪些網址是商品頁（整條路徑要符合）
+    platform: custom
+    crawl_delay_sec: 2.0
+```
+
+它從 `/sitemap.xml` 找商品頁，一頁一頁開，讀品名、品牌、SKU、價格、供貨；尺寸從頁面文字抽。
+Shopline 的店用 `adapter: shopline`（`/api/` 被 robots.txt 禁止，所以也是一頁一頁開）。
+
 ### 如果要自己解析 HTML
 
 寫一個 adapter，只要兩個方法：

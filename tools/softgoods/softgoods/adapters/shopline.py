@@ -25,13 +25,12 @@ from .. import normalize as nz
 from .. import sizes
 from ..fetcher import Blocked, FetchError
 from ..models import Record, SiteConfig
-from .base import Adapter, Fetch, default_brand_names
+from .base import Adapter, Fetch, brand_from_title, default_brand_names, longest_first
 
 _PRODUCT_RE = re.compile(r"app\.value\('product', JSON\.parse\('(.*?)(?<!\\)'\)\);", re.DOTALL)
 _LDJSON_RE = re.compile(r'<script type="application/ld\+json">.*?</script>', re.DOTALL)
 _LOC_RE = re.compile(r"<loc>\s*([^<]+?)\s*</loc>")
 _PRODUCT_PATH = re.compile(r"^/(?:(?P<locale>[a-z]{2}(?:-[a-z]+)?)/)?products/(?P<slug>[^/?#]+)")
-_LEADING_TAGS = re.compile(r"^\s*(?:【[^】]*】|\[[^\]]*\]|［[^］]*］)\s*")
 _LOCALE = "zh-hant"
 
 
@@ -149,7 +148,7 @@ class ShoplineAdapter(Adapter):
         super().__init__(site, *args, **kwargs)
         names = default_brand_names() if brand_names is None else brand_names
         self.skipped = 0  # 這輪有幾頁抓不到或讀不懂（update.py 看這個決定算不算完整）
-        self.brand_names = sorted(names, key=len, reverse=True)  # 長的先比：「Louis Poulsen」勝過「Louis」
+        self.brand_names = longest_first(names)
 
     # ------------------------------------------------------------ 找商品頁
 
@@ -189,13 +188,7 @@ class ShoplineAdapter(Adapter):
     # ------------------------------------------------------------ 讀一頁
 
     def _brand(self, title: str) -> str:
-        """標題開頭是已知品牌就是它；後面要接空白或符號，不能是字母（「Hayden」不是 HAY）。"""
-        text = _LEADING_TAGS.sub("", title).casefold()
-        for name in self.brand_names:
-            after = text[len(name) : len(name) + 1]
-            if text.startswith(name.casefold()) and not after.isalnum():
-                return name
-        return ""
+        return brand_from_title(title, self.brand_names)
 
     def _category(self, title: str) -> tuple[str | None, str | None]:
         """Shopline 沒有分類欄位，只能看標題：先照分類表對（「吸頂燈／壁燈」），對不到再找類別詞。"""

@@ -44,6 +44,8 @@ class SiteConfig:
     size_from_page: bool = False
     # 只賣自己牌子的店（柒木、HAY TAIPEI）：標題不會寫品牌，就用這個
     house_brand: str = ""
+    # schemaorg adapter：sitemap 裡哪些網址是商品頁（正規表示式，比對網址的路徑）
+    product_url_pattern: str = ""
     # 只拿來對照「抓齊了沒」的站（lampclub）：crawl all 不抓它，要抓得指名
     baseline: bool = False
 

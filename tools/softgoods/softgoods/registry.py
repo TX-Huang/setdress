@@ -13,6 +13,7 @@ import yaml
 
 from .adapters.base import Adapter
 from .adapters.lampclub import LampclubAdapter
+from .adapters.schemaorg import SchemaOrgAdapter
 from .adapters.shopify import ShopifyAdapter
 from .adapters.shopline import ShoplineAdapter
 from .models import SiteConfig
@@ -20,6 +21,7 @@ from .models import SiteConfig
 ADAPTERS: dict[str, type[Adapter]] = {
     "shopify": ShopifyAdapter,  # 通用，一支打所有 Shopify 店
     "shopline": ShoplineAdapter,  # 通用，一支打所有 Shopline 店（要一頁一頁開，見檔頭）
+    "schemaorg": SchemaOrgAdapter,  # 通用：sitemap ＋ 商品頁的 schema.org Product（自架網站）
     "lampclub": LampclubAdapter,
 }
 

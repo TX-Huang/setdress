@@ -133,6 +133,8 @@ class TestShopifyAdapter:
             # 柒木（Shopline，2026-11-20）
             ("地燈", ("lighting", "floor")),
             ("移動燈", ("lighting", "table")),
+            # 北歐櫥窗：Vitra 的迷你收藏模型不是真的椅子
+            ("迷你收藏模型／Hill House 1 單椅", ("decor", "sculpture")),
         ],
     )
     def test_real_store_category_names_are_in_the_table(self, shopify, product_type, want):
