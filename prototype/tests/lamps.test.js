@@ -4,7 +4,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const {
   LAMPS, CATEGORIES, MOUNTS, STOCK, partBounds, lampFit, fittedBounds,
-  mountY, maxHang, clampHang, cordSpan, bestOffer, sizeLabel, dragPlane,
+  mountY, maxHang, clampHang, cordSpan, bestOffer, sizeLabel, dragPlane, withShape,
 } = require('../lamps.js');
 
 const near = (a, b, tol = 1e-6) => assert.ok(Math.abs(a - b) <= tol, `${a} 應該是 ${b}（誤差 ${tol} 內）`);
@@ -189,4 +189,126 @@ test('沒有一家標「有現貨」時，選最便宜的並標出來', () => {
 test('尺寸文字', () => {
   assert.equal(sizeLabel(byId('louis-poulsen-ph-5')), '寬 50 × 高 26.7 cm');
   assert.equal(sizeLabel(LAMPS.find((l) => l.size.h === undefined)), '寬 35 cm');
+});
+
+// ---------- 形狀：手描 / 照片自動描（docs/outline.md） ----------
+const TRACED = ['audo-copenhagen-jwda', 'flos-mini-glo-ball', 'foscarini-rituals', 'kimu-paper-milk',
+  'louis-poulsen-panthella', 'louis-poulsen-ph-5', 'tom-dixon-bell'];
+
+test('有照片自動描輪廓的，是那 7 盞「轉一圈」的燈', () => {
+  assert.deepEqual(LAMPS.filter((l) => l.traced).map((l) => l.id).sort(), TRACED);
+});
+
+test('選「手描」就是原本的形狀', () => {
+  for (const l of LAMPS) assert.equal(withShape(l, 'hand'), l);
+});
+
+test('沒有自動描的燈（壁燈、有提把的），選「自動描」也還是手描', () => {
+  for (const l of LAMPS.filter((x) => !x.traced)) assert.equal(withShape(l, 'traced'), l);
+});
+
+test('自動描：旋轉體，上下封起來，接起來就是完整的輪廓', () => {
+  for (const id of TRACED) {
+    const l = byId(id), parts = withShape(l, 'traced').parts;
+    assert.ok(parts.every((p) => p.k === 'lathe'), id);
+    assert.equal(parts[0].pts[0][0], 0, `${id} 底部封起來`);
+    assert.equal(parts.at(-1).pts.at(-1)[0], 0, `${id} 頂部封起來`);
+    for (let i = 1; i < parts.length; i++) {
+      assert.deepEqual(parts[i].pts[0], parts[i - 1].pts.at(-1), `${id} 第 ${i} 段接著上一段`);
+    }
+    const joined = parts.flatMap((p, i) => (i === 0 ? p.pts : p.pts.slice(1)));
+    assert.deepEqual(withoutSplitPoints(joined, l.traced), closed(l.traced), `${id} 輪廓的點一個都沒少、沒有亂加`);
+  }
+});
+
+// 自動描的輪廓上下封起來（半徑 0），跟 lamps.js 的 closedOutline 分開寫
+function closed(pts) {
+  const out = pts[0][0] === 0 ? [...pts] : [[0, pts[0][1]], ...pts];
+  return out.at(-1)[0] === 0 ? out : [...out, [0, out.at(-1)[1]]];
+}
+// 拿掉「為了換材質切開」加的點：不在原本的輪廓上、而且剛好在前後兩點的連線上（不改形狀）
+function withoutSplitPoints(joined, traced) {
+  const original = (p) => traced.some((q) => q[0] === p[0] && q[1] === p[1]);
+  const onLine = (a, p, b) => Math.abs((b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0])) < 1e-9;
+  return joined.filter((p, i) => i === 0 || i === joined.length - 1 || original(p) || !onLine(joined[i - 1], p, joined[i + 1]));
+}
+
+// 手描在這個高度（手描的座標）最寬的零件；沒有就是 null
+function handPartAt(parts, y) {
+  const hits = parts.filter((p) => { const b = partBounds(p); return y >= b[1] && y <= b[4]; });
+  const width = (p) => { const b = partBounds(p); return b[3] - b[0]; };
+  return hits.reduce((best, p) => (best && width(best) >= width(p) ? best : p), null);
+}
+
+test('自動描：輪廓上每個高度的材質，都是手描在那個高度的零件（交界的那一段要切開）', () => {
+  for (const id of TRACED) {
+    const l = byId(id), parts = withShape(l, 'traced').parts;
+    // 自動描的高（公分）→ 手描的座標：兩邊的最低點對最低點、最高點對最高點
+    const hb = l.parts.map(partBounds).reduce((u, b) => [Math.min(u[0], b[1]), Math.max(u[1], b[4])], [Infinity, -Infinity]);
+    const tb = parts.flatMap((p) => p.pts.map((q) => q[1])).reduce((u, y) => [Math.min(u[0], y), Math.max(u[1], y)], [Infinity, -Infinity]);
+    const handY = (y) => hb[0] + (y - tb[0]) / (tb[1] - tb[0]) * (hb[1] - hb[0]);
+    for (const p of parts) {
+      for (let i = 1; i < p.pts.length; i++) {
+        for (const t of [0.1, 0.5, 0.9]) {
+          const y = p.pts[i - 1][1] + t * (p.pts[i][1] - p.pts[i - 1][1]);
+          const hand = handPartAt(l.parts, handY(y));
+          if (!hand) continue;
+          assert.equal(`${p.m}/${p.c}`, `${hand.m}/${hand.c}`, `${id} 高 ${y.toFixed(2)} cm`);
+        }
+      }
+    }
+  }
+});
+
+test('自動描：每一段的材質，照手描在那個高度的零件（JWDA：玻璃球、深色金屬座）', () => {
+  const l = byId('audo-copenhagen-jwda'), parts = withShape(l, 'traced').parts;
+  const base = l.parts.find((p) => p.k === 'cyl' && p.at[1] < 5);
+  const globe = l.parts.find((p) => p.k === 'sphere');
+  assert.equal(parts[0].m, base.m);
+  assert.equal(parts[0].c, base.c);
+  assert.equal(parts.at(-1).m, globe.m);
+  assert.equal(parts.at(-1).c, globe.c);
+  assert.equal(parts.length, 2, '同一個零件的連續幾段併成一段：JWDA 只有座和球兩段');
+});
+
+test('自動描：手描零件之間有空隙的高度，接著用下面那個零件的材質（不是最寬的）', () => {
+  const lamp = {
+    id: 'gap', light: [0, 5, 0],
+    parts: [
+      { k: 'cyl', r: 2, h: 4, at: [0, 2, 0], m: 'metal', c: 1 }, // 高 0 到 4：細桿
+      { k: 'cyl', r: 20, h: 2, at: [0, 9, 0], m: 'shade', c: 2 }, // 高 8 到 10：最寬的燈罩
+    ],
+    traced: [[2, 0], [2, 4], [2, 6], [20, 8], [20, 10]], // 高 4 到 8 沒有手描零件
+  };
+  const parts = withShape(lamp, 'traced').parts;
+  assert.deepEqual(parts.map((p) => p.m), ['metal', 'shade']);
+  assert.deepEqual(parts[0].pts.at(-1), [20, 8], '空隙那兩段（高 4 到 8）還是細桿的金屬');
+});
+
+test('自動描的形狀，寬和高也等於網頁上寫的尺寸（誤差 1 mm 內）', () => {
+  for (const id of TRACED) {
+    const l = byId(id), b = fittedBounds(withShape(l, 'traced'));
+    near(b[3] - b[0], l.size.w / 100, MM);
+    if (l.size.h !== undefined) near(b[4] - b[1], l.size.h / 100, MM);
+  }
+});
+
+test('自動描的燈泡也在模型範圍裡面、放的位置跟手描一樣', () => {
+  for (const id of TRACED) {
+    const l = byId(id), t = withShape(l, 'traced');
+    const b = fittedBounds(t), { light } = lampFit(t);
+    for (let i = 0; i < 3; i++) assert.ok(light[i] >= b[i] - MM && light[i] <= b[i + 3] + MM, `${id} 第 ${i} 軸`);
+    const hb = fittedBounds(l);
+    near(b[1], hb[1], MM);
+    near(b[4], hb[4], MM);
+    // 照比例搬：燈泡在外框裡的相對位置（0 是最左／最低／最後面，1 是另一邊）跟手描一樣
+    const hl = lampFit(l).light, rel = (v, bb, i) => (v - bb[i]) / (bb[i + 3] - bb[i]);
+    for (let i = 0; i < 3; i++) near(rel(light[i], b, i), rel(hl[i], hb, i), 1e-9);
+  }
+});
+
+test('換形狀不會改到原本的資料', () => {
+  const l = byId('tom-dixon-bell'), before = JSON.stringify(l);
+  withShape(l, 'traced');
+  assert.equal(JSON.stringify(l), before);
 });
