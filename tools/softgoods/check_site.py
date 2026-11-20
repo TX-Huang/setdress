@@ -71,6 +71,8 @@ WAF_HINTS = {
 TOS_PATHS = [
     "/terms/", "/terms", "/terms-of-service/", "/terms-and-conditions/",
     "/tos/", "/legal/terms/", "/policies/terms-of-service", "/使用條款/",
+    "/about/terms",  # Shopline
+    "/terms.php",    # 自架的 PHP 站
 ]
 
 # 條款裡出現這些字，代表站方「用文字」禁止爬蟲。
@@ -80,7 +82,9 @@ TOS_RED_FLAGS = [
     "爬蟲", "網路爬蟲", "自動化程式", "機器人程式", "自動擷取", "資料探勘",
     "禁止轉載", "不得重製", "不得轉載",
     "scrape", "scraping", "crawler", "crawling", "spider",
-    "automated means", "automated program", "data mining", "harvest",
+    "automated means", "automated program", "data mining",
+    # 不放單獨的 harvest：品牌「Harvest Grace」會被當成禁止（FUNHOUSE，2026-11-20）
+    "data harvesting", "harvest data",
 ]
 
 
@@ -329,7 +333,24 @@ def _sentence_with(text: str, word: str) -> str:
     return ""
 
 
-def check_terms(base: str, report: list[str]) -> None:
+def _red_flags(text: str) -> list[str]:
+    """條款裡禁止爬取的字眼。英文要整個字對到：「spider」不能從「Spiderman」找到。"""
+    low = text.lower()
+    return [
+        w for w in TOS_RED_FLAGS
+        if (re.search(rf"(?<![a-z]){re.escape(w)}(?![a-z])", low) if w.isascii() else w in low)
+    ]
+
+
+def _is_terms_page(resp: requests.Response | None) -> bool:
+    """200、夠長、而且不是被轉回首頁（FUNHOUSE 的 /terms/ 其實轉回首頁）。"""
+    if resp is None or resp.status_code != 200 or len(resp.text) < 500:
+        return False
+    sent_home = bool(resp.history) and urlparse(resp.url).path in ("", "/")
+    return not sent_home
+
+
+def check_terms(base: str, report: list[str], fetch=get) -> None:
     """第 7 項：使用條款。
 
     這是最容易漏掉、但後果最大的一項。
@@ -340,12 +361,12 @@ def check_terms(base: str, report: list[str]) -> None:
     print("\n7) 使用條款（robots.txt 放行 ≠ 條款允許）")
 
     for path in TOS_PATHS:
-        resp = get(base + path, BROWSER_UA)
-        if resp is None or resp.status_code != 200 or len(resp.text) < 500:
+        resp = fetch(base + path, BROWSER_UA)
+        if not _is_terms_page(resp):
             continue
 
         text = _page_text(resp.text)
-        hits = [w for w in TOS_RED_FLAGS if w.lower() in text.lower()]
+        hits = _red_flags(text)
         print(f"   找到條款: {base}{path}")
         if not hits:
             print("   沒看到禁止爬取的字眼（但還是建議自己讀一遍）")

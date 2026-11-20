@@ -19,7 +19,7 @@ sites:
       技術上：robots Allow /、有 sitemap（2142 盞）、純 HTML。
       條款上：使用條款寫「請勿以程式大量擷取本站資料」，所以 check_site
       判紅燈。Isaac 2026-11-20 來信詢問，對方回覆同意，才抓的整站。
-      Isaac 說資料可以公開；但 lampclub 同意的是「抓取」，「公開發布那份資料」還沒跟對方確認，所以資料先放私人 repo，公開前先問 lampclub。
+      公開發布也問過了：2026-11-20 Isaac 再問 lampclub，對方同意公開。資料目前還在私人 repo，搬進公開 repo 是另一步。
 
   - site_id: luxurylife
     name: 潤舍 Luxury Life

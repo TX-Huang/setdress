@@ -90,10 +90,11 @@ robots.txt 寫 Allow: /、還附 sitemap，但條款禁止程式大量擷取。
 
 - **沒有條款 ≠ 什麼都能拿。** 商品照片和介紹文字有著作權。價格、尺寸、品名、庫存、連結這種「事實」比較沒問題。所以只存事實，不存圖片和文案，每筆都連回原店
 - **「智慧財產權」這一套條文很常見**（瑪黑、北歐櫥窗一字不差）。自動檢查只找「爬蟲、擷取」這類字眼，所以前面標 🟢 的 12 家可能也有，但還沒逐條讀
-- check_site.py 要修三個地方（先寫會紅的測試）：
-  1. 關鍵字 `harvest` 太寬，品牌名「Harvest Grace」被當成禁止
-  2. `/terms/` 轉回首頁時，被當成「找到條款」
-  3. 漏了常見的條款路徑：Shopline 的 `/about/terms`、PHP 站的 `/terms.php`
+- check_site.py 的三個誤判已修（2026-11-20，`tests/test_check_site.py`）：
+  1. 單獨的 `harvest` 拿掉，英文字要整個字對到 —— 品牌「Harvest Grace」不再被當成禁止
+  2. 條款網址轉回首頁的，不算找到條款
+  3. 加了 Shopline 的 `/about/terms`、PHP 站的 `/terms.php`
+  重跑 FUNHOUSE：在 `/about/terms` 找到條款、沒有禁止字眼，綠燈
 
 ## 直接抓 4 家 Shopify（2026-11-20）
 

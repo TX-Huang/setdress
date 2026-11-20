@@ -20,13 +20,13 @@ from softgoods.store import Store
 FIX = pathlib.Path(__file__).parent / "fixtures"
 SCHEMA = pathlib.Path(__file__).parent.parent / "schema.sql"
 
-# lampclub 的頁面副本沒進 repo（授權範圍還沒確認，見 .gitignore），
+# lampclub 的頁面副本還沒進 repo（見 .gitignore），
 # 所以 clone 下來的人不會有這兩個檔案。
 # 讓它乾淨地 skip，不要變成一堆 error —— 否則接手的人會以為專案壞了。
 LAMPCLUB_FIXTURES = ["lampclub_bellhop.html", "lampclub_beat.html"]
 needs_lampclub = pytest.mark.skipif(
     not all((FIX / f).exists() for f in LAMPCLUB_FIXTURES),
-    reason="lampclub 頁面副本沒進 repo（授權範圍未確認），見 .gitignore",
+    reason="lampclub 頁面副本還沒進 repo，見 .gitignore",
 )
 
 

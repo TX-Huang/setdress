@@ -1,7 +1,7 @@
 # 抓下來的資料
 # ==========================
 # 放在私人 repo TX-Huang/softgoods，本機也有一份，但不進這個公開 repo：
-# Isaac 說資料可以公開；但 lampclub 同意的是「抓取」，「公開發布那份資料」還沒跟對方確認，所以資料先放私人 repo，公開前先問 lampclub。
+# 公開發布也問過了：2026-11-20 Isaac 再問 lampclub，對方同意公開。資料目前還在私人 repo，搬進公開 repo 是另一步。
 # 原始網頁快取（cache/，59 MB）能重新產生，不進 git。
 out/
 cache/

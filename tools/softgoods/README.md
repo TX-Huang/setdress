@@ -142,7 +142,7 @@ ruff check softgoods/ tests/
 ## 授權
 
 `lampclub.tw` 的使用條款寫「請勿以程式大量擷取本站資料」。
-Isaac 在 2026-11-20 來信詢問，**對方回覆同意**，整站資料才抓的；Isaac 說資料可以公開；但 lampclub 同意的是「抓取」，「公開發布那份資料」還沒跟對方確認，所以資料先放私人 repo，公開前先問 lampclub。
+Isaac 在 2026-11-20 來信詢問，**對方回覆同意**，整站資料才抓的；公開發布也問過了：2026-11-20 Isaac 再問 lampclub，對方同意公開。資料目前還在私人 repo，搬進公開 repo 是另一步。
 
 加新站一定要跑 `check_site.py`，它的第 7 項會查使用條款。robots.txt 是請求，條款是合約。
 
