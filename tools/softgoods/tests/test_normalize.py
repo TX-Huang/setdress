@@ -277,6 +277,22 @@ class TestSubcategoryFromTitle:
         assert nz.subcategory_from_title(title, "lighting", self.MAPPING) is None
 
 
+class TestCategoryFromTitle:
+    """網站完全沒給分類（Shopline）時，從標題找最後一個類別詞，哪個大分類都可以。"""
+
+    MAPPING: ClassVar[dict] = {"邊桌": ("furniture", "table"), "吊燈": ("lighting", "pendant")}
+
+    def test_finds_a_type_word_inside_a_longer_word(self):
+        assert nz.category_from_title("無名小廠 方形邊桌", self.MAPPING) == ("furniture", "table")
+
+    def test_the_last_type_word_wins(self):
+        assert nz.category_from_title("吊燈造型邊桌", self.MAPPING) == ("furniture", "table")
+
+    @pytest.mark.parametrize("title", ["", None, "神秘的東西"])
+    def test_nothing_found(self, title):
+        assert nz.category_from_title(title, self.MAPPING) == (None, None)
+
+
 # ---------------------------------------------------------- 交期
 
 

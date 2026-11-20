@@ -2,7 +2,8 @@
 
     python -m softgoods sites                   列出站台
     python -m softgoods crawl lampclub          抓一個站
-    python -m softgoods crawl all --limit 20    全部站，每站最多 20 頁（試跑用）
+    python -m softgoods crawl all --limit 20    全部站，每站最多 20 筆（試跑用）
+    python -m softgoods crawl all --mark-gone   更新全部：各店同時跑，跑完的店標記下架
     python -m softgoods report                  看資料庫現在有什麼
 """
 
@@ -12,19 +13,16 @@ import argparse
 import datetime
 import pathlib
 import sys
-from collections.abc import Iterator
-from itertools import islice
 
 from .adapters.base import default_brand_aliases
-from .fetcher import Blocked, Fetcher, FetchError
-from .models import Record, SiteConfig
-from .policy import facts_only
+from .fetcher import Fetcher
+from .models import SiteConfig
 from .registry import PROJECT_ROOT, SCHEMA, build_adapter, load_sites
 from .store import Store
+from .update import crawl_records, update_all  # noqa: F401 —— crawl_records 舊的匯入路徑還有人用
 
 DEFAULT_DB = PROJECT_ROOT / "softgoods.db"
 DEFAULT_CACHE = PROJECT_ROOT / "cache_multi"
-BATCH = 500
 
 
 def cmd_sites(args) -> int:
@@ -36,60 +34,55 @@ def cmd_sites(args) -> int:
     return 0
 
 
-def crawl_records(site: SiteConfig, adapter, fetch, limit: int | None = None) -> Iterator[Record]:
-    """一筆一筆給出這個站的資料，已經套用「只存事實」（policy.py）。"""
-    stream = (facts_only(rec, site) for rec in adapter.crawl(fetch))
-    return islice(stream, limit) if limit else stream
-
-
-def _crawl_one(site: SiteConfig, store: Store, args, seen_date: str) -> dict:
-    fetch = Fetcher(site, cache_dir=args.cache)
-    stream = crawl_records(site, build_adapter(site), fetch, args.limit)
-
-    total = 0
-    batch = []
-    try:
-        for rec in stream:
-            batch.append(rec)
-            if len(batch) >= BATCH:
-                store.upsert(batch, seen_date)
-                total += len(batch)
-                print(f"    ...已寫入 {total} 筆", flush=True)
-                batch = []
-    except (Blocked, FetchError) as e:
-        print(f"    中斷: {e}", flush=True)
-
-    if batch:
-        store.upsert(batch, seen_date)
-        total += len(batch)
-
-    return {"records": total, **fetch.stats}
+def pick_sites(sites: dict[str, SiteConfig], names: list[str]) -> list[SiteConfig]:
+    """「all」是全部通路，不含只拿來對照的站（lampclub）；不然照名字挑。"""
+    if names == ["all"]:
+        return [s for s in sites.values() if not s.baseline]
+    return [sites[n] for n in names]
 
 
 def cmd_crawl(args) -> int:
+    """抓幾家或全部（all）。各店同時跑，各照各的速度（update.py）。"""
     sites = load_sites(args.sites)
-    targets = list(sites.values()) if args.site == "all" else [sites[args.site]]
+    targets = pick_sites(sites, args.site)
     seen_date = args.date or datetime.date.today().isoformat()
     store = Store(args.db, SCHEMA, brand_aliases=default_brand_aliases())
 
-    for site in targets:
-        print(f"\n=== {site.name} ({site.site_id}) ===", flush=True)
-        stats = _crawl_one(site, store, args, seen_date)
-        print(
-            f"  {stats['records']} 筆 | 下載 {stats['downloaded']}"
-            f" / 快取 {stats['cached']} / 失敗 {stats['failed']}"
-            f" / robots 擋 {stats['blocked']}",
-            flush=True,
-        )
-        if args.mark_gone:
-            n = store.mark_gone(site.site_id, seen_date)
-            print(f"  標記下架 {n} 筆")
+    results = update_all(
+        targets, store, seen_date,
+        make_fetch=lambda site: Fetcher(site, cache_dir=args.cache),
+        make_adapter=build_adapter,
+        mark_gone=args.mark_gone,
+        limit=args.limit,
+        progress=lambda msg: print(f"    {msg}", flush=True),
+    )
+    for r in results:
+        _print_result(sites[r.site_id].name, r)
+    _print_counts(store, args.db)
+    store.close()
+    return 0 if all(r.complete or args.limit for r in results) else 1
 
-    print(f"\n資料庫: {args.db}")
+
+def _print_result(name: str, r) -> None:
+    s = r.stats
+    print()
+    print(f"=== {name} ({r.site_id}) ===")
+    print(
+        f"  {r.records} 筆 | 下載 {s.get('downloaded', 0)} / 快取 {s.get('cached', 0)}"
+        f" / 失敗 {s.get('failed', 0)} / robots 擋 {s.get('blocked', 0)}",
+        flush=True,
+    )
+    if r.error:
+        print(f"  沒跑完：{r.error}（沒看到的商品不標記下架）")
+    if r.gone:
+        print(f"  標記下架 {r.gone} 筆")
+
+
+def _print_counts(store: Store, db) -> None:
+    print()
+    print(f"資料庫: {db}")
     for table in ("site", "brand", "product", "variant", "listing", "price_point"):
         print(f"  {table:<12}{store.count(table):>7}")
-    store.close()
-    return 0
 
 
 def cmd_report(args) -> int:
@@ -123,7 +116,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("sites", help="列出站台").set_defaults(func=cmd_sites)
 
     c = sub.add_parser("crawl", help="抓一個站或全部")
-    c.add_argument("site", help="site_id，或 all")
+    c.add_argument("site", nargs="+", help="一個或幾個 site_id，或 all（不含 lampclub）")
     c.add_argument("--limit", type=int, default=None, help="最多抓幾筆（試跑用）")
     c.add_argument("--date", default=None, help="這一輪的日期，預設今天")
     c.add_argument("--mark-gone", action="store_true", help="這輪沒看到的標記下架")

@@ -22,7 +22,11 @@ HEADING_SPAN = 6  # 標題行底下最多看幾行（NOSA 的尺寸表一個欄�
 
 _NOT_TEXT = re.compile(r"<(script|style|svg|noscript|template)\b.*?</\1\s*>|<!--.*?-->", re.IGNORECASE | re.DOTALL)
 _ATTRS = re.compile(r"<([a-zA-Z][a-zA-Z0-9]*)\b[^>]*>")
-_BREAK = re.compile(r"<(?:br|/p|/li|/div|/h\d|/tr)\b[^>]*>", re.IGNORECASE)
+# 區塊標籤（開頭或結尾）都換行：選單 </nav> 後面直接接 <div> 介紹，不換行會黏在一起
+_BREAK = re.compile(
+    r"</?(?:br|p|div|li|ul|ol|h\d|tr|table|nav|section|article|header|footer|aside|main)\b[^>]*>",
+    re.IGNORECASE,
+)
 _CELL = re.compile(r"</t[dh]>", re.IGNORECASE)  # 表格同一列的格子留在同一行：「寬」「25 cm」
 _TAG = re.compile(r"<[^>]+>")
 _NOTE = re.compile(r"\s*[(（][^)）\d]*[)）]")  # 沒有數字的括號註記：「（燈臂可調）」

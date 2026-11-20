@@ -296,27 +296,38 @@ def _last_position(text: str, word: str) -> int | None:
     return hits[-1].end() if hits else None
 
 
-def _subcategory_hits(text: str, cat1: str, mapping: dict) -> Iterator[tuple[int, int, str]]:
+def _usable_entry(value, cat1: str | None) -> bool:
+    """有小分類的那幾筆；指定了大分類就只要那一類的。"""
+    has_sub = len(value) > 1 and bool(value[1])
+    return has_sub and (not cat1 or value[0] == cat1)
+
+
+def _title_hits(text: str, mapping: dict, cat1: str | None) -> Iterator[tuple[int, int, str, str]]:
+    """標題裡出現的類別詞：(結尾位置, 長度, 大分類, 小分類)。cat1 是 None 就不限大分類。"""
     for name, value in mapping.items():
-        if value[0] != cat1 or len(value) < 2 or not value[1]:
+        if not _usable_entry(value, cat1):
             continue
         word = str(name).strip().casefold()
         end = _last_position(text, word)
         if end is not None:
-            yield (end, len(word), value[1])
+            yield (end, len(word), value[0], value[1])
+
+
+def _last_title_hit(title, mapping: dict, cat1: str | None) -> tuple[int, int, str, str] | None:
+    """標題是「品名在前、類別詞在後」（「Audo TR Bulb 吊燈」的 Bulb 是品名），所以取最後出現的。"""
+    return max(_title_hits(str(title).casefold(), mapping, cat1), default=None) if title else None
 
 
 def subcategory_from_title(title, cat1: str, mapping: dict) -> str | None:
-    """網站分類太粗（NOSA 的燈全寫「燈具」）時，從標題找小分類。
+    """網站分類太粗（NOSA 的燈全寫「燈具」）時，從標題找小分類。只在同一個大分類裡找。找不到回 None。"""
+    best = _last_title_hit(title, mapping, cat1)
+    return best[3] if best else None
 
-    只在同一個大分類（cat1）裡找。標題是「品名在前、類別詞在後」
-    （「Audo TR Bulb 吊燈」的 Bulb 是品名），所以取最後出現的類別詞。
-    找不到回 None，不要猜。
-    """
-    if not title:
-        return None
-    best = max(_subcategory_hits(str(title).casefold(), cat1, mapping), default=None)
-    return best[2] if best else None
+
+def category_from_title(title, mapping: dict) -> tuple[str | None, str | None]:
+    """網站完全沒給分類（Shopline）時，從標題找最後一個類別詞：「方形邊桌」→ 家具／桌。"""
+    best = _last_title_hit(title, mapping, None)
+    return (best[2], best[3]) if best else (None, None)
 
 
 # ======================================================== 庫存 / 交期
@@ -436,7 +447,7 @@ _TRAILING_NOISE = (
     "系列", "正品", "公司貨", "原裝", "進口",
 )
 _TRAILING_SORTED = sorted(_TRAILING_NOISE, key=len, reverse=True)
-_SEPARATORS = " \t·‧•-–—/,，|"
+_SEPARATORS = " \t·‧•-–—/／,，|"  # 「吸頂燈／壁燈」的全形斜線也算
 
 
 def _strip_trailing_noise(s: str) -> str:

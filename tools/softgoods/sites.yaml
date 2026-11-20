@@ -12,6 +12,7 @@ sites:
     base_url: https://lampclub.tw
     adapter: lampclub
     kind: aggregator
+    baseline: true  # 只拿來對照「抓齊了沒」；crawl all 不抓它
     platform: custom
     crawl_delay_sec: 1.5
     notes: >
@@ -65,6 +66,96 @@ sites:
     crawl_delay_sec: 2.0
     notes: >
       Shopify 店。check_site 2026-11-20：條款找到了、沒禁止。
+
+  - site_id: mithus
+    name: 新采家具 MITHUS
+    base_url: https://www.mithus.co
+    adapter: shopline
+    kind: dealer
+    platform: shopline
+    crawl_delay_sec: 5.0
+    notes: >
+      Shopline 店。check_site 2026-11-20：條款找到了、沒禁止。robots.txt Crawl-delay 5、禁止 /api/。
+      sitemap 有 1215 個商品頁，一頁一頁開（每頁 5 秒）。
+
+  - site_id: classicandchairs
+    name: 散步舖
+    base_url: https://www.classicandchairs.com
+    adapter: shopline
+    kind: dealer
+    platform: shopline
+    crawl_delay_sec: 5.0
+    notes: >
+      Shopline 店。check_site 2026-11-20：條款找到了、沒禁止。robots.txt Crawl-delay 5、禁止 /api/。
+      sitemap 有 1281 個商品頁，一頁一頁開（每頁 5 秒）。
+
+  - site_id: designbutik
+    name: Design Butik
+    base_url: https://www.designbutik.com.tw
+    adapter: shopline
+    kind: dealer
+    platform: shopline
+    crawl_delay_sec: 5.0
+    notes: >
+      Shopline 店。check_site 2026-11-20：條款找到了、沒禁止。robots.txt Crawl-delay 5、禁止 /api/。
+      sitemap 有 940 個商品頁，一頁一頁開（每頁 5 秒）。
+
+  - site_id: wowfactor
+    name: WOW
+    base_url: https://www.wowfactor.com.tw
+    adapter: shopline
+    kind: dealer
+    platform: shopline
+    crawl_delay_sec: 5.0
+    notes: >
+      Shopline 店。check_site 2026-11-20：條款找到了、沒禁止。robots.txt Crawl-delay 5、禁止 /api/。
+      sitemap 有 3945 個商品頁，一頁一頁開（每頁 5 秒）。
+
+  - site_id: motive
+    name: Motive
+    base_url: https://www.motiveshowroom.com
+    adapter: shopline
+    kind: dealer
+    platform: shopline
+    crawl_delay_sec: 5.0
+    notes: >
+      Shopline 店。check_site 2026-11-20：條款找到了、沒禁止。robots.txt Crawl-delay 5、禁止 /api/。
+      sitemap 有 1055 個商品頁，一頁一頁開（每頁 5 秒）。
+
+  - site_id: kimu
+    name: 柒木
+    base_url: https://www.kimushoptw.com
+    adapter: shopline
+    house_brand: 柒木 KIMU design
+    kind: dealer
+    platform: shopline
+    crawl_delay_sec: 5.0
+    notes: >
+      Shopline 店。check_site 2026-11-20：條款找到了、沒禁止。robots.txt Crawl-delay 5、禁止 /api/。
+      sitemap 有 60 個商品頁，一頁一頁開（每頁 5 秒）。
+
+  - site_id: island
+    name: 一嶼
+    base_url: https://www.is-land.tw
+    adapter: shopline
+    kind: dealer
+    platform: shopline
+    crawl_delay_sec: 5.0
+    notes: >
+      Shopline 店。check_site 2026-11-20：條款找到了、沒禁止。robots.txt Crawl-delay 5、禁止 /api/。
+      sitemap 有 389 個商品頁，一頁一頁開（每頁 5 秒）。
+
+  - site_id: haytaipei
+    name: HAY TAIPEI
+    base_url: https://www.hay-taiwan.com
+    adapter: shopline
+    house_brand: HAY
+    kind: dealer
+    platform: shopline
+    crawl_delay_sec: 5.0
+    notes: >
+      Shopline 店。check_site 2026-11-20：條款找到了、沒禁止。robots.txt Crawl-delay 5、禁止 /api/。
+      sitemap 有 543 個商品頁，一頁一頁開（每頁 5 秒）。
 
 # ---------------------------------------------------------------
 # 要加新站的範本（拿掉註解、填好資料就能跑）

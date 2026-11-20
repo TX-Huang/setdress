@@ -210,3 +210,10 @@ class TestTitleHint:
     def test_numbers_in_a_model_name_are_not_a_size_hint(self):
         # 「PH 3/2」不是尺寸（沒有單位），不能拿來挑
         assert sizes.size_snippet(self.BODY, "白色", title="PH 3/2 桌燈") == "小尺寸：圓直徑 20 x 高 22 cm"
+
+
+class TestBlockTags:
+    def test_a_new_block_starts_a_new_line(self):
+        # Shopline：選單 </nav> 後面直接接介紹 <div>，沒有分行就會黏成「全部商品 燈具尺寸：…」
+        body = "<nav>全部商品 燈具</nav><div class='d'><h3><span>尺寸：寬 20 cm</span></h3></div>"
+        assert sizes.text_lines(body) == ["全部商品 燈具", "尺寸：寬 20 cm"]

@@ -41,6 +41,14 @@ def default_brand_aliases() -> dict:
     return _load_yaml("brands.yaml")
 
 
+@functools.cache
+def default_brand_names() -> list[str]:
+    """已知的品牌名稱（data/known_brands.txt）。Shopline 沒有品牌欄位，用標題開頭比對。"""
+    path = pathlib.Path(__file__).parent.parent / "data" / "known_brands.txt"
+    lines = path.read_text(encoding="utf-8").splitlines()
+    return [ln.strip() for ln in lines if ln.strip() and not ln.startswith("#")]
+
+
 class Adapter(ABC):
     def __init__(
         self,

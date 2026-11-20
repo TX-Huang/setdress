@@ -128,6 +128,9 @@ class TestShopifyAdapter:
             ("香氛", ("decor", "scent")),
             ("地毯 Carpet", ("textile", "rug")),
             ("壁飾", ("decor", "wall_decor")),
+            # 柒木（Shopline，2026-11-20）
+            ("地燈", ("lighting", "floor")),
+            ("移動燈", ("lighting", "table")),
         ],
     )
     def test_real_store_category_names_are_in_the_table(self, shopify, product_type, want):

@@ -42,6 +42,10 @@ class SiteConfig:
     keep_content: bool = False
     # 尺寸只寫在商品頁、商品清單 JSON 拿不到的店（潤舍）才打開：一件多開一頁（SIZES.md）
     size_from_page: bool = False
+    # 只賣自己牌子的店（柒木、HAY TAIPEI）：標題不會寫品牌，就用這個
+    house_brand: str = ""
+    # 只拿來對照「抓齊了沒」的站（lampclub）：crawl all 不抓它，要抓得指名
+    baseline: bool = False
 
     # check_site.py 的判定結果記在這
     blocks_bots: bool = False

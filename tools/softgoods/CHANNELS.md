@@ -119,3 +119,34 @@ lampclub 有尺寸的 1170 件，我們有 1154 件，98% 數字一致。
 
 **分類表：已補。** NOSA 的「燈具」、居雅堂的「吊燈 Pendant」、Sheeper 的「Light燈飾」都對得到了；
 只寫「燈具」的，小分類從標題找。燈 1165 款裡只剩 36 款分不出是吊燈、桌燈還是壁燈。
+
+## 目標：自己做出 lampclub 的全部資料，自己更新（2026-11-20）
+
+Isaac：「為了以後著想，爬蟲要做到可以爬到 lampclub 裡面的所有資料，我們還是要自己能更新最好。」
+lampclub 是聚合站，資料都來自這 26 家通路；直接抓通路，就不用靠它。
+
+**通路（lampclub 列了 5645 筆）**
+
+| 狀態 | 通路 | lampclub 筆數 |
+|---|---|---:|
+| ✅ 抓好了（Shopify） | 潤舍、NOSA、居雅堂、Sheeper | 1306 |
+| ⏳ 在抓（Shopline，每頁 5 秒） | 新采、散步舖、Design Butik、WOW、Motive、柒木、一嶼、HAY TAIPEI | 1453 |
+| 加進 sites.yaml 就好（Shopline，人工看過沒禁止） | 喜的、FUNHOUSE、睦叁、Objects Ark | 258 |
+| 加進 sites.yaml 就好（Shopify，人工看過沒禁止） | moonmist | 25 |
+| 要寫新的讀取程式（自架網站，沒禁止） | Loft29（1053）、viithe、MOTTO、OSTI、黑色雋永 | 1413 |
+| **要先問店家**（條款有很廣的智慧財產權條文 🟡） | 瑪黑、北歐櫥窗 | 695 |
+| **要先問店家**（Cloudflare 擋機器人；我們不繞過） | 北歐先生、TH Company | 495 |
+
+不用問人就能做到的：4455 筆（79%）。剩下 21% 要店家同意。
+
+**欄位（lampclub 的 lamps.csv：2142 盞）**
+
+| lampclub 有的 | 我們 |
+|---|---|
+| 品牌、型號、類型、最低價、最高價、通路數、規格數 | ✅ 有（v_product_price、v_same_spec_price） |
+| 尺寸、價格、供貨、連結（listings.csv） | ✅ 有（SIZES.md） |
+| 設計師（833 盞有）、設計年份（525）、電壓（575） | ❌ 還沒抽。多半寫在介紹文字裡（「設計師：Vico Magistretti 設計年份：1970」），可以照抽尺寸的方式只抽那幾個事實 |
+| 圖片 | 不存（著作權，policy.py）；Setdress 要的是 3D 模型 |
+| 同一盞燈在不同店歸成一筆 | 部分：同品牌同型號才合得起來（HANDOVER「商品比對」） |
+
+**自己更新**：`python -m softgoods crawl all --mark-gone` —— 各店同時跑、各照各的速度；只有完整跑完的店才標記下架（`update.py`）。

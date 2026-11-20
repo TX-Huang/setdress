@@ -1,0 +1,247 @@
+# 已知的品牌名稱。Shopline 沒有品牌欄位，用「標題開頭是不是這些名字」判斷品牌。
+# 來源：4 家 Shopify 店的 vendor、lampclub 的品牌、brands.yaml（2026-11-20）。品牌名稱是事實，不是內容。
+# 一行一個。新的店有新品牌就加進來。
+&Tradition
+10 Heures 10
+101 Copenhagen
+Acne Studios
+Akari
+amabro
+Ambientec
+AMI Paris
+and tradition
+Andersen
+AndTradition
+Anglepoise
+Anissa Kermiche
+arche
+Argot Studio
+Artek
+Artemide
+Astep
+Attirecare
+Audo
+Audo Copenhagen
+AURA 稜光
+AYTM
+B-Line
+b.arc
+B.lux
+Baobab Collection
+Barovier&Toso
+BD Barcelona
+Berhe
+BLACK BLAZE
+Bloomingville
+BOLIA
+Bolzan
+BOMMA
+Brokis
+Cambridge Audio
+camino
+Carl Hansen & Son
+Casablanca
+ClassiCon
+Colos
+COMMUNE
+Coolicon
+Culti Milano
+Davide Groppi
+dazzleslim
+DCBA
+DCW éditions
+Decode London
+Delta Light
+Design Bite
+Design By Us
+Design House Stockholm
+DFTP
+Diabla
+Dior
+Driade
+DUE
+Dutchbone
+e15
+Elleme
+esaila
+Established & Sons
+Ester & Erik
+Fatboy
+Fear of God
+Ferm Living
+fermliving
+FINE LUMENS
+flat point
+Flos
+Flos Italia
+Flos Italy
+FOLKTORY
+FontanaArte
+Foscarini
+FRAMA
+Frandsen
+Fritz Hansen
+From the Bay
+FÉST
+Gardeco
+Gejst
+Ginori 1735
+Glowis
+good hands
+Grupa
+Gubi
+Gucci
+Harto
+Hay
+Heller
+HKliving
+Home Studyo
+Horchill
+Horm
+house doctor
+HOZUBAG
+ILKW
+Ingo Maurer
+Jacquemus
+Jieldé
+Jil Sander
+Kalklitir
+Kapital
+Karakter
+Karimoku Case
+KARMAN
+Kartell
+KDLN
+KEF
+Kenzo
+kirrei
+Konsthantverk
+Kriptonite
+Kristalia
+KUBRICK
+Kvadrat
+Laboratoire Textile
+LAGO
+Lapalma
+Lasvit
+Layout
+Lee Broom
+Lemnos
+Les Hommes
+Loewe
+Longchamp
+Loom Design
+Louis Poulsen
+Lumio
+LZF
+Magis
+Maison Margiela
+Mammalampa
+Marset
+Mater
+Mattiazzi
+Mazo
+MD House
+Menu
+Midgard
+MIG
+Million CPH
+Miniforms
+minnao
+Mo_&_A
+MOEBE
+monstructure
+Montana
+MOODSANS
+Moooi
+Moustache
+Muuto
+Nemo
+New Works
+newworks
+Nissin 日進木工
+NOMON
+NOOM
+Normann Copenhagen
+NORR11
+Northern
+Nuura
+Nychair X
+Objects Ark
+Objekto
+OK Design
+Oluce
+Original BTC
+OX Denmarq
+Papinee
+Pedrali
+Pholc
+Please Wait to be Seated
+Pulpo
+QUALY
+Radius Design
+RARERAW
+rhombus lab
+Rick Owens
+Rispal
+Rosendahl
+RUBN
+Saint Laurent
+Samoa Italia
+SANRO
+Sans Souci
+Santa & Cole
+Santa and Cole
+Santa Cole
+Secto Design
+SEEDDESIGN
+Seletti
+Sheeper
+Si Balcón
+Sovet
+SOWDEN
+Stilnovo
+Tacchini
+Tala
+TALO RYYPPY
+Tenderflame
+Tendo Moko
+Territory Task
+Thom Browne
+Tobias Grau
+Tom Dixon
+tomdixon
+Tonfisk
+Tonone
+tounou
+Trudon
+TWEMCO
+UBIQUA
+uns
+Veja
+Verpan
+VERSAILLES
+Vibia
+Vipp
+Vitra
+Vivienne Westwood
+WEKÜKÜ
+Woud
+Xcellent
+Yamagiwa
+Yindoor
+Zafferano
+Zeitraum
+ZERO
+ZI YONE
+Zuiver
+伏流物件
+弗洛斯
+拾未 SHIWEII
+柒木 KIMU design
+真真鑲嵌玻璃研究所
+禹物再製所
+路易保森
+銅樂 TONGLE
+黑色雋永 Lumamiling
+點睛設計 DOTdesign
