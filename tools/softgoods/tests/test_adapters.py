@@ -339,3 +339,22 @@ class TestTitleComesAfterTheProductPage:
 
         recs = list(ShopifyAdapter(site).crawl(fetch))
         assert recs[0].size_raw == "Ø40 x 高 42 cm"
+
+
+class TestShopifyVariantPhoto:
+    """Shopify 的款式有 featured_image：那就是這個款式（顏色）自己的照片。"""
+
+    def body(self, featured):
+        return json.dumps({"products": [{
+            "id": 1, "title": "Flowerpot VP9", "handle": "vp9", "vendor": "&Tradition", "product_type": "桌燈",
+            "images": [{"src": "https://cdn.shopify.com/main.jpg"}, {"src": "https://cdn.shopify.com/red.jpg"}],
+            "variants": [{"id": 11, "title": "紅", "price": "7700", "available": True, "featured_image": featured}],
+        }]})
+
+    def test_the_variant_photo_is_remembered(self, shopify):
+        r = shopify.parse("https://x/products.json", self.body({"src": "https://cdn.shopify.com/red.jpg"}))[0]
+        assert r.variant_image == "https://cdn.shopify.com/red.jpg"
+        assert r.images == ["https://cdn.shopify.com/main.jpg", "https://cdn.shopify.com/red.jpg"], "商品的照片照舊"
+
+    def test_no_featured_image_means_none(self, shopify):
+        assert shopify.parse("https://x/products.json", self.body(None))[0].variant_image is None

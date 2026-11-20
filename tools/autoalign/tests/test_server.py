@@ -61,6 +61,7 @@ def site(tmp_path: Path) -> Path:
     (folder / "lamps.js").write_text("// 燈具目錄 LAMPS", encoding="utf-8")
     (folder / "catalog.js").write_text("// 爬到的燈 SetdressCatalog", encoding="utf-8")
     (folder / "erase.js").write_text("// 擦掉 SetdressErase", encoding="utf-8")
+    (folder / "decor.js").write_text("// 擺飾 SetdressDecor", encoding="utf-8")
     (folder / "notes.txt").write_text("不要給別人看", encoding="utf-8")
     (folder / "webalign.js").write_text("// 網頁版對齊 SetdressAlign", encoding="utf-8")
     (folder / "models").mkdir()
@@ -239,6 +240,12 @@ def test_serves_the_crawled_lamp_catalog(url: str) -> None:
         assert res.status == 200
         assert "javascript" in res.headers["Content-Type"]
         assert "SetdressCatalog" in res.read().decode("utf-8")
+
+
+def test_serves_the_decor_items(url: str) -> None:
+    # 擺飾：花瓶、花器（docs/decor.md 第 9 句）
+    with urllib.request.urlopen(url + "/decor.js", timeout=10) as res:
+        assert "SetdressDecor" in res.read().decode("utf-8")
 
 
 def test_serves_the_erase_tool_and_its_models(url: str) -> None:

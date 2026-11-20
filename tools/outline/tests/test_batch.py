@@ -19,22 +19,32 @@ SCHEMA = """
 CREATE TABLE product(product_id TEXT PRIMARY KEY, cat1 TEXT, cat2 TEXT, model TEXT);
 CREATE TABLE variant(variant_id INTEGER PRIMARY KEY, product_id TEXT,
                      width_mm REAL, depth_mm REAL, height_mm REAL, diameter_mm REAL);
-CREATE TABLE image(image_id INTEGER PRIMARY KEY, product_id TEXT, src_url TEXT, position INTEGER);
+CREATE TABLE image(image_id INTEGER PRIMARY KEY, product_id TEXT, variant_id INTEGER, src_url TEXT,
+                   position INTEGER);
 """
 
 
 def make_db(path, products, cat1="lighting"):
-    """products: [(product_id, cat2, [(寬, 深, 高, 直徑) mm, ...], {位置: 照片網址})]"""
+    """products: [(product_id, cat2, [(寬, 深, 高, 直徑[, 款式照片]) mm, ...], {位置: 照片網址})]
+
+    款式照片：那個款式（顏色）自己的照片，可以不給。
+    """
     db = sqlite3.connect(path)
     db.executescript(SCHEMA)
     for pid, cat2, sizes, images in products:
         db.execute("INSERT INTO product VALUES (?, ?, ?, ?)", (pid, cat1, cat2, pid))
-        for w, d, h, dia in sizes:
-            db.execute(
+        for w, d, h, dia, *own in sizes:
+            vid = db.execute(
                 "INSERT INTO variant(product_id, width_mm, depth_mm, height_mm, diameter_mm)"
                 " VALUES (?, ?, ?, ?, ?)",
                 (pid, w, d, h, dia),
-            )
+            ).lastrowid
+            if own:
+                db.execute(
+                    "INSERT INTO image(product_id, variant_id, src_url, position)"
+                    " VALUES (?, ?, ?, 99)",
+                    (pid, vid, own[0]),
+                )
         for pos, url in images.items():
             db.execute(
                 "INSERT INTO image(product_id, src_url, position) VALUES (?, ?, ?)", (pid, url, pos)
@@ -344,3 +354,72 @@ class TestWallNames:
     def test_a_ceiling_lamp_named_wall_lamp_is_not_a_candidate(self, tmp_path):
         db = make_db(tmp_path / "a.db", [("Clessidra Wall Lamp", "ceiling", ROUND, {0: "u"})])
         assert batch.candidates([db]) == []
+
+
+class TestKinds:
+    """其他軟裝（docs/decor.md）：花瓶、花器也能描；燈還是燈。"""
+
+    def dbs(self, tmp_path):
+        decor = make_db(
+            tmp_path / "d.db",
+            [("vase", "vase", ROUND, {0: "u"}), ("tray", "tray", ROUND, {0: "u"})],
+            cat1="decor",
+        )
+        green = make_db(tmp_path / "g.db", [("pot", "planter", ROUND, {0: "u"})], cat1="greenery")
+        lamps = make_db(tmp_path / "l.db", [("ph5", "pendant", ROUND, {0: "u"})])
+        desk = make_db(tmp_path / "f.db", [("desk", "table", ROUND, {0: "u"})], cat1="furniture")
+        return [decor, green, lamps, desk]
+
+    def test_decor_means_vases_and_planters(self, tmp_path):
+        assert ids(batch.candidates(self.dbs(tmp_path), kind="decor")) == ["pot", "vase"]
+
+    def test_lamps_are_still_the_default_and_a_table_is_not_a_table_lamp(self, tmp_path):
+        assert ids(batch.candidates(self.dbs(tmp_path))) == ["ph5"]
+
+    def test_the_command_line_takes_a_kind(self):
+        assert batch.parse_args(["--db", "x.db", "--kind", "decor"]).kind == "decor"
+        assert batch.parse_args(["--db", "x.db"]).kind == "lamps"
+
+
+class TestVariantPhoto:
+    """款式自己的照片（docs/catalog.md「顏色對不對」）：有的話描那張，尺寸就用那個款式。"""
+
+    def test_the_variant_photo_is_traced_and_its_variant_is_used(self, tmp_path):
+        db = make_db(
+            tmp_path / "a.db",
+            [
+                (
+                    "p",
+                    "table",
+                    [
+                        (None, None, 300, 200),
+                        (None, None, 300, 200, "black.jpg"),
+                    ],  # 白（沒有自己的照片）、黑（有）
+                    {0: "main.jpg"},
+                )
+            ],
+        )
+        c = batch.candidates([db])[0]
+        assert c.image_url == "black.jpg"
+        assert [s.variant_id for s in c.sizes] == [2], "同一個尺寸用有照片的那個款式"
+
+    def test_without_variant_photos_the_first_product_photo_is_used(self, tmp_path):
+        db = make_db(
+            tmp_path / "a.db",
+            [("p", "table", [(None, None, 300, 200)], {1: "second.jpg", 0: "main.jpg"})],
+        )
+        assert batch.candidates([db])[0].image_url == "main.jpg"
+
+    def test_a_variant_photo_without_a_round_size_is_not_used(self, tmp_path):
+        db = make_db(
+            tmp_path / "a.db",
+            [
+                (
+                    "p",
+                    "table",
+                    [(300, 150, 400, None, "long.jpg"), (None, None, 300, 200)],
+                    {0: "main.jpg"},
+                )
+            ],
+        )
+        assert batch.candidates([db])[0].image_url == "main.jpg"

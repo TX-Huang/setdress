@@ -237,6 +237,34 @@ select, input[type="search"] { width: 100%; min-width: 0; font: inherit; min-hei
         <p class="note">3D 是照尺寸做的示意形狀，不是原廠模型。</p>
       </article>
 
+      <article class="item" id="card-decor" hidden>
+        <div class="item-head">
+          <div><h3 id="decor-name"></h3><p class="spec" id="decor-spec"></p></div>
+          <span class="price" id="decor-price"></span>
+        </div>
+        <p class="spec" id="decor-shop"></p>
+        <details class="offers">
+          <summary>各家價格</summary>
+          <ul id="decor-offers"></ul>
+        </details>
+        <label class="switch"><input type="checkbox" id="decor-visible"> 放進照片</label>
+        <div class="ctl">
+          <label for="decor-pick">換一件擺飾（花瓶、花器）</label>
+          <input type="search" id="decor-search" placeholder="搜尋品牌、型號" aria-label="搜尋擺飾">
+          <select id="decor-pick"></select>
+          <p class="spec" id="decor-count"></p>
+        </div>
+        <div class="ctl" id="row-decor-table">
+          <div class="ctl-head"><label for="decor-table">桌面高度</label><output id="decor-table-out" for="decor-table"></output></div>
+          <input type="range" id="decor-table" min="0" max="1.2" step="0.01">
+        </div>
+        <div class="ctl">
+          <div class="ctl-head"><label for="decor-rot">旋轉</label><output id="decor-rot-out" for="decor-rot"></output></div>
+          <input type="range" id="decor-rot" min="-180" max="180" step="1">
+        </div>
+        <p class="note">花瓶、花器的 3D 是從商品照片自動描的；顏色是照片量的，一段一段。</p>
+      </article>
+
       <div class="total"><span>總計</span><strong id="total"></strong></div>
       <p class="note">不含運費、安裝。<span id="price-source"></span>，以通路頁面為準；地毯是假的。</p>
     </div>
@@ -312,6 +340,7 @@ select, input[type="search"] { width: 100%; min-width: 0; font: inherit; min-hei
 <script src="lamps.js"></script>
 <script src="catalog.js"></script>
 <script src="erase.js"></script>
+<script src="decor.js"></script>
 <script src="webalign.js"></script>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
@@ -319,7 +348,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.m
 // 燈具目錄和擺放、價格的計算在 lamps.js（有 Node 測試：prototype/tests/）
 const {
   LAMPS, CATEGORIES, UPDATED, lampFit, fittedBounds, mountY, clampHang, maxHang, cordSpan, bestOffer, sizeLabel,
-  dragPlane, withShape, catalogLamp, searchLamps,
+  dragPlane, withShape, catalogLamp, decorItem, searchLamps,
 } = window.SetdressLamps;
 
 const DEG = Math.PI / 180;
@@ -356,6 +385,8 @@ const state = {
     hang: 1.7, table: 0.75, wallY: 1.6, rot: 0, x: 1.6, z: -4.0,
   },
   rug: { size: '160x230', visible: true, x: 0, z: -3.2, rot: 0 },
+  // 擺飾（花瓶、花器；docs/decor.md）：一開始不放
+  decor: { id: null, visible: false, table: 0.75, rot: 0, x: -1.0, z: -3.6 },
   selected: null,
   tab: 'place',
   dragged: false,
@@ -1053,6 +1084,56 @@ function updateLamp() {
   $('kelvin-swatch').style.background = '#' + lampColor.getHexString();
 }
 
+// ---------- 擺飾：花瓶、花器（decor.js；docs/decor.md） ----------
+const DECOR = (window.SetdressDecor ? window.SetdressDecor.items : []).map(decorItem);
+const DECOR_BY_ID = new Map(DECOR.map((d) => [d.id, d]));
+state.decor.id = DECOR.length ? DECOR[0].id : null;
+const currentDecor = () => DECOR_BY_ID.get(state.decor.id) || null;
+MATS.ceramic = (c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.55, metalness: 0 }); // 不透光、不會亮
+const decorGroup = new THREE.Group();
+decorGroup.userData.key = 'decor';
+scene.add(decorGroup);
+const decorModel = new THREE.Group();
+decorGroup.add(decorModel);
+const decor3d = { id: null };
+// 跟燈一樣：用公分畫，整組縮放成真實尺寸（換一件時重建）
+function buildDecorModel(item) {
+  decorModel.traverse((o) => {
+    if (!o.isMesh) return;
+    o.geometry.dispose();
+    o.material.dispose();
+  });
+  decorModel.clear();
+  for (const p of item.parts) decorModel.add(part(GEOMETRY[p.k](p), MATS[p.m](p.c)));
+  const fit = lampFit(item);
+  decorModel.scale.set(...fit.scale);
+  decorModel.position.set(...fit.offset);
+  decor3d.id = item.id;
+}
+const decorRing = new THREE.Mesh(new THREE.RingGeometry(0.26, 0.32, 64), selMat);
+decorRing.rotation.x = -Math.PI / 2;
+decorRing.renderOrder = 4;
+scene.add(decorRing);
+function updateDecor() {
+  const item = currentDecor(), D = state.decor;
+  decorGroup.visible = Boolean(item) && D.visible;
+  if (!item) return;
+  if (decor3d.id !== item.id) buildDecorModel(item);
+  decorGroup.position.set(D.x, mountY(item, { table: D.table, hang: 0, wallY: 0 }, state.cam.ceiling), D.z);
+  decorGroup.rotation.y = D.rot * DEG;
+  decorGroup.updateMatrixWorld();
+}
+// 選取圈畫在擺飾的底部
+function placeDecorRing() {
+  const item = currentDecor();
+  decorRing.visible = state.selected === 'decor' && state.decor.visible && Boolean(item);
+  if (!decorRing.visible) return;
+  const b = fittedBounds(item), center = new THREE.Vector3((b[0] + b[3]) / 2, 0, (b[2] + b[5]) / 2);
+  decorGroup.localToWorld(center);
+  decorRing.position.set(center.x, decorGroup.position.y + 0.02, center.z);
+  decorRing.scale.setScalar(Math.max(0.12, Math.max(b[3] - b[0], b[5] - b[2]) / 2 + 0.06) / 0.29);
+}
+
 function updateSelection() {
   const sel = state.selected, lamp = currentLamp();
   if (rugFrame) rugFrame.visible = sel === 'rug';
@@ -1065,6 +1146,8 @@ function updateSelection() {
   lampRing.scale.setScalar(Math.max(0.12, Math.max(b[3] - b[0], b[5] - b[2]) / 2 + 0.06) / 0.29);
   $('card-rug').classList.toggle('is-selected', sel === 'rug');
   $('card-lamp').classList.toggle('is-selected', sel === 'lamp');
+  $('card-decor').classList.toggle('is-selected', sel === 'decor');
+  placeDecorRing();
 }
 
 function updateTexts() {
@@ -1073,7 +1156,10 @@ function updateTexts() {
   $('rug-spec').textContent = rug.label;
   $('rug-price').textContent = fmtNT(rug.price);
   $('lamp-price').textContent = fmtNT(lampPrice);
-  const total = (state.rug.visible ? rug.price : 0) + (state.lamp.visible ? lampPrice : 0);
+  const item = currentDecor(), decorPrice = item ? bestOffer(item.offers).offer.price : 0;
+  $('decor-price').textContent = item ? fmtNT(decorPrice) : '';
+  const total = (state.rug.visible ? rug.price : 0) + (state.lamp.visible ? lampPrice : 0)
+    + (state.decor.visible && item ? decorPrice : 0); // 擺飾放進照片才算
   $('total').textContent = fmtNT(total);
 }
 
@@ -1102,16 +1188,30 @@ function renderLampCard(lamp) {
     : `最便宜有現貨：${best.offer.store} · 更新於 ${date} · `;
   const link = outLink(lamp.page, lamp.source === 'catalog' ? `到 ${best.offer.store} 看 ↗` : '看各家價格 ↗');
   shop.append(link);
-  $('lamp-offers').replaceChildren(...lamp.offers.map((o) => {
-    const li = document.createElement('li');
-    const name = o.url ? outLink(o.url, '') : document.createElement('span');
-    name.textContent = `${o.store}（${STOCK_TEXT[o.stock]}）`;
-    const price = document.createElement('span');
-    price.className = 'price';
-    price.textContent = fmtNT(o.price);
-    li.append(name, price);
-    return li;
-  }));
+  $('lamp-offers').replaceChildren(...lamp.offers.map(offerItem));
+}
+// 各家價格的一列：店名（有連結就連到店家）、庫存、價格
+function offerItem(o) {
+  const li = document.createElement('li');
+  const name = o.url ? outLink(o.url, '') : document.createElement('span');
+  name.textContent = `${o.store}（${STOCK_TEXT[o.stock]}）`;
+  const price = document.createElement('span');
+  price.className = 'price';
+  price.textContent = fmtNT(o.price);
+  li.append(name, price);
+  return li;
+}
+// 擺飾的卡片（沒有 decor.js 就整張藏起來）
+function renderDecorCard(item) {
+  $('card-decor').hidden = !item;
+  if (!item) return;
+  const best = bestOffer(item.offers);
+  $('decor-name').textContent = `${item.brand} ${item.name}`;
+  $('decor-spec').textContent = [item.category, item.variant, sizeLabel(item)].filter(Boolean).join(' · ');
+  const where = best.noneInStock ? `最便宜：${best.offer.store}（沒有一家標示有現貨）` : `最便宜有現貨：${best.offer.store}`;
+  $('decor-shop').textContent = `${where} · 更新於 ${item.updated} · `;
+  $('decor-shop').append(outLink(item.page, `到 ${best.offer.store} 看 ↗`));
+  $('decor-offers').replaceChildren(...item.offers.map(offerItem));
 }
 
 function update() {
@@ -1119,6 +1219,7 @@ function update() {
   updateRug();
   updateLighting();
   updateLamp();
+  updateDecor();
   updateSelection();
   updateTexts();
   updateRuler();
@@ -1409,7 +1510,7 @@ function keyOf(o) {
   return p ? p.userData.key : null;
 }
 function pick() {
-  const hits = raycaster.intersectObjects([rugGroup, lampGroup], true).filter((h) => isShown(h.object) && h.object !== rugFrame);
+  const hits = raycaster.intersectObjects([rugGroup, lampGroup, decorGroup], true).filter((h) => isShown(h.object) && h.object !== rugFrame);
   return hits[0] || null;
 }
 function select(key) {
@@ -1562,6 +1663,42 @@ bindRange('lamp-table', () => state.lamp.table, (v) => { state.lamp.table = v; }
 bindRange('lamp-wall', () => state.lamp.wallY, (v) => { state.lamp.wallY = v; }, meters);
 bindRange('lamp-rot', () => state.lamp.rot, (v) => { state.lamp.rot = v; }, deg(0));
 
+const decorPick = $('decor-pick'), decorSearch = $('decor-search');
+// 換擺飾的選單：照類別分組；搜尋框只列出符合的（正在用的那件一定列著）
+function fillDecorPick() {
+  const found = searchLamps(DECOR, decorSearch.value), current = currentDecor();
+  const shown = !current || found.includes(current) ? found : [current, ...found];
+  const groups = [];
+  for (const c of ['花瓶', '花器']) {
+    const list = shown.filter((d) => d.category === c).sort(byName);
+    if (!list.length) continue;
+    const group = document.createElement('optgroup');
+    group.label = c;
+    for (const d of list) group.append(new Option(`${d.brand} ${d.name}${d.variant ? `（${d.variant}）` : ''}`, d.id));
+    groups.push(group);
+  }
+  decorPick.replaceChildren(...groups);
+  decorPick.value = state.decor.id;
+  $('decor-count').textContent = decorSearch.value.trim() ? `找到 ${found.length} 件` : `爬到的 ${DECOR.length} 件（照片自動描）`;
+}
+decorSearch.addEventListener('input', fillDecorPick);
+decorPick.addEventListener('change', () => {
+  state.decor.id = decorPick.value; // 位置、旋轉都不變
+  renderDecorCard(currentDecor());
+  syncAll();
+  update();
+});
+bindCheck('decor-visible', () => state.decor.visible, (v) => { state.decor.visible = v; });
+bindRange('decor-table', () => state.decor.table, (v) => { state.decor.table = v; }, meters);
+bindRange('decor-rot', () => state.decor.rot, (v) => { state.decor.rot = v; }, deg(0));
+syncers.push(() => {
+  decorPick.value = state.decor.id;
+  const item = currentDecor();
+  $('row-decor-table').hidden = !item || item.mount !== 'table'; // 放地上的沒有桌面高度
+});
+fillDecorPick();
+renderDecorCard(currentDecor());
+
 bindCheck('lamp-on', () => state.lamp.on, (v) => { state.lamp.on = v; });
 bindRange('lamp-lumen', () => state.lamp.lumen, (v) => { state.lamp.lumen = v; }, (v) => `${v} lm`);
 bindRange('lamp-kelvin', () => state.lamp.kelvin, (v) => { state.lamp.kelvin = v; }, (v) => `${v} K`);
@@ -1585,6 +1722,7 @@ $('cam-reset').addEventListener('click', () => {
 
 $('card-rug').addEventListener('click', () => { if (state.selected !== 'rug') select('rug'); });
 $('card-lamp').addEventListener('click', () => { if (state.selected !== 'lamp') select('lamp'); });
+$('card-decor').addEventListener('click', () => { if (state.selected !== 'decor') select('decor'); }); // Codex 審查
 
 function setTab(t) {
   state.tab = t;
@@ -1628,6 +1766,8 @@ function placeDefaults() {
   Object.assign(state.rug, { x: r.x, z: r.z, rot: 0 });
   const l = floorPointAt(0.55, -0.25) || new THREE.Vector3(1.2, 0, -3.6);
   Object.assign(state.lamp, { x: l.x, z: l.z });
+  const d = floorPointAt(-0.45, -0.3) || new THREE.Vector3(-1.0, 0, -3.6);
+  Object.assign(state.decor, { x: d.x, z: d.z });
 }
 
 $('file').addEventListener('change', async (e) => {
@@ -1950,5 +2090,5 @@ setTab('place');
 new ResizeObserver(layout).observe($('stage'));
 window.addEventListener('resize', layout);
 // 網址加 #debug 時，讓瀏覽器主控台量得到 3D 物件（檢查尺寸用）
-if (location.hash === '#debug') window.__setdress = { THREE, state, camera, canvas, lampModel, lampGroup, update, syncAll, draw, halo, ai, ruler, erase, photo, currentPhoto, applyOccluder, depthNow: () => photoDepth };
+if (location.hash === '#debug') window.__setdress = { THREE, state, camera, canvas, lampModel, lampGroup, update, syncAll, draw, halo, ai, ruler, erase, photo, currentPhoto, applyOccluder, depthNow: () => photoDepth, decorGroup, DECOR };
 </script>

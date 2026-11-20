@@ -311,3 +311,21 @@ class TestSameNameDifferentSize:
         b = rec(site_id="b", url="https://b.test/1", variant_name="白色", size_raw="Ø25 x H45cm")
         store.upsert([a, b], seen_date="2026-11-20")
         assert store.query("SELECT COUNT(DISTINCT variant_id) FROM listing") == [(1,)]
+
+
+class TestVariantPhoto:
+    """款式自己的照片：image 表那一列標上 variant_id（描輪廓、量顏色要用那個顏色的照片）。"""
+
+    def test_the_photo_row_knows_its_variant(self, store):
+        store.upsert([rec(images=["https://img.test/main.jpg", "https://img.test/black.jpg"],
+                          variant_image="https://img.test/black.jpg")], "2026-11-21")
+        rows = dict(store.con.execute(
+            "SELECT i.src_url, v.name FROM image i LEFT JOIN variant v USING(variant_id)"
+        ).fetchall())
+        assert rows == {"https://img.test/main.jpg": None, "https://img.test/black.jpg": "Ø12.5 x 高 21 cm"}
+
+    def test_a_variant_photo_that_is_not_in_the_product_photos_is_added_last(self, store):
+        store.upsert([rec(images=["https://img.test/main.jpg"], variant_image="https://img.test/only-variant.jpg")],
+                     "2026-11-21")
+        rows = store.con.execute("SELECT src_url, position, variant_id IS NOT NULL FROM image ORDER BY position").fetchall()
+        assert rows == [("https://img.test/main.jpg", 0, 0), ("https://img.test/only-variant.jpg", 1, 1)]

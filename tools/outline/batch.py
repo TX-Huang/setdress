@@ -18,6 +18,7 @@ import re
 import sqlite3
 import sys
 from collections import Counter
+from contextlib import closing
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -30,6 +31,11 @@ HERE = pathlib.Path(__file__).resolve().parent
 PHOTOS = HERE / "out" / "photos"  # 店家的照片：只在本機（.gitignore 擋著 tools/outline/out/）
 REVIEW = HERE / "out" / "review.png"  # 抽查圖裡有店家的照片，也只在本機
 ROUND_KINDS = ("pendant", "table", "floor", "ceiling")  # 壁燈、燈泡、戶外燈不挑
+# 種類 → 要描的分類（大類/小類）。decor：其他軟裝裡「轉一圈」的（docs/decor.md）
+KINDS = {
+    "lamps": tuple(f"lighting/{k}" for k in ROUND_KINDS),
+    "decor": ("decor/vase", "greenery/planter"),
+}
 ROUND_TOLERANCE = 0.10  # 寬和深差這麼多以內，算圓的
 RATIO_LIMIT_PCT = 15  # 照片的高寬比跟標的差超過這麼多，要人看
 MAX_SIDE = 600  # 照片縮到這麼大再描（跟 run_photos.py 一樣）
@@ -89,12 +95,14 @@ class Result:
 
 
 # ---------------------------------------------------------------- 挑商品
-_SQL = f"""
+_SQL = """
 SELECT p.product_id, p.model, v.variant_id, v.width_mm, v.depth_mm, v.height_mm, v.diameter_mm,
+       (SELECT src_url FROM image vi WHERE vi.variant_id = v.variant_id
+        ORDER BY vi.position, vi.image_id LIMIT 1),
        (SELECT src_url FROM image i WHERE i.product_id = p.product_id
         ORDER BY i.position, i.image_id LIMIT 1)
 FROM product p LEFT JOIN variant v ON v.product_id = p.product_id
-WHERE p.cat1 = 'lighting' AND p.cat2 IN ({", ".join("?" * len(ROUND_KINDS))})
+WHERE p.cat1 || '/' || p.cat2 IN ({})
 ORDER BY p.product_id, v.variant_id
 """
 
@@ -119,31 +127,50 @@ def _open_ro(path: pathlib.Path | str) -> sqlite3.Connection:
     return sqlite3.connect(pathlib.Path(path).resolve().as_uri() + "?mode=ro", uri=True)
 
 
-def _rows_by_product(path) -> dict[str, list[tuple]]:
-    with _open_ro(path) as db:
-        rows = db.execute(_SQL, ROUND_KINDS).fetchall()
+def _rows_by_product(path, kind: str = "lamps") -> dict[str, list[tuple]]:
+    cats = KINDS[kind]
+    with closing(_open_ro(path)) as db:
+        rows = db.execute(_SQL.format(", ".join("?" * len(cats))), cats).fetchall()
     grouped: dict[str, list[tuple]] = {}
     for pid, _model, *rest in (r for r in rows if not wall_name(r[1])):
         grouped.setdefault(pid, []).append(tuple(rest))
     return grouped
 
 
-def _candidate(pid: str, rows: list[tuple]) -> Candidate:
-    image = rows[0][-1] or ""
+def _round_sizes(rows: list[tuple]) -> tuple[dict[tuple, Size], str | None]:
+    """圓的尺寸（好幾個顏色同一個尺寸：留第一個），和第一個「有自己照片」的款式的照片。
+
+    有自己照片的款式，它的尺寸就用它（描的是它的照片，顏色、款式名才對得上）。
+    """
     sizes: dict[tuple, Size] = {}
-    for vid, w, d, h, dia, _ in rows:
+    own = None
+    for vid, w, d, h, dia, vimg, _ in rows:
         size = _round_size(vid, w, d, h, dia)
-        if size:  # 好幾個顏色同一個尺寸：留第一個
-            sizes.setdefault((size.width_cm, size.height_cm), size)
+        if not size:
+            continue
+        key = (size.width_cm, size.height_cm)
+        if vimg and own is None:
+            own, sizes[key] = vimg, size
+        else:
+            sizes.setdefault(key, size)
+    return sizes, own
+
+
+def _candidate(pid: str, rows: list[tuple]) -> Candidate:
+    sizes, own = _round_sizes(rows)
+    image = own or rows[0][-1] or ""
     skip = NO_ROUND_SIZE if not sizes else NO_PHOTO if not image else None
     return Candidate(pid, image, list(sizes.values()), skip)
 
 
-def candidates(db_paths: list) -> list[Candidate]:
-    """每個資料庫裡的燈（吊燈、桌燈、立燈、吸頂燈）。同一件商品出現在好幾個資料庫，用第一個。"""
+def candidates(db_paths: list, kind: str = "lamps") -> list[Candidate]:
+    """每個資料庫裡這個種類的商品（lamps：吊燈、桌燈、立燈、吸頂燈；decor：花瓶、花器）。
+
+    同一件商品出現在好幾個資料庫，用第一個。
+    """
     found: dict[str, Candidate] = {}
     for path in db_paths:
-        for pid, rows in _rows_by_product(path).items():
+        for pid, rows in _rows_by_product(path, kind).items():
             if pid not in found:
                 found[pid] = _candidate(pid, rows)
     return list(found.values())
@@ -325,6 +352,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--db", action="append", required=True, help="softgoods 的資料庫，可以給好幾個")
     ap.add_argument("--out", type=pathlib.Path, default=HERE / "out" / "outlines.db")
+    ap.add_argument(
+        "--kind", choices=sorted(KINDS), default="lamps", help="lamps 燈；decor 花瓶、花器"
+    )
     ap.add_argument("--limit", type=int, help="最多試幾張照片（先小跑看看）")
     ap.add_argument(
         "--sheet", type=int, default=0, help="隨機抽幾件「可以用」的畫成 out/review.png 給人看"
@@ -335,7 +365,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> None:
     args = parse_args(argv)
 
-    cands = candidates(args.db)
+    cands = candidates(args.db, args.kind)
     print(f"候選：{len(cands)} 件（要描 {sum(not c.skip for c in cands)} 件）")
     results, cache = Results(args.out), photos.PhotoCache(PHOTOS)
     counts = run(cands, cache, results, limit=args.limit, log=print)

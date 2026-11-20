@@ -181,6 +181,21 @@ class Store:
                 (_hid(src), product_id, src, i, rec.channel or rec.site_id),
             )
 
+    def _save_variant_image(self, rec: Record, product_id: str, variant_id: str) -> None:
+        """款式自己的照片：那一列標上 variant_id（已經在商品照片裡就只補標；沒有就加在最後）。
+
+        好幾個款式共用同一張照片時，標最後看到的那個。
+        """
+        if not rec.variant_image:
+            return
+        self.con.execute(
+            """INSERT INTO image(image_id, product_id, variant_id, src_url, position, credit)
+               VALUES(?,?,?,?,?,?)
+               ON CONFLICT(src_url) DO UPDATE SET variant_id = excluded.variant_id""",
+            (_hid(rec.variant_image), product_id, variant_id, rec.variant_image, len(rec.images),
+             rec.channel or rec.site_id),
+        )
+
     # ------------------------------------------------------------ 入口
 
     def upsert(self, records: Iterable[Record], seen_date: str) -> dict:
@@ -192,6 +207,7 @@ class Store:
             vid = self._ensure_variant(rec, pid)
             lid = self._upsert_listing(rec, vid, seen_date)
             self._save_images(rec, pid)
+            self._save_variant_image(rec, pid, vid)
 
             stock = None if rec.in_stock is None else int(rec.in_stock)
             if self._record_price(lid, rec.price, stock, seen_date):

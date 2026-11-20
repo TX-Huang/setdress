@@ -338,3 +338,17 @@ class TestBrandField:
                             brand_names=["Louis Poulsen"])
         r = a.parse(URL, page(product("PH 5 吊燈", [variation("白", 39900)], brand="LOUIS POULSEN")))[0]
         assert r.brand == "Louis Poulsen"
+
+
+class TestVariantPhoto:
+    """每個款式自己的照片（顏色才量得對；docs/catalog.md「顏色對不對」）。"""
+
+    def test_the_variation_photo_is_remembered_as_its_own(self, shopline):
+        v = variation("黑色", 8000)
+        v["media"] = {"images": {"original": {"url": "https://img.test/black.jpg"}}}
+        prod = product("HAY 邊桌", [v], media=[{"images": {"original": {"url": "https://img.test/main.jpg"}}}])
+        assert shopline.parse(URL, page(prod))[0].variant_image == "https://img.test/black.jpg"
+
+    def test_no_variation_photo_means_none(self, shopline):
+        prod = product("HAY 邊桌", [variation("黑色", 8000)], media=[{"images": {"original": {"url": "https://img.test/main.jpg"}}}])
+        assert shopline.parse(URL, page(prod))[0].variant_image is None

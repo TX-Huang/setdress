@@ -101,6 +101,8 @@ class Record:
     stock_text: str | None = None
     is_official: bool = False
     images: list[str] = field(default_factory=list)
+    # 這個款式（顏色）自己的照片：店家有給才有。描輪廓、量顏色要用它，顏色才對得上款式
+    variant_image: str | None = None
 
     # --- 出處（聚合站用：資料是在 A 站看到的，但東西在 B 站賣）
     channel: str | None = None  # 賣家的顯示名稱

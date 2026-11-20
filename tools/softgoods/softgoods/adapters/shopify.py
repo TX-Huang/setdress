@@ -136,6 +136,7 @@ class ShopifyAdapter(Adapter):
             in_stock=bool(variant.get("available")),
             is_official=self.site.kind == "brand_official",
             images=images,
+            variant_image=(variant.get("featured_image") or {}).get("src") or None,
             source_site_id=self.site.site_id,
             source_url=page_url,
         )

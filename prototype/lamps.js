@@ -282,7 +282,7 @@
     const sy = lamp.size.h === undefined ? sx : lamp.size.h / 100 / (b[4] - b[1]);
     const offset = ANCHOR[lamp.mount](b, sy, sx);
     const scale = [sx, sy, sx];
-    const light = lamp.light.map((v, i) => v * scale[i] + offset[i]);
+    const light = lamp.light ? lamp.light.map((v, i) => v * scale[i] + offset[i]) : null; // 擺飾沒有燈泡
     return { scale, offset, light, bounds: b };
   }
   function fittedBounds(lamp) {
@@ -365,20 +365,29 @@
   // entry.lathe：從商品照片自動描的輪廓（公分，真實大小）；entry.bands：照片量的顏色，一段一段由下往上
   // [{ to: 這段的頂, m: 'shade' 淺色燈罩 | 'metal' 深色, c: 顏色 }]。燈罩那幾段裡面也會亮
   const bandAt = (bands, y) => bands.find((b) => y <= b.to) || bands[bands.length - 1];
-  function catalogLamp(entry) {
+  // 輪廓照顏色段切開、一段一個旋轉體；lookOf(段) 決定材質（相鄰一樣的併成一段）
+  function bandParts(entry, lookOf) {
     const cuts = entry.bands.slice(0, -1).map((b) => b.to);
     const pts = splitAtHeights(closedOutline(entry.lathe), cuts);
     const parts = [];
     let src = null;
     for (let i = 1; i < pts.length; i++) {
-      const band = bandAt(entry.bands, (pts[i - 1][1] + pts[i][1]) / 2);
-      const look = { m: band.m, c: band.c, inner: band.m === 'shade' };
+      const look = lookOf(bandAt(entry.bands, (pts[i - 1][1] + pts[i][1]) / 2));
       if (src && sameLook(look, src)) parts[parts.length - 1].pts.push(pts[i]);
       else parts.push(lathePart([pts[i - 1], pts[i]], look));
       src = look;
     }
-    // 連結：最便宜（有現貨優先）那家的商品頁
+    return parts;
+  }
+  // 連結都是最便宜（有現貨優先）那家的商品頁
+  function catalogLamp(entry) {
+    const parts = bandParts(entry, (b) => ({ m: b.m, c: b.c, inner: b.m === 'shade' }));
     return { ...entry, source: 'catalog', page: bestOffer(entry.offers).offer.url, parts };
+  }
+  // 擺飾（decor.js：花瓶、花器；docs/decor.md）：不會亮，顏色照段、一律畫成陶瓷質感
+  function decorItem(entry) {
+    const parts = bandParts(entry, (b) => ({ m: 'ceramic', c: b.c }));
+    return { ...entry, source: 'decor', page: bestOffer(entry.offers).offer.url, parts };
   }
   // 搜尋：空白分開的每個字都要出現在品牌、型號、類別或款式裡（不分大小寫）
   function searchLamps(lamps, query) {
@@ -427,6 +436,6 @@
     LAMPS, CATEGORIES, MOUNTS, STOCK, UPDATED, MIN_CORD,
     partBounds, designBounds, lampFit, fittedBounds, lampHeight,
     mountY, maxHang, clampHang, cordSpan, bestOffer, sizeLabel, dragPlane, withShape,
-    catalogLamp, searchLamps,
+    catalogLamp, decorItem, searchLamps,
   };
 });

@@ -24,8 +24,25 @@ import batch
 import outline as ol
 
 ROOT = batch.HERE.parents[1]
-OUT = ROOT / "prototype" / "catalog.js"
-CATEGORY = {"pendant": "吊燈", "table": "桌燈", "floor": "立燈", "ceiling": "吸頂燈"}
+# 種類：哪些分類（大類/小類 → 網頁上的類別）、id 開頭、寫到哪個檔案、網頁上的變數名稱
+KINDS = {
+    "lamps": {
+        "categories": {
+            "lighting/pendant": "吊燈",
+            "lighting/table": "桌燈",
+            "lighting/floor": "立燈",
+            "lighting/ceiling": "吸頂燈",
+        },
+        "prefix": "c:", "key": "lamps", "global": "SetdressCatalog",
+        "out": ROOT / "prototype" / "catalog.js",
+    },
+    "decor": {  # 其他軟裝裡「轉一圈」的（docs/decor.md）
+        "categories": {"decor/vase": "花瓶", "greenery/planter": "花器"},
+        "prefix": "d:", "key": "items", "global": "SetdressDecor",
+        "out": ROOT / "prototype" / "decor.js",
+    },
+}  # fmt: skip
+FLOOR_FROM_CM = 60  # 擺飾這麼高以上放地上（落地花瓶、大盆），其他放桌上
 MAX_BANDS = 4
 MIN_BAND = 0.1  # 每段至少全高的一成
 SPLIT = 40.0  # 相鄰兩段的顏色差這麼多以上才分開（RGB 距離）
@@ -57,7 +74,7 @@ FROM variant v LEFT JOIN listing l ON l.variant_id = v.variant_id
 LEFT JOIN site s ON s.site_id = l.site_id
 """  # 沒有通路的款式也要：「這個商品有幾種尺寸」看全部款式
 _PRODUCTS = """
-SELECT p.product_id, b.name, p.model, p.cat2
+SELECT p.product_id, b.name, p.model, p.cat1 || '/' || p.cat2
 FROM product p JOIN brand b ON b.brand_id = p.brand_id
 """
 
@@ -75,12 +92,25 @@ def load_listings(db_paths: list) -> dict[str, list[tuple]]:
     return {pid: list(rows.values()) for pid, rows in found.items()}
 
 
+def load_variant_photos(db_paths: list) -> dict[str, set[str]]:
+    """款式 id → 它自己的照片（店家有給的才有）。"""
+    found: dict[str, set[str]] = {}
+    for path in db_paths:
+        with _open(path) as db:
+            for vid, url in db.execute(
+                "SELECT variant_id, src_url FROM image WHERE variant_id IS NOT NULL"
+            ):
+                found.setdefault(vid, set()).add(url)
+    return found
+
+
 def load_products(db_paths: list) -> dict[str, tuple[str, str, str]]:
+    """商品 id → (品牌, 型號, 「大類/小類」)。"""
     found: dict[str, tuple[str, str, str]] = {}
     for path in db_paths:
         with _open(path) as db:
-            for pid, brand, model, cat2 in db.execute(_PRODUCTS):
-                found.setdefault(pid, (brand, model, cat2))
+            for pid, brand, model, cat in db.execute(_PRODUCTS):
+                found.setdefault(pid, (brand, model, cat))
     return found
 
 
@@ -283,77 +313,105 @@ def _colour_bands(photo: pathlib.Path | None, height: float) -> list[dict]:
         return [{"to": height, "m": "metal", "c": GREY}]
 
 
-def _variant_name(rows: list[tuple], vid) -> str:
+def _variant_name(rows: list[tuple], vid, own_photo: bool = False) -> str:
     """描的時候用的那個款式的名稱。不寫的：店家沒取名字（「標準」這種）；
     名字有顏色、而且這件商品還有別的款式（照片是商品的第一張，不一定是這個顏色）。
     """
     name = next((r[1] for r in rows if r[0] == vid), "") or ""
-    others = {r[1] for r in rows} - {name}
-    if name in PLACEHOLDER or (others and COLOUR_WORD.search(name)):
-        return ""
-    return name
+    others = (
+        set() if own_photo else {r[1] for r in rows} - {name}
+    )  # 照片就是這個款式的：顏色名可以寫
+    return "" if _hidden_name(name, others) else name
 
 
-def _entry(row, product, rows, photo_for) -> dict | None:
+def _hidden_name(name: str, others: set) -> bool:
+    return name in PLACEHOLDER or bool(others and COLOUR_WORD.search(name))
+
+
+def _wanted(kind: str, cat: str, model: str) -> bool:
+    """這個種類要不要這件：分類對、而且燈的名字不是壁燈。"""
+    if cat not in KINDS[kind]["categories"]:
+        return False
+    return kind != "lamps" or not batch.wall_name(model)
+
+
+def _placement(kind: str, cat: str, lathe: list, height_cm: float) -> dict:
+    """燈：照分類放（吊、桌、地、吸頂），加燈泡；擺飾：高的放地上、其他放桌上，不會亮。"""
+    if kind == "lamps":
+        light, beam = light_and_beam(lathe, cat.split("/")[1])
+        return {"mount": cat.split("/")[1], "light": light, "beam": beam}
+    return {"mount": "floor" if height_cm >= FLOOR_FROM_CM else "table"}
+
+
+def _entry(row, product, rows, photo_for, kind: str = "lamps", own_photos=None) -> dict | None:
     pid, url, vid, width, height, lathe_json = row
-    brand, model, cat2 = product
+    brand, model, cat = product
     lathe = json.loads(lathe_json)
     deals = offers(rows, (width, height))
-    if not deals or cat2 not in CATEGORY or batch.wall_name(model):
+    if not deals or not _wanted(kind, cat, model):
         return None
-    light, beam = light_and_beam(lathe, cat2)
     top = max(h for _, h in lathe)
-    # 店家沒標高度：高度是照片的比例估的，另外寫 hEst，網頁上寫「高約」（Codex 審查）
-    widest = 2 * max(r for r, _ in lathe)  # 模型照寬度縮放，高度也跟著縮放
-    estimate = round(top * width / widest, 1)
-    size = {"w": width, "hEst": estimate} if height is None else {"w": width, "h": height}
+    size = _size(width, height, lathe)
+    spec = KINDS[kind]
     return {
-        "id": f"c:{pid}",
+        "id": f"{spec['prefix']}{pid}",
         "brand": brand,
         "name": model,
-        "variant": _variant_name(rows, vid),
-        "category": CATEGORY[cat2],
-        "mount": cat2,
+        "variant": _variant_name(rows, vid, url in (own_photos or {}).get(vid, ())),
+        "category": spec["categories"][cat],
         "size": size,
         "updated": _updated(_counted(rows, (width, height))),
         "offers": deals,
         "lathe": lathe,
         "bands": _colour_bands(photo_for(url), top),
-        "light": light,
-        "beam": beam,
+        **_placement(kind, cat, lathe, size.get("h", size.get("hEst"))),
     }
 
 
-def build(db_paths: list, outlines_db, photo_for: Callable[[str], pathlib.Path | None]) -> dict:
+def _size(width: float, height: float | None, lathe: list) -> dict:
+    """店家沒標高度：高度是照片的比例估的，另外寫 hEst，網頁上寫「高約」（Codex 審查）。"""
+    if height is not None:
+        return {"w": width, "h": height}
+    top, widest = max(h for _, h in lathe), 2 * max(r for r, _ in lathe)
+    return {"w": width, "hEst": round(top * width / widest, 1)}  # 模型照寬度縮放，高度也跟著
+
+
+def build(
+    db_paths: list,
+    outlines_db,
+    photo_for: Callable[[str], pathlib.Path | None],
+    kind: str = "lamps",
+) -> dict:
     products, listings = load_products(db_paths), load_listings(db_paths)
+    own = load_variant_photos(db_paths)
     have = products.keys() & listings.keys()
     entries = [
-        _entry(r, products[r[0]], listings[r[0]], photo_for)
+        _entry(r, products[r[0]], listings[r[0]], photo_for, kind, own)
         for r in _ok_rows(outlines_db)
         if r[0] in have
     ]
-    lamps = list(filter(None, entries))
-    return {"updated": max((e["updated"] for e in lamps), default=""), "lamps": lamps}
+    found = list(filter(None, entries))
+    return {"updated": max((e["updated"] for e in found), default=""), KINDS[kind]["key"]: found}
 
 
-HEADER = """/* 自動產生，不要手改：tools/outline/export_catalog.py（說明在 docs/catalog.md）
- * 爬到的燈裡，自動描「可以用」的：品牌、型號、尺寸、各家價格、輪廓、顏色、燈泡位置。
+HEADER = """/* 自動產生，不要手改：tools/outline/export_catalog.py
+ * 說明在 docs/catalog.md（燈）、docs/decor.md（花瓶、花器）
+ * 爬到的商品裡，自動描「可以用」的：品牌、型號、尺寸、各家價格、輪廓、顏色（燈還有燈泡位置）。
  * 照片和照片連結都不在這裡（店家的照片只在本機）。
  */
 """
 
 
-def write(data: dict, path: pathlib.Path) -> None:
+def write(data: dict, path: pathlib.Path, kind: str = "lamps") -> None:
     body = json.dumps(data, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-    lamps = body  # 一盞一行，看 diff 比較方便
-    lamps = lamps.replace(',{"beam"', ',\n{"beam"')
+    body = body.replace(',{"bands"', ',\n{"bands"')  # 一件一行，看 diff 比較方便
     text = (
         HEADER
         + "(function (root, data) {\n"
         + "  if (typeof module === 'object' && module.exports) module.exports = data;\n"
-        + "  else root.SetdressCatalog = data;\n"
+        + f"  else root.{KINDS[kind]['global']} = data;\n"
         + "})(typeof self !== 'undefined' ? self : this, "
-        + lamps
+        + body
         + ");\n"
     )
     path.write_text(text, encoding="utf-8", newline="\n")
@@ -363,13 +421,20 @@ def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--db", action="append", required=True, help="softgoods 的資料庫，可以給好幾個")
     ap.add_argument("--outlines", type=pathlib.Path, default=batch.HERE / "out" / "outlines.db")
-    ap.add_argument("--out", type=pathlib.Path, default=OUT)
+    ap.add_argument(
+        "--kind", choices=sorted(KINDS), default="lamps", help="lamps 燈；decor 花瓶、花器"
+    )
+    ap.add_argument(
+        "--out", type=pathlib.Path, help="預設：燈 prototype/catalog.js、擺飾 prototype/decor.js"
+    )
     args = ap.parse_args(argv)
     cache = batch.photos.PhotoCache(batch.PHOTOS)
-    data = build(args.db, args.outlines, photo_for=cache.path_for)
-    write(data, args.out)
-    many = sum(len(e["offers"]) >= 2 for e in data["lamps"])
-    print(f"寫好 {args.out}：{len(data['lamps'])} 盞，{many} 盞有兩家以上的價格")
+    data = build(args.db, args.outlines, photo_for=cache.path_for, kind=args.kind)
+    out = args.out or KINDS[args.kind]["out"]
+    write(data, out, kind=args.kind)
+    found = data[KINDS[args.kind]["key"]]
+    many = sum(len(e["offers"]) >= 2 for e in found)
+    print(f"寫好 {out}：{len(found)} 件，{many} 件有兩家以上的價格")
     print(f"資料日期 {data['updated']}")
 
 

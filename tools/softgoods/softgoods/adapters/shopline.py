@@ -298,6 +298,7 @@ class ShoplineAdapter(Adapter):
             stock_text=stock_text,
             is_official=self.site.kind == "brand_official",
             images=_image_urls(product, variation),
+            variant_image=_variation_image_url(variation),
             source_site_id=self.site.site_id,
             source_url=url,
         )

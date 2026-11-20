@@ -23,16 +23,18 @@ CREATE TABLE variant(variant_id TEXT PRIMARY KEY, product_id TEXT, name TEXT,
                      width_mm REAL, depth_mm REAL, height_mm REAL, diameter_mm REAL, pack INTEGER);
 CREATE TABLE listing(listing_id INTEGER PRIMARY KEY, variant_id TEXT, site_id TEXT, url TEXT,
                      price REAL, in_stock INTEGER, gone_at TEXT, last_seen_at TEXT);
+CREATE TABLE image(image_id INTEGER PRIMARY KEY, product_id TEXT, variant_id TEXT, src_url TEXT,
+                   position INTEGER);
 """
 
 
-def make_db(path, variants, listings, cat2="pendant"):
+def make_db(path, variants, listings, cat2="pendant", cat1="lighting"):
     """variants: [(variant_id, 名稱, 寬, 深, 高, 直徑, 幾盞一組)]；
     listings: [(variant_id, 店, 價格, 有現貨, 下架日, 最後看到)]"""
     db = sqlite3.connect(path)
     db.executescript(SCHEMA)
     db.execute("INSERT INTO brand VALUES (1, 'Louis Poulsen')")
-    db.execute("INSERT INTO product VALUES ('lp__ph-5', 1, 'PH 5', 'lighting', ?)", (cat2,))
+    db.execute("INSERT INTO product VALUES ('lp__ph-5', 1, 'PH 5', ?, ?)", (cat1, cat2))
     for vid, name, w, d, h, dia, pack in variants:
         db.execute(
             "INSERT INTO variant VALUES (?, 'lp__ph-5', ?, ?, ?, ?, ?, ?)",
@@ -382,3 +384,61 @@ class TestCodexReview:
         assert batch.wall_name("Clessidra Wall Lamp") and batch.wall_name("Nimal 雙頭壁燈")
         assert not batch.wall_name("Over Me Ceiling/Wall Lamp"), "吸頂、壁掛兩用的可以掛天花板"
         assert not batch.wall_name("PH 5")
+
+
+class TestDecor:
+    """其他軟裝：花瓶、花器（docs/decor.md）。"""
+
+    def build(self, tmp_path, cat1, cat2, height_mm=300, kind="decor"):
+        db = make_db(
+            tmp_path / "a.db",
+            [("v", "白", None, None, height_mm, 200, 1)],
+            [("v", "nosa", 1200, 1, None, SEEN)],
+            cat2=cat2,
+            cat1=cat1,
+        )
+        h = height_mm / 10
+        vase = [[6, 0], [10, h * 0.4], [4, h * 0.9], [5, h]]
+        outlines = outline_db(tmp_path / "o.db", [("lp__ph-5", "ok", "v", 20, h, vase)])
+        return ex.build([db], outlines, photo_for=lambda url: None, kind=kind)
+
+    def test_a_vase_is_a_decor_item_on_the_table(self, tmp_path):
+        data = self.build(tmp_path, "decor", "vase")
+        item = data["items"][0]
+        assert (item["id"], item["category"], item["mount"]) == ("d:lp__ph-5", "花瓶", "table")
+        assert "light" not in item and "beam" not in item, "擺飾不會亮"
+
+    def test_a_tall_one_stands_on_the_floor(self, tmp_path):
+        item = self.build(tmp_path, "greenery", "planter", height_mm=800)["items"][0]
+        assert (item["category"], item["mount"]) == ("花器", "floor")
+
+    def test_lamps_do_not_include_furniture_named_table(self, tmp_path):
+        assert self.build(tmp_path, "furniture", "table", kind="lamps")["lamps"] == []
+
+    def test_decor_does_not_include_lamps(self, tmp_path):
+        assert self.build(tmp_path, "lighting", "pendant")["items"] == []
+
+    def test_the_decor_file_has_its_own_name(self, tmp_path):
+        out = tmp_path / "decor.js"
+        ex.write(self.build(tmp_path, "decor", "vase"), out, kind="decor")
+        assert "root.SetdressDecor = data" in out.read_text(encoding="utf-8")
+
+
+class TestVariantPhotoName:
+    """描的照片是那個款式自己的：顏色名可以寫（照片就是那個顏色）。"""
+
+    def test_the_colour_name_is_kept_when_the_photo_is_that_variants_own(self, tmp_path):
+        variants = [("w", "白色", None, None, 267, 500, 1), ("b", "黑色", None, None, 267, 500, 1)]
+        db = make_db(tmp_path / "a.db", variants, [("w", "nosa", 39900, 1, None, SEEN)])
+        con = sqlite3.connect(db)
+        con.execute(
+            "INSERT INTO image(product_id, variant_id, src_url, position)"
+            " VALUES ('lp__ph-5', 'w', 'u', 0)"
+        )
+        con.commit()
+        con.close()
+        outlines = outline_db(
+            tmp_path / "o.db", [("lp__ph-5", "ok", "w", 50, 26.7, LATHE)]
+        )  # 照片網址 u
+        entry = ex.build([db], outlines, photo_for=lambda url: None)["lamps"][0]
+        assert entry["variant"] == "白色"

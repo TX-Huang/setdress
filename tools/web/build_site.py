@@ -20,6 +20,7 @@ SITE: dict[str, str | None] = {
     "lamps.js": "prototype/lamps.js",
     "catalog.js": "prototype/catalog.js",
     "erase.js": "prototype/erase.js",  # 擦掉照片裡的東西（docs/erase.md）
+    "decor.js": "prototype/decor.js",  # 擺飾：花瓶、花器（docs/decor.md）
     "webalign.js": "prototype/webalign.js",
     "models/moge-2-s-fp16.onnx": "prototype/models/moge-2-s-fp16.onnx",
     "models/LICENSE-MoGe.txt": "prototype/models/LICENSE-MoGe.txt",
