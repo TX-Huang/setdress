@@ -19,9 +19,15 @@ SITE: dict[str, str | None] = {
     "index.html": "prototype/index.html",
     "lamps.js": "prototype/lamps.js",
     "catalog.js": "prototype/catalog.js",
+    "erase.js": "prototype/erase.js",  # 擦掉照片裡的東西（docs/erase.md）
     "webalign.js": "prototype/webalign.js",
     "models/moge-2-s-fp16.onnx": "prototype/models/moge-2-s-fp16.onnx",
     "models/LICENSE-MoGe.txt": "prototype/models/LICENSE-MoGe.txt",
+    "models/mobile_sam_image_encoder.onnx": "prototype/models/mobile_sam_image_encoder.onnx",
+    "models/sam_mask_decoder_single.onnx": "prototype/models/sam_mask_decoder_single.onnx",
+    "models/migan_pipeline_v2.onnx": "prototype/models/migan_pipeline_v2.onnx",
+    "models/LICENSE-MobileSAM.txt": "prototype/models/LICENSE-MobileSAM.txt",
+    "models/LICENSE-MI-GAN.txt": "prototype/models/LICENSE-MI-GAN.txt",
     "README.md": "tools/web/README.md",
     ".nojekyll": None,  # 叫 GitHub Pages 原封不動地給檔案
 }

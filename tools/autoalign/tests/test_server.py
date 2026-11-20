@@ -44,6 +44,14 @@ class FakeModel:
         return render(self.shot)
 
 
+# 擦掉照片裡的東西用的模型（docs/erase.md）
+ERASE_MODELS = (
+    "mobile_sam_image_encoder.onnx",
+    "sam_mask_decoder_single.onnx",
+    "migan_pipeline_v2.onnx",
+)
+
+
 @pytest.fixture
 def site(tmp_path: Path) -> Path:
     """假的 prototype 資料夾：網頁、燈具目錄，加一個不該被看到的檔案。"""
@@ -52,10 +60,13 @@ def site(tmp_path: Path) -> Path:
     (folder / "index.html").write_text("<title>Setdress 原型</title>", encoding="utf-8")
     (folder / "lamps.js").write_text("// 燈具目錄 LAMPS", encoding="utf-8")
     (folder / "catalog.js").write_text("// 爬到的燈 SetdressCatalog", encoding="utf-8")
+    (folder / "erase.js").write_text("// 擦掉 SetdressErase", encoding="utf-8")
     (folder / "notes.txt").write_text("不要給別人看", encoding="utf-8")
     (folder / "webalign.js").write_text("// 網頁版對齊 SetdressAlign", encoding="utf-8")
     (folder / "models").mkdir()
     (folder / "models" / "moge-2-s-fp16.onnx").write_bytes(b"fake-onnx")
+    for name in ERASE_MODELS:
+        (folder / "models" / name).write_bytes(b"fake-" + name.encode())
     return folder
 
 
@@ -228,6 +239,15 @@ def test_serves_the_crawled_lamp_catalog(url: str) -> None:
         assert res.status == 200
         assert "javascript" in res.headers["Content-Type"]
         assert "SetdressCatalog" in res.read().decode("utf-8")
+
+
+def test_serves_the_erase_tool_and_its_models(url: str) -> None:
+    # 擦掉照片裡的東西（docs/erase.md）：本機打開也是瀏覽器在算，要給程式和模型
+    with urllib.request.urlopen(url + "/erase.js", timeout=10) as res:
+        assert "SetdressErase" in res.read().decode("utf-8")
+    for name in ERASE_MODELS:
+        with urllib.request.urlopen(url + "/models/" + name, timeout=10) as res:
+            assert res.read() == b"fake-" + name.encode()
 
 
 def test_serves_the_web_align_script_and_model(url: str) -> None:

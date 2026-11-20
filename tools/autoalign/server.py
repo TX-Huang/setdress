@@ -38,6 +38,10 @@ SITE_FILES = {
     "/index.html": "index.html",
     "/lamps.js": "lamps.js",
     "/catalog.js": "catalog.js",  # 爬到的燈（export_catalog.py 產生）
+    "/erase.js": "erase.js",  # 擦掉照片裡的東西（docs/erase.md）
+    "/models/mobile_sam_image_encoder.onnx": "models/mobile_sam_image_encoder.onnx",
+    "/models/sam_mask_decoder_single.onnx": "models/sam_mask_decoder_single.onnx",
+    "/models/migan_pipeline_v2.onnx": "models/migan_pipeline_v2.onnx",
     "/webalign.js": "webalign.js",
     "/models/moge-2-s-fp16.onnx": "models/moge-2-s-fp16.onnx",  # 網頁版 AI（export_onnx.py 產生）
 }

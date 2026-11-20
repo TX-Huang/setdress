@@ -76,8 +76,15 @@ body {
 .toast[data-kind="error"] { border-color: var(--danger); color: var(--danger); }
 .ask { position: absolute; left: 12px; right: 12px; top: 50%; transform: translateY(-50%); margin: 0 auto; max-width: 420px; padding: 14px; border-radius: 10px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); display: grid; gap: 10px; font-size: 14px; }
 .ask p { margin: 0; }
-.tool { position: absolute; top: 12px; right: 12px; font: inherit; font-size: 13px; font-weight: 500; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.tools { position: absolute; top: 12px; right: 12px; display: flex; gap: 6px; }
+.tool { font: inherit; font-size: 13px; font-weight: 500; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
 .tool[aria-pressed="true"] { background: #ffd400; border-color: #ffd400; color: #111; }
+/* 擦掉照片裡的東西（docs/erase.md）：圈到的範圍蓋在照片上、下面的按鈕列 */
+.erase-mask { position: absolute; pointer-events: none; }
+.erase-bar { position: absolute; left: 12px; right: 12px; top: 50px; display: grid; gap: 6px; padding: 8px 10px; border-radius: 8px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); font-size: 13px; }
+.erase-bar p { margin: 0; }
+.erase-bar div { display: flex; flex-wrap: wrap; gap: 6px; }
+.erase-bar .btn { min-height: 32px; padding: 0 12px; font-size: 13px; }
 .ruler-label { position: absolute; transform: translate(-50%, -140%); margin: 0; padding: 2px 8px; border-radius: 6px; background: #ffd400; color: #111; font-family: var(--font-num); font-size: 13px; font-weight: 700; pointer-events: none; white-space: nowrap; }
 .ask div { display: flex; flex-wrap: wrap; gap: 8px; }
 .caption { margin: 0; color: var(--muted); font-size: 13px; }
@@ -135,7 +142,20 @@ select, input[type="search"] { width: 100%; min-width: 0; font: inherit; min-hei
       <canvas id="view" aria-label="房間照片和放進去的商品。拖曳地毯或燈可以移動。"></canvas>
       <p class="hint" id="hint">拖曳地毯或燈來移動</p>
       <p class="mark">示意圖</p>
-      <button class="tool" type="button" id="ruler-btn" aria-pressed="false">量尺</button>
+      <div class="tools">
+        <button class="tool" type="button" id="erase-btn" aria-pressed="false">擦掉</button>
+        <button class="tool" type="button" id="ruler-btn" aria-pressed="false">量尺</button>
+      </div>
+      <canvas class="erase-mask" id="erase-mask" aria-hidden="true" hidden></canvas>
+      <div class="erase-bar" id="erase-bar" role="group" aria-label="擦掉照片裡的東西" hidden>
+        <p id="erase-status" role="status" aria-live="polite">點照片上要擦掉的東西（圈不夠就再點一下沒圈到的地方）</p>
+        <div>
+          <button class="btn btn-primary" type="button" id="erase-do" disabled>擦掉</button>
+          <button class="btn" type="button" id="erase-cancel" disabled>重選</button>
+          <button class="btn" type="button" id="erase-undo" disabled>復原</button>
+          <button class="btn" type="button" id="erase-reset" disabled>全部還原</button>
+        </div>
+      </div>
       <p class="ruler-label" id="ruler-label" hidden></p>
       <p class="toast" id="toast" role="status" aria-live="polite" hidden></p>
       <div class="ask" id="ai-ask" role="dialog" aria-labelledby="ai-ask-text" hidden>
@@ -291,6 +311,7 @@ select, input[type="search"] { width: 100%; min-width: 0; font: inherit; min-hei
 
 <script src="lamps.js"></script>
 <script src="catalog.js"></script>
+<script src="erase.js"></script>
 <script src="webalign.js"></script>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
@@ -649,13 +670,20 @@ function depthMillimeters(depth) {
 }
 let photoDepth = null; // 照片每個像素離鏡頭多遠（公尺，第 0 列是照片最上面）；燈泡被擋住時不畫光暈
 function setOccluder(depth) {
+  const mm = depthMillimeters(depth);
+  photo.baseDepth = mm && mm.length === depth.width * depth.height ? { width: depth.width, height: depth.height, mm } : null;
+  applyOccluder();
+}
+// AI 的深度，再把擦掉的地方變成 0（不擋新放的商品，docs/erase.md 第 4 句）
+function applyOccluder() {
   occluderMat.uniforms.depthMap.value?.dispose();
   occluderMat.uniforms.depthMap.value = null;
   occluder.visible = false;
   photoDepth = null;
-  const mm = depthMillimeters(depth);
-  if (!mm || mm.length !== depth.width * depth.height) return;
-  const meters = Float32Array.from(mm, (v) => v / 1000);
+  const step = erase.hist ? ER.current(erase.hist) : null;
+  const depth = step?.erased ? ER.eraseDepth(photo.baseDepth, step.erased, step.canvas.width, step.canvas.height) : photo.baseDepth;
+  if (!depth) return;
+  const meters = Float32Array.from(depth.mm, (v) => v / 1000);
   const tex = new THREE.DataTexture(meters, depth.width, depth.height, THREE.RedFormat, THREE.FloatType);
   tex.minFilter = tex.magFilter = THREE.NearestFilter;
   tex.needsUpdate = true;
@@ -855,7 +883,11 @@ blob.renderOrder = 2;
 scene.add(blob);
 
 // ---------- 照片 ----------
-const photo = { tex: null, aspect: 4 / 3, hemiBase: 2.2 };
+const photo = { tex: null, aspect: 4 / 3, hemiBase: 2.2, baseDepth: null };
+// 擦掉照片裡的東西（docs/erase.md）：每一步存一份（照片、擦掉的範圍）；不用模型的計算在 erase.js
+const ER = window.SetdressErase;
+const erase = { on: false, busy: false, points: [], mask: null, emb: null, embFor: null, scale: 1, hist: null, sessions: {}, loading: {} };
+const currentPhoto = () => ER.current(erase.hist).canvas;
 
 function sampleColors(src) {
   const N = 32, c = canvasOf(N, N), g = c.getContext('2d', { willReadFrequently: true });
@@ -878,14 +910,21 @@ function tint(c) {
   const m = Math.max(c.r, c.g, c.b, 1e-3);
   return c.clone().multiplyScalar(1 / m).lerp(new THREE.Color(1, 1, 1), 0.45);
 }
-function setPhoto(src, camDefaults) {
+// 換照片上的像素（擦掉、復原）：鏡頭、對齊都不動
+function setBackground(src) {
   const tex = new THREE.CanvasTexture(src);
   tex.colorSpace = THREE.SRGBColorSpace;
   photo.tex?.dispose();
   photo.tex = tex;
-  photo.aspect = src.width / src.height;
   bgMat.map = tex;
   bgMat.needsUpdate = true;
+}
+function setPhoto(src, camDefaults) {
+  setBackground(src);
+  photo.aspect = src.width / src.height;
+  // 換照片：圈的範圍、擦掉的紀錄都清掉（docs/erase.md 第 8 句）
+  Object.assign(erase, { points: [], mask: null, emb: null, embFor: null, hist: ER.history({ canvas: src, erased: null }) });
+  syncErase();
   const s = sampleColors(src);
   hemi.color.copy(tint(s.top));
   hemi.groundColor.copy(tint(s.bottom));
@@ -1108,6 +1147,7 @@ function layout() {
   if (h > maxH) { h = maxH; w = h * photo.aspect; }
   renderer.setSize(Math.round(w), Math.round(h));
   updateRuler(); // 畫面大小變了，距離的字要跟著移
+  placeEraseMask();
   requestRender();
 }
 
@@ -1158,6 +1198,7 @@ function addRulerMark(e) {
   update();
 }
 function setRuler(on) {
+  if (on && erase.on) setErase(false); // 量尺和擦掉同時只開一個
   ruler.on = on;
   ruler.marks = [];
   $('ruler-btn').setAttribute('aria-pressed', String(on));
@@ -1166,6 +1207,187 @@ function setRuler(on) {
   update();
 }
 $('ruler-btn').addEventListener('click', () => setRuler(!ruler.on));
+
+// ---------- 擦掉照片裡的東西（docs/erase.md） ----------
+// 圈物件 MobileSAM、補圖 MI-GAN，都在瀏覽器裡跑（onnxruntime-web 的 wasm）：照片不會傳出去
+const ERASE_LIM = { min: 1e6, max: 60e6 };
+const ERASE_MODELS = {
+  encoder: { file: 'models/mobile_sam_image_encoder.onnx', guess: 28.2e6 },
+  decoder: { file: 'models/sam_mask_decoder_single.onnx', guess: 16.5e6 },
+  migan: { file: 'models/migan_pipeline_v2.onnx', guess: 28.1e6 },
+};
+const ERASE_MB = 72;
+const sayErase = (text) => { $('erase-status').textContent = text; };
+
+// 模型：存在瀏覽器裡的就直接用，沒有才下載（第一次）；同一個模型同時只載一次
+function eraseSession(name) {
+  if (erase.sessions[name]) return Promise.resolve(erase.sessions[name]);
+  if (!erase.loading[name]) {
+    erase.loading[name] = (async () => {
+      const m = ERASE_MODELS[name], url = new URL(m.file, location.href).href, lim = { ...ERASE_LIM, guess: m.guess };
+      const fresh = async () => {
+        const bytes = await downloadModel((p) => sayErase(`第一次用：下載 AI 模型（共 ${ERASE_MB} MB，之後存在這台裝置上）… ${Math.round(p * 100)}%`), url, lim);
+        await saveModel(bytes, url);
+        return bytes;
+      };
+      const cached = await cachedModel(url, lim);
+      await loadOrt();
+      const open = (bytes) => ai.ort.InferenceSession.create(bytes, { executionProviders: ['wasm'] });
+      try {
+        erase.sessions[name] = await open(cached || await fresh());
+      } catch (err) {
+        if (!cached) throw err;
+        await forgetCachedModel(url); // 存在瀏覽器裡的那份打不開：丟掉，重新下載一次（Codex 審查）
+        erase.sessions[name] = await open(await fresh());
+      }
+      return erase.sessions[name];
+    })().finally(() => { erase.loading[name] = null; });
+  }
+  return erase.loading[name];
+}
+const pixelsOf = (c) => c.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, c.width, c.height);
+
+// MobileSAM 先看整張照片一次（照片沒變就不用再看）
+async function samEmbedding(c) {
+  if (erase.embFor === c) return erase.emb;
+  const encoder = await eraseSession('encoder');
+  sayErase('AI 在看這張照片…');
+  const s = ER.samSize(c.width, c.height), small = canvasOf(s.w, s.h);
+  small.getContext('2d').drawImage(c, 0, 0, s.w, s.h);
+  const input = new ai.ort.Tensor('float32', ER.toHWC(pixelsOf(small).data), [s.h, s.w, 3]);
+  erase.emb = (await encoder.run({ input_image: input })).image_embeddings;
+  Object.assign(erase, { embFor: c, scale: s.scale });
+  return erase.emb;
+}
+// 用目前點的所有點，圈出一個範圍（照片大小，1 是物件）
+async function segment(c) {
+  const emb = await samEmbedding(c);
+  const decoder = await eraseSession('decoder');
+  const p = ER.samPrompt(erase.points, erase.scale), T = (data, dims) => new ai.ort.Tensor('float32', data, dims);
+  const out = await decoder.run({
+    image_embeddings: emb,
+    point_coords: T(p.coords, [1, p.count, 2]),
+    point_labels: T(p.labels, [1, p.count]),
+    mask_input: T(new Float32Array(256 * 256), [1, 1, 256, 256]),
+    has_mask_input: T(new Float32Array([0]), [1]),
+    orig_im_size: T(new Float32Array([c.height, c.width]), [2]),
+  });
+  return ER.maskFromLogits(out.masks.data);
+}
+// 用 MI-GAN 補：範圍往外多擴一點，補好的只用在範圍裡
+async function inpaint(c, mask) {
+  const migan = await eraseSession('migan');
+  sayErase('補背景中…');
+  const w = c.width, h = c.height, px = pixelsOf(c).data;
+  const grown = ER.dilate(mask, w, h, ER.growPixels(w, h));
+  const out = await migan.run({
+    image: new ai.ort.Tensor('uint8', ER.toCHW(px, w, h), [1, 3, h, w]),
+    mask: new ai.ort.Tensor('uint8', ER.miganMask(grown), [1, 1, h, w]),
+  });
+  const next = canvasOf(w, h);
+  next.getContext('2d').putImageData(new ImageData(ER.composite(px, out.result.data, grown, w, h), w, h), 0, 0);
+  return { canvas: next, grown };
+}
+
+// 忙的時候按鈕都關掉；出錯就說，不讓畫面卡住
+async function eraseBusy(work) {
+  erase.busy = true;
+  syncErase();
+  try {
+    await work();
+  } catch (err) {
+    console.error(err);
+    sayErase(`出錯了，請再試一次（${err.message || err}）`);
+  } finally {
+    erase.busy = false;
+    syncErase();
+  }
+}
+// 算完的時候照片已經換了（上傳了新的）：結果是舊照片的，丟掉（Codex 審查）
+const samePhoto = (original) => erase.hist && erase.hist.steps[0] === original;
+function addErasePoint(e) {
+  if (erase.busy) return;
+  const c = currentPhoto(), r = canvas.getBoundingClientRect(), original = erase.hist.steps[0];
+  erase.points.push({ x: ((e.clientX - r.left) / r.width) * c.width, y: ((e.clientY - r.top) / r.height) * c.height });
+  return eraseBusy(async () => {
+    const mask = await segment(c);
+    if (!samePhoto(original)) return;
+    erase.mask = mask;
+    sayErase('紅色是要擦掉的。圈不夠就再點沒圈到的地方；對了就按「擦掉」');
+  });
+}
+function doErase() {
+  if (erase.busy || !erase.mask) return;
+  return eraseBusy(async () => {
+    const original = erase.hist.steps[0];
+    const step = ER.current(erase.hist), { canvas: next, grown } = await inpaint(step.canvas, erase.mask);
+    if (!samePhoto(original)) return;
+    const erased = step.erased ? step.erased.map((v, i) => v | grown[i]) : grown;
+    erase.hist = ER.pushStep(erase.hist, { canvas: next, erased });
+    showEraseStep();
+    sayErase('擦掉了。可以再點別的東西，或按「復原」');
+  });
+}
+function showEraseStep() {
+  Object.assign(erase, { points: [], mask: null });
+  setBackground(currentPhoto());
+  applyOccluder();
+  update();
+}
+
+// 圈到的範圍：半透明紅色，蓋在照片上（跟 3D 畫面同一個位置、大小）
+const eraseMaskCanvas = $('erase-mask');
+function placeEraseMask() {
+  Object.assign(eraseMaskCanvas.style, {
+    left: canvas.offsetLeft + 'px', top: canvas.offsetTop + 'px',
+    width: canvas.clientWidth + 'px', height: canvas.clientHeight + 'px',
+  });
+}
+function drawEraseMask() {
+  eraseMaskCanvas.hidden = !(erase.on && erase.mask);
+  if (eraseMaskCanvas.hidden) return;
+  const c = currentPhoto();
+  eraseMaskCanvas.width = c.width;
+  eraseMaskCanvas.height = c.height;
+  const ctx = eraseMaskCanvas.getContext('2d'), img = ctx.createImageData(c.width, c.height);
+  erase.mask.forEach((v, i) => { if (v) img.data.set([255, 40, 40, 120], 4 * i); });
+  ctx.putImageData(img, 0, 0);
+  placeEraseMask();
+}
+function syncErase() {
+  const undoable = Boolean(erase.hist) && ER.canUndo(erase.hist);
+  $('erase-btn').setAttribute('aria-pressed', String(erase.on));
+  $('erase-bar').hidden = !erase.on;
+  $('erase-do').disabled = erase.busy || !erase.mask;
+  $('erase-cancel').disabled = erase.busy || !erase.points.length;
+  $('erase-undo').disabled = erase.busy || !undoable;
+  $('erase-reset').disabled = erase.busy || !undoable;
+  canvas.style.cursor = erase.on || ruler.on ? 'crosshair' : 'default';
+  drawEraseMask();
+}
+function setErase(on) {
+  if (on && ruler.on) setRuler(false); // 量尺和擦掉同時只開一個
+  Object.assign(erase, { on, points: [], mask: null });
+  if (on) sayErase('點照片上要擦掉的東西（圈不夠就再點一下沒圈到的地方）');
+  syncErase();
+}
+$('erase-btn').addEventListener('click', () => setErase(!erase.on));
+$('erase-do').addEventListener('click', doErase);
+$('erase-cancel').addEventListener('click', () => {
+  Object.assign(erase, { points: [], mask: null });
+  sayErase('點照片上要擦掉的東西');
+  syncErase();
+});
+$('erase-undo').addEventListener('click', () => {
+  erase.hist = ER.undoStep(erase.hist);
+  showEraseStep();
+  syncErase();
+});
+$('erase-reset').addEventListener('click', () => {
+  erase.hist = ER.resetSteps(erase.hist);
+  showEraseStep();
+  syncErase();
+});
 
 // ---------- 拖曳 ----------
 const raycaster = new THREE.Raycaster();
@@ -1196,6 +1418,7 @@ function select(key) {
 }
 
 canvas.addEventListener('pointerdown', (e) => {
+  if (erase.on) { e.preventDefault(); addErasePoint(e); return; } // 擦掉開著：圈東西，不拖商品
   if (ruler.on) { e.preventDefault(); addRulerMark(e); return; } // 量尺開著：放點，不拖商品
   setRay(e);
   const hit = pick();
@@ -1498,59 +1721,59 @@ const TOKENS = { gpu: 2400, cpu: 1200 }; // 有顯示卡用細一點（docs/web-
 const ai = { ort: null, session: null, gpu: false, loading: null, queue: Promise.resolve() };
 
 // 大小合理、而且是 ONNX 檔（第一個欄位 ir_version 的標記是 0x08）
-const looksLikeOnnx = (b) => b.length >= MODEL_BYTES.min && b.length <= MODEL_BYTES.max && b[0] === 0x08;
-async function cachedModel() {
+const looksLikeOnnx = (b, lim = MODEL_BYTES) => b.length >= lim.min && b.length <= lim.max && b[0] === 0x08;
+async function cachedModel(url = MODEL_URL, lim = MODEL_BYTES) {
   try {
-    const hit = await (await caches.open(MODEL_CACHE)).match(MODEL_URL);
+    const hit = await (await caches.open(MODEL_CACHE)).match(url);
     const bytes = hit ? new Uint8Array(await hit.arrayBuffer()) : null;
-    if (bytes && looksLikeOnnx(bytes)) return bytes;
-    if (bytes) await forgetCachedModel(); // 存壞了：丟掉，重新下載
+    if (bytes && looksLikeOnnx(bytes, lim)) return bytes;
+    if (bytes) await forgetCachedModel(url); // 存壞了：丟掉，重新下載
     return null;
   } catch {
     return null; // 不能用快取（例如不是 https）：就每次下載
   }
 }
-async function saveModel(bytes) {
+async function saveModel(bytes, url = MODEL_URL) {
   try {
-    await (await caches.open(MODEL_CACHE)).put(MODEL_URL, new Response(bytes, { headers: { 'Content-Type': 'application/octet-stream' } }));
+    await (await caches.open(MODEL_CACHE)).put(url, new Response(bytes, { headers: { 'Content-Type': 'application/octet-stream' } }));
   } catch { /* 存不了：下次再下載 */ }
 }
-async function forgetCachedModel() {
-  try { await (await caches.open(MODEL_CACHE)).delete(MODEL_URL); } catch { /* 沒有快取可刪 */ }
+async function forgetCachedModel(url = MODEL_URL) {
+  try { await (await caches.open(MODEL_CACHE)).delete(url); } catch { /* 沒有快取可刪 */ }
 }
 // 只問有沒有這個檔案（HEAD，不下載、也不帶照片）
 async function modelAvailable() {
   try { return (await fetchWithin(MODEL_URL, { method: 'HEAD' }, 10000)).ok; } catch { return false; }
 }
 // 下載模型：知道大小就先配好記憶體，邊收邊放（不會同時有兩份 71 MB）；停住 30 秒就放棄
-async function downloadModel(onProgress) {
+async function downloadModel(onProgress, url = MODEL_URL, lim = MODEL_BYTES) {
   const ctl = new AbortController();
   let stall = setTimeout(() => ctl.abort(), STALL_MS);
   try {
-    const res = await fetch(MODEL_URL, { signal: ctl.signal });
+    const res = await fetch(url, { signal: ctl.signal });
     if (!res.ok) throw new Error(`下載模型失敗（${res.status}）`);
     // 傳輸時有壓縮的話，Content-Length 是壓縮後的大小，不能拿來比
     const declared = res.headers.get('Content-Encoding') ? 0 : Number(res.headers.get('Content-Length')) || 0;
-    if (declared > MODEL_BYTES.max) throw new Error('模型檔大小不對');
+    if (declared > lim.max) throw new Error('模型檔大小不對');
     const reader = res.body.getReader();
-    let bytes = new Uint8Array(declared || MODEL_BYTES.guess), got = 0;
+    let bytes = new Uint8Array(declared || lim.guess), got = 0;
     for (;;) {
       const { done, value } = await reader.read();
       if (done) break;
       clearTimeout(stall);
       stall = setTimeout(() => ctl.abort(), STALL_MS);
       if (got + value.length > bytes.length) {
-        if (declared || got + value.length > MODEL_BYTES.max) throw new Error('模型檔大小不對');
-        const bigger = new Uint8Array(Math.min(MODEL_BYTES.max, Math.max(bytes.length * 1.5, got + value.length)));
+        if (declared || got + value.length > lim.max) throw new Error('模型檔大小不對');
+        const bigger = new Uint8Array(Math.min(lim.max, Math.max(bytes.length * 1.5, got + value.length)));
         bigger.set(bytes.subarray(0, got));
         bytes = bigger;
       }
       bytes.set(value, got);
       got += value.length;
-      onProgress(Math.min(1, got / (declared || MODEL_BYTES.guess)));
+      onProgress(Math.min(1, got / (declared || lim.guess)));
     }
     if (got !== bytes.length) bytes = bytes.slice(0, got);
-    if ((declared && got !== declared) || !looksLikeOnnx(bytes)) throw new Error('下載的模型不完整');
+    if ((declared && got !== declared) || !looksLikeOnnx(bytes, lim)) throw new Error('下載的模型不完整');
     return bytes;
   } finally {
     clearTimeout(stall);
@@ -1572,12 +1795,14 @@ $('ai-no').addEventListener('click', () => pendingAsk?.(false));
 async function hasWebGpu() {
   try { return Boolean(navigator.gpu && (await navigator.gpu.requestAdapter())); } catch { return false; }
 }
+async function loadOrt() {
+  if (ai.ort) return;
+  ai.ort = await import(ORT_DIST + 'ort.webgpu.min.mjs');
+  ai.ort.env.wasm.wasmPaths = ORT_DIST;
+  ai.ort.env.logLevel = 'error'; // 「有些運算放在 CPU」這類提醒不用印
+}
 async function createSession(bytes) {
-  if (!ai.ort) {
-    ai.ort = await import(ORT_DIST + 'ort.webgpu.min.mjs');
-    ai.ort.env.wasm.wasmPaths = ORT_DIST;
-    ai.ort.env.logLevel = 'error'; // 「有些運算放在 CPU」這類提醒不用印
-  }
+  await loadOrt();
   ai.gpu = await hasWebGpu();
   if (ai.gpu) {
     try { return await ai.ort.InferenceSession.create(bytes, { executionProviders: ['webgpu'] }); } catch { ai.gpu = false; }
@@ -1725,5 +1950,5 @@ setTab('place');
 new ResizeObserver(layout).observe($('stage'));
 window.addEventListener('resize', layout);
 // 網址加 #debug 時，讓瀏覽器主控台量得到 3D 物件（檢查尺寸用）
-if (location.hash === '#debug') window.__setdress = { THREE, state, camera, canvas, lampModel, lampGroup, update, syncAll, draw, halo, ai, ruler };
+if (location.hash === '#debug') window.__setdress = { THREE, state, camera, canvas, lampModel, lampGroup, update, syncAll, draw, halo, ai, ruler, erase, photo, currentPhoto, applyOccluder, depthNow: () => photoDepth };
 </script>
