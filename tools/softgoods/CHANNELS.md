@@ -54,3 +54,17 @@ Shopify 和 Shopline 兩家平台都有公開的商品 JSON，所以那 19 家
 **但每一家都要先跑 `python check_site.py <網域>`**，特別是第 7 項的
 使用條款檢查。技術上開放不等於條款允許 —— lampclub 就是這樣：
 robots.txt 寫 Allow: /、還附 sitemap，但條款禁止程式大量擷取。
+
+## check_site.py 檢查結果（2026-11-20，每家只打幾個請求，沒抓商品）
+
+| 結果 | 通路（上架數） | 合計 |
+|---|---|---:|
+| 🟢 條款找到了、沒禁止 | 潤舍 595、新采 445、NOSA 437、散步舖 415、居雅堂 249、Design Butik 185、WOW 168、Motive 167、柒木 33、Sheeper 25、一嶼 23、HAY TAIPEI 17 | 12 家 / 2759 |
+| 🟢 沒擋，但**找不到條款頁**（要人工看） | Loft29 1053、瑪黑 542、北歐櫥窗 153、喜的 120、睦叁 60、moonmist 25、Objects Ark 14、OSTI 11、黑色雋永 11 | 9 家 / 1989 |
+| 🟡 連線不穩（兩次結果不同） | viithe 289、MOTTO 49 | 2 家 / 338 |
+| 🔴 Cloudflare 驗證頁 | 北歐先生 284、TH Company 211 | 2 家 / 495 |
+| 🔴 **誤判**（要人工看） | FUNHOUSE 64：條款裡的「Harvest Grace」被當成禁止 harvest 的字眼，其實沒禁止 | 1 家 / 64 |
+
+- 很多 Shopline 店的 robots.txt 寫了 `Crawl-delay: 5`，要照它跑（每頁 5 秒）
+- 「找不到條款頁」不等於「條款允許」：自動找的路徑沒找到而已，抓之前要到網站上找條款看一遍
+- check_site.py 的條款關鍵字 `harvest` 太寬，會誤判品牌名稱，要修（先寫會紅的測試）
