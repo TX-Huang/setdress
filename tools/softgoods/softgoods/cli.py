@@ -12,11 +12,13 @@ import argparse
 import datetime
 import pathlib
 import sys
+from collections.abc import Iterator
 from itertools import islice
 
 from .adapters.base import default_brand_aliases
 from .fetcher import Blocked, Fetcher, FetchError
-from .models import SiteConfig
+from .models import Record, SiteConfig
+from .policy import facts_only
 from .registry import PROJECT_ROOT, SCHEMA, build_adapter, load_sites
 from .store import Store
 
@@ -34,13 +36,15 @@ def cmd_sites(args) -> int:
     return 0
 
 
+def crawl_records(site: SiteConfig, adapter, fetch, limit: int | None = None) -> Iterator[Record]:
+    """一筆一筆給出這個站的資料，已經套用「只存事實」（policy.py）。"""
+    stream = (facts_only(rec, site) for rec in adapter.crawl(fetch))
+    return islice(stream, limit) if limit else stream
+
+
 def _crawl_one(site: SiteConfig, store: Store, args, seen_date: str) -> dict:
     fetch = Fetcher(site, cache_dir=args.cache)
-    adapter = build_adapter(site)
-
-    stream = adapter.crawl(fetch)
-    if args.limit:
-        stream = islice(stream, args.limit)
+    stream = crawl_records(site, build_adapter(site), fetch, args.limit)
 
     total = 0
     batch = []

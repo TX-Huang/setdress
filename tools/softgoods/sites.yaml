@@ -31,6 +31,37 @@ sites:
     notes: >
       Shopify 店，/products.json 可用（已實測）。
       Flos / Tom Dixon 等品牌的台灣通路。
+      check_site 2026-11-20：條款找到了、沒禁止。
+
+  - site_id: nosa
+    name: NOSA
+    base_url: https://www.nosa.tw
+    adapter: shopify
+    kind: dealer
+    platform: shopify
+    crawl_delay_sec: 2.0
+    notes: >
+      Shopify 店。check_site 2026-11-20：條款找到了、沒禁止。
+
+  - site_id: jytdesign
+    name: 居雅堂
+    base_url: https://www.jytdesign.com.tw
+    adapter: shopify
+    kind: dealer
+    platform: shopify
+    crawl_delay_sec: 2.0
+    notes: >
+      Shopify 店。check_site 2026-11-20：條款找到了、沒禁止。
+
+  - site_id: sheeper
+    name: Sheeper
+    base_url: https://www.sheeper.com.tw
+    adapter: shopify
+    kind: dealer
+    platform: shopify
+    crawl_delay_sec: 2.0
+    notes: >
+      Shopify 店。check_site 2026-11-20：條款找到了、沒禁止。
 
 # ---------------------------------------------------------------
 # 要加新站的範本（拿掉註解、填好資料就能跑）

@@ -94,3 +94,26 @@ robots.txt 寫 Allow: /、還附 sitemap，但條款禁止程式大量擷取。
   1. 關鍵字 `harvest` 太寬，品牌名「Harvest Grace」被當成禁止
   2. `/terms/` 轉回首頁時，被當成「找到條款」
   3. 漏了常見的條款路徑：Shopline 的 `/about/terms`、PHP 站的 `/terms.php`
+
+## 直接抓 4 家 Shopify（2026-11-20）
+
+只存事實（品名、品牌、價格、規格名、庫存、SKU、連結），不存介紹文字和圖片（`softgoods/policy.py`）。
+每頁等 2 秒，robots 沒擋任何一頁，0 失敗。資料在本機 `softgoods.db`（不進 git）。
+
+拿 lampclub 那份（`lampclub_baseline.db`、`out/listings.csv`）對照：
+
+| 通路 | lampclub 列的 | 我們也抓到 | 價格一樣 | 我們多抓到的商品 |
+|---|---:|---:|---:|---:|
+| 潤舍 | 595 | 595 | 595 | 765 |
+| NOSA | 437 | 437 | 437 | 3384 |
+| 居雅堂 | 249 | 249 | 249 | 648 |
+| Sheeper | 25 | 25 | 25 | 569 |
+
+**清單和價格：一筆都沒漏。** 多抓到的大多是家具、家飾；跟燈有關的約 137 件 lampclub 沒列
+（NOSA 122 件裡有不少是燈泡這類配件）。
+
+**還沒齊的：尺寸。** lampclub 有寫尺寸的 1171 件，我們直接抓只有 101 件有。
+因為各店把尺寸寫在介紹文字裡，而介紹文字現在不存。要補：抓的時候從文字裡**只抽出尺寸**，文字本身丟掉。
+
+**分類表要補：** 很多燈被分到 unknown，因為 `category_map.yaml` 還不認得這些店的分類名：
+NOSA 的「燈具」、居雅堂的「吊燈 Pendant」「桌燈 Table Lamp」、Sheeper 的「Light燈飾」。

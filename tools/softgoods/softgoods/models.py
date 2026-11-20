@@ -38,6 +38,9 @@ class SiteConfig:
     user_agent: str = DEFAULT_UA
     max_pages: int = 100
 
+    # 存不存商品說明文字和圖片（有著作權）。預設不存，只存事實；站方同意才打開（policy.py）
+    keep_content: bool = False
+
     # check_site.py 的判定結果記在這
     blocks_bots: bool = False
     needs_browser: bool = False

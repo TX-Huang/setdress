@@ -25,7 +25,8 @@ lampclub.tw 的使用條款寫「請勿以程式大量擷取本站資料」（�
 | 東西 | 位置 | 公開嗎 |
 |---|---|---|
 | **程式**（框架、測試、工具、文件、通路清單 `CHANNELS.md`） | [TX-Huang/setdress](https://github.com/TX-Huang/setdress) 的 `tools/softgoods/` | 公開 |
-| **資料**（`out/*.csv`、`softgoods.db`） | [TX-Huang/softgoods](https://github.com/TX-Huang/softgoods)（說明見它的 `DATA.md`）；本機放在 `tools/softgoods/` 底下，被 `.gitignore` 擋著 | **私人** |
+| **資料**（`out/*.csv`、lampclub 那份 `softgoods.db`） | [TX-Huang/softgoods](https://github.com/TX-Huang/softgoods)（說明見它的 `DATA.md`）；本機改名成 `tools/softgoods/lampclub_baseline.db`，被 `.gitignore` 擋著 | **私人** |
+| **直接從通路抓的資料**（`softgoods.db`，目前 4 家 Shopify） | 只在本機 `tools/softgoods/`，被 `.gitignore` 擋著 | 沒上傳 |
 | **原始網頁快取**（59 MB） | 只在 Isaac 的另一台電腦 | 沒上傳 |
 
 **改程式推到 setdress 的 `tools/softgoods/`**，softgoods repo 只放資料。
@@ -221,7 +222,8 @@ Amazon 回 `202` 加一個**完全空白**的頁面。狀態碼看起來成功�
    填它的程式。這是整個專案最難的一步，**不要做全自動**
 4. **排程 + 變更偵測** —— `crawl_log.content_hash` 欄位已經有了，
    邏輯還沒寫。商品清單每週、價格每天或每週
-5. **圖片** —— 目前只存網址。`image.phash` 欄位留著，是給跨站比對用的
+5. **圖片** —— 現在預設不存（連網址都不存，見下面「只存事實」）。`image.phash` 欄位留著，等站方同意、在 sites.yaml 打開 `keep_content` 才用得到
+6. **從介紹文字抽尺寸** —— 直接抓 4 家 Shopify 後發現尺寸大多寫在介紹文字裡（見 CHANNELS.md）。抓的時候只抽出尺寸，文字本身丟掉
 
 ---
 
@@ -232,6 +234,7 @@ Amazon 回 `202` 加一個**完全空白**的頁面。狀態碼看起來成功�
 - robots.txt 禁止的，**打之前**就拒絕，不是抓了才檢查
 - 404 不重試
 - 商品下架不刪資料，標記 `gone_at`
+- **只存事實**：品名、品牌、價格、尺寸、庫存、SKU、連結。介紹文字和圖片有著作權，預設不存（`softgoods/policy.py`）；站方同意才在 sites.yaml 那一站加 `keep_content: true`
 
 **lampclub.tw 是紅燈**（使用條款禁止程式大量擷取）。技術上它是開放的
 （robots `Allow: /`、有 sitemap、純 HTML），但那不等於條款允許 ——
