@@ -2,7 +2,7 @@
 
 把燈和地毯放進你家照片，邊看邊算總價。（原型）
 
-**網站：** https://tx-huang.github.io/setdress-web/
+**網站：** https://tx-huang.github.io/setdress/
 
 上傳一張房間照片 → AI 在瀏覽器裡算出鏡頭多高、往哪看、天花板多高 → 把 lampclub.tw 上 14 盞真燈照真實尺寸放進照片、調燈光 → 列出哪家最便宜。照片不會上傳。
 

@@ -2,7 +2,7 @@
 
 把燈和地毯放進你家照片，邊看邊算總價。
 
-**打開：** https://tx-huang.github.io/setdress-web/
+**打開：** https://tx-huang.github.io/setdress/
 
 ## 怎麼用
 

@@ -120,8 +120,8 @@
 
 ## 放上網（2026-11-20）
 
-- 網址：https://tx-huang.github.io/setdress-web/
-- 整個專案都在公開的 repo：https://github.com/TX-Huang/setdress-web （原本的私人 repo 不用了；使用者家的實際尺寸已經從文件裡拿掉，照片從來沒進過 git）
+- 網址：https://tx-huang.github.io/setdress/
+- 整個專案都在公開的 repo：https://github.com/TX-Huang/setdress （2026-11-20 從 setdress-web 改名；原本的私人 repo 已刪除；使用者家的實際尺寸已經從文件裡拿掉，照片從來沒進過 git）
 - 推到 `main` 時，GitHub Actions（`.github/workflows/pages.yml`）先跑全部測試，過了才更新網站
 - 網站只放 `tools/web/build_site.py` 白名單上的 7 個檔案（網頁、燈具、對齊程式、模型、模型授權、說明、`.nojekyll`）。有測試：照片、文件、測試一律不會被放上網站
 - 模型 71 MB 直接放在 git 裡（`prototype/models/`，GitHub 單檔上限 100 MB，會警告「大檔案」但可以）。模型換版時，`index.html` 的 `MODEL_CACHE` 版本號也要改，使用者的瀏覽器才會重新下載

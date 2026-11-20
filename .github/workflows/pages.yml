@@ -1,4 +1,4 @@
-# 推到 main：先跑測試，全過才更新網站（https://tx-huang.github.io/setdress-web/）。
+# 推到 main：先跑測試，全過才更新網站（https://tx-huang.github.io/setdress/）。
 # 網站只放 tools/web/build_site.py 白名單上的檔案：照片、文件、測試都不會出去。
 name: 測試並更新網站
 

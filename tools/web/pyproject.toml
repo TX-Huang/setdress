@@ -1,5 +1,5 @@
 [project]
-name = "setdress-web-build"
+name = "setdress-site-build"
 version = "0.1.0"
 description = "Build the website folder (_site) from a whitelist of prototype files."
 requires-python = ">=3.11"
