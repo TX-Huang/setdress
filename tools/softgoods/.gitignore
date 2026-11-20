@@ -1,0 +1,28 @@
+# 抓下來的資料
+# ==========================
+# 可以公開（Isaac 2026-11-20 確認），但現在不在這台電腦上。
+# 原始網頁快取（cache/，59 MB）能重新產生，不進 git；
+# out/ 的 CSV 和 softgoods.db 搬過來時再決定要不要放行。
+out/
+cache/
+cache_multi/
+*.db
+*.db-wal
+*.db-shm
+*.csv
+
+# lampclub 頁面的副本：不在這台電腦上。缺的時候，相關的 8 個測試會自動跳過。
+tests/fixtures/lampclub_bellhop.html
+tests/fixtures/lampclub_beat.html
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# 編輯器
+.vscode/
+.idea/

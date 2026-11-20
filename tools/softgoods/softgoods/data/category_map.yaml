@@ -1,0 +1,265 @@
+# 網站的分類名 → 我們的 (cat1, cat2)
+#
+# 這張表只能人工建，沒有自動化的辦法 —— 但建一次就一直能用。
+# 對不到的會回 (None, None)，所以你查得出「還有哪些分類沒對應」：
+#   SELECT DISTINCT title_raw FROM listing l JOIN variant v ... WHERE product.cat2 IS NULL
+#
+# 分類代號對應 taxonomy.yaml。
+
+# ============================================ 燈飾
+吊燈:          [lighting, pendant]
+單頭吊燈:      [lighting, pendant]
+多頭吊燈:       [lighting, pendant]
+線性吊燈:       [lighting, pendant]
+餐桌吊燈:       [lighting, pendant]
+pendant:       [lighting, pendant]
+pendant lamp:  [lighting, pendant]
+pendant light: [lighting, pendant]
+
+吸頂燈:        [lighting, ceiling]
+半吸頂:        [lighting, ceiling]
+頂燈:          [lighting, ceiling]
+嵌燈:          [lighting, ceiling]
+筒燈:          [lighting, ceiling]
+ceiling lamp:  [lighting, ceiling]
+ceiling light: [lighting, ceiling]
+
+壁燈:          [lighting, wall]
+鏡前燈:        [lighting, wall]
+壁掛燈:        [lighting, wall]
+wall lamp:     [lighting, wall]
+wall light:    [lighting, wall]
+sconce:        [lighting, wall]
+
+桌燈:          [lighting, table]
+檯燈:          [lighting, table]
+無線桌燈:      [lighting, table]
+行動桌燈:      [lighting, table]
+可攜式桌燈:     [lighting, table]
+夜燈:          [lighting, table]
+table lamp:    [lighting, table]
+portable lamp: [lighting, table]
+desk lamp:     [lighting, table]
+
+立燈:          [lighting, floor]
+落地燈:        [lighting, floor]
+釣魚燈:        [lighting, floor]
+floor lamp:    [lighting, floor]
+
+軌道燈:        [lighting, track]
+投射燈:        [lighting, track]
+track light:   [lighting, track]
+
+戶外燈:        [lighting, outdoor]
+庭園燈:        [lighting, outdoor]
+outdoor lamp:  [lighting, outdoor]
+
+燈泡:          [lighting, bulb]
+led燈泡:       [lighting, bulb]
+光源:          [lighting, bulb]
+bulb:          [lighting, bulb]
+
+# ============================================ 家具
+沙發:          [furniture, sofa]
+單人沙發:      [furniture, sofa]
+雙人沙發:      [furniture, sofa]
+三人沙發:      [furniture, sofa]
+l型沙發:       [furniture, sofa]
+沙發床:        [furniture, sofa]
+sofa:          [furniture, sofa]
+couch:         [furniture, sofa]
+
+單椅:          [furniture, chair]
+餐椅:          [furniture, chair]
+休閒椅:        [furniture, chair]
+吧檯椅:        [furniture, chair]
+辦公椅:        [furniture, chair]
+長凳:          [furniture, chair]
+腳凳:          [furniture, chair]
+chair:         [furniture, chair]
+accent chair:  [furniture, chair]
+dining chair:  [furniture, chair]
+stool:         [furniture, chair]
+
+餐桌:          [furniture, table]
+茶几:          [furniture, table]
+邊桌:          [furniture, table]
+書桌:          [furniture, table]
+玄關桌:        [furniture, table]
+梳妝台:        [furniture, table]
+table:         [furniture, table]
+coffee table:  [furniture, table]
+side table:    [furniture, table]
+desk:          [furniture, table]
+
+電視櫃:        [furniture, storage]
+書櫃:          [furniture, storage]
+餐邊櫃:        [furniture, storage]
+鞋櫃:          [furniture, storage]
+斗櫃:          [furniture, storage]
+層架:          [furniture, storage]
+cabinet:       [furniture, storage]
+shelf:         [furniture, storage]
+sideboard:     [furniture, storage]
+
+床架:          [furniture, bed]
+床頭板:        [furniture, bed]
+bed:           [furniture, bed]
+
+戶外家具:      [furniture, outdoor]
+躺椅:          [furniture, outdoor]
+
+# ============================================ 布藝織品
+窗簾:          [textile, curtain]
+紗簾:          [textile, curtain]
+捲簾:          [textile, curtain]
+百葉簾:        [textile, curtain]
+羅馬簾:        [textile, curtain]
+遮光簾:        [textile, curtain]
+curtain:       [textile, curtain]
+blind:         [textile, curtain]
+
+地毯:          [textile, rug]
+地墊:          [textile, rug]
+長毛地毯:      [textile, rug]
+手工地毯:      [textile, rug]
+rug:           [textile, rug]
+carpet:        [textile, rug]
+doormat:       [textile, rug]
+
+抱枕:          [textile, cushion]
+抱枕套:        [textile, cushion]
+靠墊:          [textile, cushion]
+坐墊:          [textile, cushion]
+cushion:       [textile, cushion]
+pillow:        [textile, cushion]
+
+寢具:          [textile, bedding]
+床包:          [textile, bedding]
+被套:          [textile, bedding]
+涼被:          [textile, bedding]
+枕頭:          [textile, bedding]
+保潔墊:        [textile, bedding]
+bedding:       [textile, bedding]
+duvet:         [textile, bedding]
+
+蓋毯:          [textile, throw]
+針織毯:        [textile, throw]
+throw:         [textile, throw]
+blanket:       [textile, throw]
+
+桌布:          [textile, table]
+餐墊:          [textile, table]
+杯墊:          [textile, table]
+tablecloth:    [textile, table]
+placemat:      [textile, table]
+
+浴巾:          [textile, bath]
+毛巾:          [textile, bath]
+浴簾:          [textile, bath]
+towel:         [textile, bath]
+
+布料:          [textile, fabric]
+沙發布:        [textile, fabric]
+窗簾布:        [textile, fabric]
+皮革:          [textile, fabric]
+fabric:        [textile, fabric]
+leather:       [textile, fabric]
+
+# ============================================ 裝飾擺飾
+鏡子:          [decor, mirror]
+掛鏡:          [decor, mirror]
+立鏡:          [decor, mirror]
+mirror:        [decor, mirror]
+
+花器:          [decor, vase]
+花瓶:          [decor, vase]
+水盤:          [decor, vase]
+vase:          [decor, vase]
+
+香氛蠟燭:      [decor, scent]
+蠟燭:          [decor, scent]
+燭台:          [decor, scent]
+擴香:          [decor, scent]
+擴香瓶:        [decor, scent]
+candle:        [decor, scent]
+candle holder: [decor, scent]
+diffuser:      [decor, scent]
+
+托盤:          [decor, tray]
+收納盒:        [decor, tray]
+雜誌架:        [decor, tray]
+tray:          [decor, tray]
+box:           [decor, tray]
+
+時鐘:          [decor, clock]
+掛鐘:          [decor, clock]
+clock:         [decor, clock]
+
+雕塑:          [decor, sculpture]
+擺件:          [decor, sculpture]
+書擋:          [decor, sculpture]
+sculpture:     [decor, sculpture]
+object:        [decor, sculpture]
+
+壁飾:          [decor, wall_decor]
+掛毯:          [decor, wall_decor]
+掛鉤:          [decor, wall_decor]
+壁架:          [decor, wall_decor]
+hook:          [decor, wall_decor]
+
+# ============================================ 藝術畫作
+畫作:          [art, painting]
+油畫:          [art, painting]
+水彩:          [art, painting]
+painting:      [art, painting]
+
+版畫:          [art, print]
+海報:          [art, print]
+設計海報:      [art, print]
+print:         [art, print]
+poster:        [art, print]
+art print:     [art, print]
+
+攝影:          [art, photo]
+攝影作品:      [art, photo]
+photography:   [art, photo]
+
+畫框:          [art, frame]
+相框:          [art, frame]
+frame:         [art, frame]
+
+# ============================================ 花藝綠植
+觀葉植物:      [greenery, live]
+盆栽:          [greenery, live]
+多肉:          [greenery, live]
+plant:         [greenery, live]
+
+人造花:        [greenery, artificial]
+仿真植物:      [greenery, artificial]
+人造植物:      [greenery, artificial]
+artificial plant: [greenery, artificial]
+faux plant:    [greenery, artificial]
+
+乾燥花:        [greenery, dried]
+永生花:        [greenery, dried]
+dried flower:  [greenery, dried]
+
+花盆:          [greenery, planter]
+盆器:          [greenery, planter]
+盆套:          [greenery, planter]
+花架:          [greenery, planter]
+planter:       [greenery, planter]
+pot:           [greenery, planter]
+
+# ======================= 跑真實資料補上的（潤舍 Shopify 的 product_type）
+收納櫃:        [furniture, storage]
+收納推車:      [furniture, storage]
+置物架:        [furniture, storage]
+兒童家具:      [furniture, chair]
+掛勾:          [decor, wall_decor]
+衣帽勾:        [decor, wall_decor]
+毛巾架:        [decor, wall_decor]
+桌鐘:          [decor, clock]
+壁飾:          [decor, wall_decor]
+擺飾:          [decor, sculpture]

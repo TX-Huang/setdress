@@ -31,12 +31,15 @@ jobs:
         with:
           python-version: "3.12"
       - name: 裝 Python 測試要的套件
-        run: pip install numpy pillow pytest
+        run: pip install numpy pillow pytest requests beautifulsoup4 lxml pyyaml pandas
       - name: AI 對齊工具的測試（假房間，不用 AI 模型）
         working-directory: tools/autoalign
         run: python -m pytest -q
       - name: 網站白名單的測試
         working-directory: tools/web
+        run: python -m pytest -q
+      - name: 爬蟲的測試（不連網路；沒有 lampclub 網頁副本的 8 個會自動跳過）
+        working-directory: tools/softgoods
         run: python -m pytest -q
 
   deploy:

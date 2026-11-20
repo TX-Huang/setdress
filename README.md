@@ -12,6 +12,7 @@
 |---|---|
 | `prototype/` | 網頁：`index.html`（Three.js）、`lamps.js`（燈具目錄）、`webalign.js`（網頁版 AI 對齊、量尺）、`models/`（AI 模型，MoGe-2 小版 ONNX） |
 | `tools/autoalign/` | Python：本機 AI 對齊服務 `server.py`、找地板天花板 `geometry.py`、遮擋 `occlusion.py`、轉模型 `export_onnx.py` |
+| `tools/softgoods/` | 軟裝商品爬蟲：把台灣各家通路的商品和價格抓進同一個資料庫、算比價（先讀 `HANDOVER.md`） |
 | `tools/web/` | `build_site.py`：只把網站要的檔案放進 `_site`（白名單） |
 | `docs/` | 規格和結果：[MVP 規格](docs/mvp-spec.md)、[AI 自動對齊](docs/auto-align.md)、[網頁版](docs/web-align.md)、[燈具目錄](docs/lamps.md)、[量尺](docs/ruler.md) |
 
@@ -24,6 +25,7 @@
 - `prototype/` 底下：`node --test`（Node 22 以上）
 - `tools/autoalign/` 底下：`pip install numpy pillow pytest`，然後 `python -m pytest -q`
 - `tools/web/` 底下：`python -m pytest -q`
+- `tools/softgoods/` 底下：`pip install requests beautifulsoup4 lxml pyyaml pandas pytest`，然後 `python -m pytest -q`（不連網路）
 
 ## 照片
 

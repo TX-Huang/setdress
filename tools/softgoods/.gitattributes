@@ -1,0 +1,10 @@
+# 統一用 LF 存進 repo。
+# 不設的話，Windows 這邊 checkout 成 CRLF，另一台機器看到的會是「整個檔案
+# 都改了」的假 diff。Setdress 在另一台機器上，所以這條必要。
+* text=auto eol=lf
+
+# 二進位，不要碰
+*.db     binary
+*.png    binary
+*.jpg    binary
+*.pdf    binary

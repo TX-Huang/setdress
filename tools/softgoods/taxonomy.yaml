@@ -1,0 +1,186 @@
+# 室內軟裝分類表
+# =================
+# 三層：大類 (cat1) → 子類 (cat2) → 品項 (cat3)
+#
+# 重點在每個大類的 `attrs`：那是「只有這一類才有」的欄位。
+# 燈具要電壓和色溫，窗簾要遮光率和布幅，沙發要座高和填充物 —
+# 這些塞不進同一張表，所以放進 product.attrs / variant.attrs 的 JSON 欄位。
+#
+# 分類採業界慣用的「軟裝六大類」，不是自己發明的。
+
+version: 1
+updated: "2026-11-20"
+
+# ---------------------------------------------------------------
+# 所有類別都有的欄位（放主表，不放 attrs）
+# ---------------------------------------------------------------
+common_fields:
+  identity: [brand, model, series, designer, design_year, origin_country]
+  category: [cat1, cat2, cat3]
+  physical: [width_mm, depth_mm, height_mm, diameter_mm, weight_g]
+  appearance: [color, color_family, material_main, finish]
+  commerce: [price, currency, price_original, sku, in_stock, stock_text, lead_time_days]
+  source: [site_id, url, title_raw, scraped_at]
+  media: [images]
+
+# ---------------------------------------------------------------
+# 六大類
+# ---------------------------------------------------------------
+categories:
+
+  # ============================================================
+  - id: furniture
+    zh: 家具
+    note: 可移動的才算軟裝。固定裝修（系統櫃、天花板）不算。
+    children:
+      - { id: sofa,     zh: 沙發,   items: [單人沙發, 雙人沙發, 三人沙發, L型沙發, 沙發床, 貴妃椅, 沙發凳] }
+      - { id: chair,    zh: 椅凳,   items: [餐椅, 休閒椅, 單椅, 吧檯椅, 辦公椅, 長凳, 腳凳, 折疊椅] }
+      - { id: table,    zh: 桌几,   items: [餐桌, 茶几, 邊桌, 書桌, 吧檯桌, 玄關桌, 梳妝台] }
+      - { id: storage,  zh: 櫃體,   items: [電視櫃, 書櫃, 餐邊櫃, 鞋櫃, 斗櫃, 層架, 置物推車] }
+      - { id: bed,      zh: 床架,   items: [雙人床架, 單人床架, 床頭板, 兒童床, 沙發床] }
+      - { id: outdoor,  zh: 戶外家具, items: [戶外椅, 戶外桌, 躺椅, 遮陽傘] }
+    attrs:
+      - { key: frame_material,    zh: 框架材質,   type: text,  eg: "實木（橡木）/ 鋼管 / 鋁合金" }
+      - { key: upholstery,        zh: 面料,       type: text,  eg: "羊毛混紡 / 全粒面皮 / Kvadrat Hallingdal" }
+      - { key: filling,           zh: 填充物,     type: text,  eg: "高密度泡棉+羽絨" }
+      - { key: seat_height_mm,    zh: 座高,       type: int,   note: 買餐椅配餐桌必看 }
+      - { key: seat_depth_mm,     zh: 座深,       type: int }
+      - { key: load_capacity_kg,  zh: 承重,       type: int }
+      - { key: assembly_required, zh: 需組裝,     type: bool }
+      - { key: removable_cover,   zh: 布套可拆洗, type: bool }
+      - { key: certification,     zh: 認證,       type: list, eg: "[FSC, Greenguard]" }
+
+  # ============================================================
+  - id: lighting
+    zh: 燈飾
+    note: 台灣最大的坑是電壓。歐洲品牌很多只有 220V，買回來不能用。
+    children:
+      - { id: pendant,   zh: 吊燈,     items: [單頭吊燈, 多頭吊燈, 線性吊燈, 吊扇燈, 餐桌吊燈] }
+      - { id: ceiling,   zh: 吸頂燈,   items: [吸頂燈, 半吸頂, 嵌燈, 筒燈] }
+      - { id: wall,      zh: 壁燈,     items: [壁燈, 閱讀壁燈, 鏡前燈, 壁掛投射燈] }
+      - { id: table,     zh: 桌燈,     items: [桌燈, 無線桌燈, 檯燈, 夜燈] }
+      - { id: floor,     zh: 立燈,     items: [立燈, 釣魚燈, 弧形立燈, 三腳立燈] }
+      - { id: track,     zh: 軌道燈,   items: [軌道燈, 軌道條, 投射燈] }
+      - { id: outdoor,   zh: 戶外燈,   items: [庭園燈, 壁掛戶外燈, 攜帶式戶外燈] }
+      - { id: bulb,      zh: 光源,     items: [LED燈泡, 鹵素燈泡, 燈絲燈泡, 燈條] }
+    attrs:
+      - { key: voltage,        zh: 電壓,     type: enum, values: [全電壓, 110V, 220V, 110/220V, DC], note: 台灣必看 }
+      - { key: light_source,   zh: 光源型式, type: enum, values: [LED內建, 可換燈泡, 燈泡另購] }
+      - { key: bulb_base,      zh: 燈座,     type: enum, values: [E27, E14, E12, G9, GU10, G4, GX53, 無] }
+      - { key: wattage_w,      zh: 瓦數,     type: num }
+      - { key: lumens,         zh: 流明,     type: int,  note: 亮度看這個，不是瓦數 }
+      - { key: color_temp_k,   zh: 色溫,     type: text, eg: "2700K / 2200-3000K 可調" }
+      - { key: cri,            zh: 演色性,   type: int,  eg: "90" }
+      - { key: dimmable,       zh: 可調光,   type: bool }
+      - { key: dim_method,     zh: 調光方式, type: text, eg: "觸控 / TRIAC / DALI / App" }
+      - { key: ip_rating,      zh: 防水等級, type: text, eg: "IP44（浴室可用）" }
+      - { key: battery_hours,  zh: 續航,     type: num,  note: 無線桌燈才有 }
+      - { key: cable_length_mm,zh: 線長,     type: int }
+      - { key: shade_material, zh: 燈罩材質, type: text }
+      - { key: certification,  zh: 認證,     type: list, eg: "[BSMI, CNS]", note: 台灣進口燈具合法必備 }
+
+  # ============================================================
+  - id: textile
+    zh: 布藝織品
+    note: 欄位最亂的一類。單位混用（碼/米/才/台尺），一定要正規化。
+    children:
+      - { id: curtain,  zh: 窗簾,     items: [窗簾布, 紗簾, 捲簾, 百葉簾, 羅馬簾, 蜂巢簾, 遮光簾] }
+      - { id: rug,      zh: 地毯,     items: [手工地毯, 機織地毯, 長毛地毯, 平織地毯, 玄關地墊, 走道長毯] }
+      - { id: cushion,  zh: 抱枕,     items: [抱枕套, 抱枕芯, 靠墊, 腰枕, 地板坐墊] }
+      - { id: bedding,  zh: 寢具,     items: [床包, 被套, 涼被, 冬被, 枕頭, 枕套, 床罩, 床裙, 保潔墊] }
+      - { id: throw,    zh: 蓋毯,     items: [針織毯, 羊毛毯, 沙發蓋毯, 披毯] }
+      - { id: table,    zh: 桌布餐墊, items: [桌布, 桌旗, 餐墊, 杯墊, 餐巾] }
+      - { id: bath,     zh: 浴用織品, items: [浴巾, 毛巾, 浴簾, 浴室地墊, 浴袍] }
+      - { id: fabric,   zh: 布料,     items: [沙發布, 窗簾布, 皮革, 人造皮], note: 按碼/米賣，不是按件 }
+    attrs:
+      - { key: fiber_composition, zh: 材質成分, type: json, eg: '{"棉":60,"亞麻":40}', note: 用百分比，不要存一串字 }
+      - { key: weave,             zh: 織法,     type: text, eg: "平織 / 斜紋 / 絲絨 / 簇絨" }
+      - { key: gsm,               zh: 克重,     type: int,  note: 公克/平方米，越高越厚 }
+      - { key: thread_count,      zh: 織數,     type: int,  note: 寢具用 }
+      - { key: martindale,        zh: 耐磨轉數, type: int,  note: 沙發布看這個。家用 >15000 }
+      - { key: opacity_pct,       zh: 遮光率,   type: int,  note: 窗簾用。90%+ 才算全遮光 }
+      - { key: fabric_width_cm,   zh: 布幅,     type: int,  note: 算用量必要 }
+      - { key: pattern_repeat_mm, zh: 花距,     type: int,  note: 有花的布要對花，會多耗布 }
+      - { key: pile_height_mm,    zh: 毛高,     type: int,  note: 地毯用 }
+      - { key: backing,           zh: 背襯,     type: text, eg: "乳膠防滑 / 棉布" }
+      - { key: washing,           zh: 洗滌,     type: text, eg: "30度機洗 / 僅乾洗" }
+      - { key: lightfastness,     zh: 耐光牢度, type: int,  note: 1-8 級。朝西的窗簾很重要 }
+      - { key: fire_rating,       zh: 防焰,     type: text, eg: "CNS 防焰一級", note: 公共空間法規要求 }
+      - { key: sold_by,           zh: 計價單位, type: enum, values: [件, 碼, 米, 才, 坪, 組] }
+
+  # ============================================================
+  - id: decor
+    zh: 裝飾擺飾
+    children:
+      - { id: mirror,     zh: 鏡子,     items: [掛鏡, 立鏡, 壁貼鏡, 梳妝鏡, 托盤鏡] }
+      - { id: vase,       zh: 花器,     items: [花瓶, 水盤, 陶罐, 玻璃瓶] }
+      - { id: scent,      zh: 香氛燭台, items: [香氛蠟燭, 燭台, 擴香瓶, 擴香機, 線香座] }
+      - { id: tray,       zh: 托盤收納, items: [托盤, 收納盒, 果盤, 雜誌架, 傘桶] }
+      - { id: clock,      zh: 時鐘,     items: [掛鐘, 座鐘, 鬧鐘] }
+      - { id: sculpture,  zh: 雕塑擺件, items: [雕塑, 書擋, 動物擺件, 擺飾球] }
+      - { id: wall_decor, zh: 壁飾,     items: [壁掛, 掛毯, 壁架, 掛鉤, 置物壁板] }
+      - { id: tableware,  zh: 餐桌擺飾, items: [燭杯, 花插, 餐桌裝飾, 餐具（裝飾用）] }
+    attrs:
+      - { key: material,     zh: 材質,     type: text, eg: "手工吹製玻璃 / 黃銅 / 陶土" }
+      - { key: finish,       zh: 表面處理, type: text, eg: "拋光 / 霧面 / 做舊 / 電鍍" }
+      - { key: handmade,     zh: 手工製,   type: bool, note: 手工品尺寸會有誤差，要註明 }
+      - { key: food_safe,    zh: 可盛食物, type: bool }
+      - { key: watertight,   zh: 可裝水,   type: bool, note: 花器必看，很多陶器會滲 }
+      - { key: mount_type,   zh: 安裝方式, type: text, eg: "壁掛 / 立放 / 吊掛" }
+      - { key: burn_hours,   zh: 燃燒時數, type: num,  note: 蠟燭用 }
+      - { key: scent_notes,  zh: 香調,     type: text, eg: "雪松、岩蘭草" }
+
+  # ============================================================
+  - id: art
+    zh: 藝術畫作
+    note: 這類要特別小心版權。圖片不要直接轉存轉貼。
+    children:
+      - { id: painting,   zh: 畫作,     items: [油畫, 壓克力畫, 水彩, 水墨] }
+      - { id: print,      zh: 版畫海報, items: [藝術微噴, 絲網版畫, 海報, 設計海報] }
+      - { id: photo,      zh: 攝影,     items: [攝影作品, 黑白攝影] }
+      - { id: frame,      zh: 畫框,     items: [木框, 鋁框, 無框畫布, 畫架] }
+      - { id: textile_art,zh: 織品藝術, items: [掛毯, 編織壁飾, 拼布] }
+    attrs:
+      - { key: artist,          zh: 藝術家,   type: text }
+      - { key: medium,          zh: 媒材,     type: text, eg: "油彩、畫布" }
+      - { key: edition,         zh: 版次,     type: text, eg: "12/100 限量 / 開放版" }
+      - { key: signed,          zh: 有簽名,   type: bool }
+      - { key: year,            zh: 創作年份, type: int }
+      - { key: orientation,     zh: 方向,     type: enum, values: [橫幅, 直幅, 方形] }
+      - { key: frame_included,  zh: 含框,     type: bool }
+      - { key: mount_included,  zh: 含掛具,   type: bool }
+      - { key: is_original,     zh: 原作,     type: bool, note: 原作 vs 複製品，價差百倍 }
+      - { key: license_note,    zh: 版權備註, type: text, note: 圖片能不能用，寫清楚 }
+
+  # ============================================================
+  - id: greenery
+    zh: 花藝綠植
+    children:
+      - { id: live,       zh: 真植物,   items: [觀葉植物, 大型落地植物, 桌上小盆栽, 多肉, 水生植物] }
+      - { id: artificial, zh: 人造花植, items: [仿真植物, 人造花, 人造樹, 仿真草皮] }
+      - { id: dried,      zh: 乾燥花,   items: [乾燥花束, 永生花, 芒草, 棉花] }
+      - { id: planter,    zh: 盆器,     items: [花盆, 盆套, 花架, 吊盆, 底盤] }
+    attrs:
+      - { key: real_or_faux,   zh: 真假,     type: enum, values: [真植物, 人造, 乾燥, 永生] }
+      - { key: species,        zh: 品種,     type: text, eg: "Ficus lyrata 琴葉榕" }
+      - { key: pot_diameter_mm,zh: 盆徑,     type: int,  note: 植物最常用的規格單位 }
+      - { key: plant_height_mm,zh: 株高,     type: int,  note: 含盆或不含盆，要註明 }
+      - { key: light_need,     zh: 光照需求, type: enum, values: [全日照, 半日照, 耐陰, 室內明亮散光] }
+      - { key: water_days,     zh: 澆水間隔, type: int }
+      - { key: pet_safe,       zh: 對寵物安全, type: bool, note: 很多熱門觀葉植物有毒 }
+      - { key: pot_included,   zh: 含盆器,   type: bool }
+      - { key: drainage_hole,  zh: 有排水孔, type: bool }
+      - { key: quarantine,     zh: 檢疫,     type: text, note: 進口植物有檢疫規定 }
+
+# ---------------------------------------------------------------
+# 分類對應（最花時間的一步）
+# ---------------------------------------------------------------
+# 每個網站的分類名字都不一樣，要手寫一張對應表。
+# 這張表沒有自動化的辦法，只能人工建，但建一次就一直能用。
+mapping_examples:
+  - { from_site: shopify_product_type, raw: "吊燈",         to: "lighting / pendant" }
+  - { from_site: shopify_product_type, raw: "Pendant Lamp", to: "lighting / pendant" }
+  - { from_site: shopify_product_type, raw: "桌燈/檯燈",     to: "lighting / table" }
+  - { from_site: ikea_category,        raw: "Textiles",     to: "textile / *" }
+  - { from_site: generic,              raw: "單椅",         to: "furniture / chair" }
+  - { from_site: generic,              raw: "Accent Chair", to: "furniture / chair" }

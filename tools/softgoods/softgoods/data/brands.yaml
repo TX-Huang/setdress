@@ -1,0 +1,17 @@
+# 品牌別名：同一個品牌的各種寫法，收斂成一個 id
+# 抓到新的寫法就加進來。沒列到的會自動用 slug，不會壞。
+
+flos: [Flos, FLOS, Flos Italia, Flos Italy, 弗洛斯]
+tom-dixon: [Tom Dixon, TOM DIXON, tomdixon]
+santa-cole: ["Santa & Cole", Santa Cole, "Santa and Cole"]
+new-works: [New Works, NEW WORKS, newworks]
+ferm-living: [Ferm Living, ferm LIVING, fermliving]
+audo-copenhagen: [Audo Copenhagen, Audo, Menu, MENU]
+muuto: [Muuto, MUUTO]
+andtradition: ["&Tradition", AndTradition, and tradition]
+louis-poulsen: [Louis Poulsen, LOUIS POULSEN, 路易保森]
+artemide: [Artemide, ARTEMIDE]
+vitra: [Vitra, VITRA]
+hay: [HAY, Hay]
+gubi: [GUBI, Gubi]
+kvadrat: [Kvadrat, KVADRAT]

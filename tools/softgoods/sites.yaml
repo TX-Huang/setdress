@@ -1,0 +1,46 @@
+# 站台清單。加一個網站就加一塊。
+#
+# 加之前先跑：  python check_site.py <網址>
+# 紅燈就不要加。黃燈就把 crawl_delay_sec 調大。
+#
+# platform 是 shopify / shopline / cyberbiz / woocommerce 的話，
+# 通常有公開 JSON，用 adapter: shopify 就好，不用寫程式。
+
+sites:
+  - site_id: lampclub
+    name: 燈迷俱樂部
+    base_url: https://lampclub.tw
+    adapter: lampclub
+    kind: aggregator
+    platform: custom
+    crawl_delay_sec: 1.5
+    notes: >
+      聚合站，自己不賣東西，列出每盞燈在台灣哪裡買得到。
+      技術上：robots Allow /、有 sitemap（2142 盞）、純 HTML。
+      條款上：使用條款寫「請勿以程式大量擷取本站資料」，所以 check_site
+      判紅燈。Isaac 2026-11-20 來信詢問，對方回覆同意，才抓的整站。
+      抓下來的資料可以公開（Isaac 2026-11-20 確認）。
+
+  - site_id: luxurylife
+    name: 潤舍 Luxury Life
+    base_url: https://www.luxurylife.com.tw
+    adapter: shopify
+    kind: dealer
+    platform: shopify
+    crawl_delay_sec: 2.0
+    notes: >
+      Shopify 店，/products.json 可用（已實測）。
+      Flos / Tom Dixon 等品牌的台灣通路。
+
+# ---------------------------------------------------------------
+# 要加新站的範本（拿掉註解、填好資料就能跑）
+#
+#  - site_id: 某某家居
+#    name: 某某家居
+#    base_url: https://example.com.tw
+#    adapter: shopify          # 或自己寫一個
+#    kind: dealer              # brand_official | dealer | marketplace | aggregator
+#    platform: shopify
+#    crawl_delay_sec: 2.0
+#    max_pages: 100
+#    notes: check_site 結果寫在這
