@@ -1,0 +1,23 @@
+[project]
+name = "setdress-model3d"
+version = "0.1.0"
+description = "從商品照生真的 3D：AI（TripoSG）生形狀，店家照片投影上去（docs/model3d.md）。"
+requires-python = ">=3.11"
+dependencies = ["numpy", "pillow"]
+
+[tool.pytest.ini_options]
+pythonpath = [".", "tests"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["vendor", "out"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "C90", "N", "RUF"]
+# 註解、說明和錯誤訊息用繁體中文寫，全形標點是中文的正確寫法，不是打錯的字元。
+allowed-confusables = ["：", "，", "；", "（", "）"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 6

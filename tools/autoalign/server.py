@@ -51,7 +51,8 @@ SITE_FILES = {
     "/models/moge-2-s-fp16.onnx": "models/moge-2-s-fp16.onnx",  # 網頁版 AI（export_onnx.py 產生）
 }
 # 資料夾裡檔名簡單（小寫英文、數字、-）的這種檔案都給：全部商品一類一個 JSON，檔名跟著資料變
-SITE_DIRS = {"/goods/": ("goods", ".json")}
+# AI 生的 3D（docs/model3d.md）：models3d 裡的 .glb 和 index.json
+SITE_DIRS = {"/goods/": ("goods", (".json",)), "/models3d/": ("models3d", (".glb", ".json"))}
 SAFE_NAME = re.compile(r"[a-z0-9-]+")
 
 
@@ -59,16 +60,22 @@ def site_name(path: str) -> str | None:
     """網址的路徑 → prototype 裡的檔名；不在白名單上回 None。"""
     if path in SITE_FILES:
         return SITE_FILES[path]
-    for prefix, (folder, suffix) in SITE_DIRS.items():
+    for prefix, (folder, suffixes) in SITE_DIRS.items():
         rest = path.removeprefix(prefix)
-        stem = rest.removesuffix(suffix)
-        if rest != path and stem != rest and SAFE_NAME.fullmatch(stem):
+        if rest != path and _safe_file(rest, suffixes):
             return f"{folder}/{rest}"
     return None
 
 
+def _safe_file(name: str, suffixes: tuple[str, ...]) -> bool:
+    """檔名只有小寫英文、數字、-，副檔名是允許的那幾種。"""
+    stem, dot, ext = name.rpartition(".")
+    return bool(dot) and f".{ext}" in suffixes and SAFE_NAME.fullmatch(stem) is not None
+
+
 CONTENT_TYPES = {
     ".json": "application/json; charset=utf-8",
+    ".glb": "model/gltf-binary",
     ".html": "text/html; charset=utf-8",
     ".js": "text/javascript; charset=utf-8",
     ".onnx": "application/octet-stream",

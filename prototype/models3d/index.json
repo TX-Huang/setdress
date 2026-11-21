@@ -1,0 +1,403 @@
+{
+ "models": {
+  "g:artek__armchair-400-tank-坦克扶手椅": {
+   "box": [
+    45,
+    87,
+    525,
+    489
+   ],
+   "extent": [
+    1.8883999586105347,
+    1.6054500341415405,
+    1.8949999809265137
+   ],
+   "file": "7410e1895670d580.glb",
+   "photo": "https://www.nordic.com.tw/uploads/product_picture/5be8ea0062381cgXOn_560.jpg",
+   "photoIndex": 0,
+   "score": 0.671,
+   "wh": [
+    560,
+    560
+   ]
+  },
+  "g:artek__armchair-41-paimio-白樺扶手椅-41-號": {
+   "box": [
+    32,
+    80,
+    519,
+    490
+   ],
+   "extent": [
+    1.8986899852752686,
+    1.5650299787521362,
+    1.6388399600982666
+   ],
+   "file": "57e11de6dc18b180.glb",
+   "photo": "https://www.nordic.com.tw/uploads/product_picture/58ce4c28c281c6X1qL_560.jpg",
+   "photoIndex": 0,
+   "score": 0.732,
+   "wh": [
+    560,
+    560
+   ]
+  },
+  "g:artek__screen-100a-芬蘭松木屏風": {
+   "box": [
+    148,
+    51,
+    406,
+    525
+   ],
+   "extent": [
+    1.1116299629211426,
+    1.8974599838256836,
+    0.28602999448776245
+   ],
+   "file": "524182bc22e94059.glb",
+   "photo": "https://www.nordic.com.tw/uploads/product_picture/68ff156bc6596E1tJj_560.jpg",
+   "photoIndex": 0,
+   "score": 0.847,
+   "wh": [
+    560,
+    560
+   ]
+  },
+  "g:artek__screen-100b-芬蘭松木屏風": {
+   "box": [
+    148,
+    99,
+    405,
+    496
+   ],
+   "extent": [
+    1.3011200428009033,
+    1.889050006866455,
+    0.29302000999450684
+   ],
+   "file": "c0820308a54c2255.glb",
+   "photo": "https://www.nordic.com.tw/uploads/product_picture/68ff12df710553AGVh_560.jpg",
+   "photoIndex": 0,
+   "score": 0.859,
+   "wh": [
+    560,
+    560
+   ]
+  },
+  "g:artek__screen-100c-芬蘭松木屏風": {
+   "box": [
+    149,
+    129,
+    406,
+    472
+   ],
+   "extent": [
+    1.575469970703125,
+    1.8922499418258667,
+    0.3183499872684479
+   ],
+   "file": "d3fc63cfb01f206b.glb",
+   "photo": "https://www.nordic.com.tw/uploads/product_picture/68ff1aa1ebeaeeminp_560.jpg",
+   "photoIndex": 0,
+   "score": 0.873,
+   "wh": [
+    560,
+    560
+   ]
+  },
+  "g:audo-copenhagen__conrad-咖啡桌": {
+   "box": [
+    50,
+    334,
+    550,
+    466
+   ],
+   "extent": [
+    1.880519986152649,
+    0.44214001297950745,
+    0.6177899837493896
+   ],
+   "file": "fbfd9c7f4f36e547.glb",
+   "photo": "https://cdn.shopify.com/s/files/1/0056/1827/0297/files/71301-019649_front.png?v=1788426442",
+   "photoIndex": 0,
+   "score": 0.818,
+   "wh": [
+    600,
+    800
+   ]
+  },
+  "g:audo-copenhagen__harbour": {
+   "box": [
+    200,
+    134,
+    601,
+    702
+   ],
+   "extent": [
+    1.5173399448394775,
+    1.8973400592803955,
+    1.3947099447250366
+   ],
+   "file": "7cf147aeb0a5b891.glb",
+   "photo": "https://cdn.shopify.com/s/files/1/0744/0467/files/Audo-Harbour-_-Audo_-_-_-Luxury-Life-3292317.png?v=1793985781",
+   "photoIndex": 0,
+   "score": 0.755,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:audo-copenhagen__hashira-cluster": {
+   "box": [
+    164,
+    158,
+    436,
+    642
+   ],
+   "extent": [
+    1.0969899892807007,
+    1.8688600063323975,
+    1.297950029373169
+   ],
+   "file": "a923a08518203d07.glb",
+   "photo": "https://cdn.shopify.com/s/files/1/0056/1827/0297/files/1505699_Hashira_Pendant_Cluster_O60_Raw_Front_Light_bba426d4-6d99-4071-8237-cce42eabf003.png?v=1788426623",
+   "photoIndex": 1,
+   "score": 0.895,
+   "wh": [
+    600,
+    800
+   ]
+  },
+  "g:audo-copenhagen__mingle": {
+   "box": [
+    49,
+    214,
+    707,
+    666
+   ],
+   "extent": [
+    1.9043699502944946,
+    1.0310200452804565,
+    0.9078999757766724
+   ],
+   "file": "53495f415389bbf3.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/650c0213ac27f2000e5b48c1/original.jpg?1695285779",
+   "photoIndex": 0,
+   "score": 0.764,
+   "wh": [
+    750,
+    750
+   ]
+  },
+  "g:audo-copenhagen__oda": {
+   "box": [
+    119,
+    92,
+    716,
+    758
+   ],
+   "extent": [
+    1.7405200004577637,
+    1.753559947013855,
+    1.890779972076416
+   ],
+   "file": "d8b1cac50faf9da3.glb",
+   "photo": "https://www.loft29.com.tw/images/202310/20231023152136720.jpg",
+   "photoIndex": 0,
+   "score": 0.658,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:audo-copenhagen__vilhelm": {
+   "box": [
+    62,
+    304,
+    741,
+    600
+   ],
+   "extent": [
+    1.8954999446868896,
+    0.808459997177124,
+    0.7093600034713745
+   ],
+   "file": "3c8a75180706c163.glb",
+   "photo": "https://www.loft29.com.tw/images/202310/20231031171753197.jpg",
+   "photoIndex": 0,
+   "score": 0.908,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:biba-salotti__cleo-床架": {
+   "box": [
+    61,
+    267,
+    740,
+    518
+   ],
+   "extent": [
+    1.897029995918274,
+    0.7166799902915955,
+    1.8147799968719482
+   ],
+   "file": "6c2912ec27a24867.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/66ff67365d3f5d0011ef5f56/original.jpg?1728014133",
+   "photoIndex": 0,
+   "score": 0.657,
+   "wh": [
+    750,
+    750
+   ]
+  },
+  "g:dcw-ditions__vision-20-20": {
+   "box": [
+    228,
+    145,
+    555,
+    675
+   ],
+   "extent": [
+    1.0712000131607056,
+    1.8757400512695312,
+    1.3411200046539307
+   ],
+   "file": "88cd5d9db1aac918.glb",
+   "photo": "https://www.loft29.com.tw/images/202408/20240803145328669.jpg",
+   "photoIndex": 0,
+   "score": 0.793,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:foscarini__gem": {
+   "box": [
+    317,
+    31,
+    483,
+    769
+   ],
+   "extent": [
+    0.43011999130249023,
+    1.8969299793243408,
+    0.4301399886608124
+   ],
+   "file": "c030011c9fc379e9.glb",
+   "photo": "https://cdn.shopify.com/s/files/1/0744/0467/products/Foscarini-Gem-_-Foscarini_-_-_-Luxury-Life-3828418.png?v=1793988835",
+   "photoIndex": 0,
+   "score": 0.693,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:frama__ratio-trolley-推車": {
+   "box": [
+    238,
+    129,
+    544,
+    509
+   ],
+   "extent": [
+    1.5178300142288208,
+    1.7401000261306763,
+    1.895169973373413
+   ],
+   "file": "bd3280dd32c26e37.glb",
+   "photo": "https://cdn.shopify.com/s/files/1/0056/1827/0297/files/gallery_01811b8a-1ffa-45f2-ba4d-1f2c55020dad.webp?v=1786764082",
+   "photoIndex": 0,
+   "score": 0.829,
+   "wh": [
+    800,
+    640
+   ]
+  },
+  "g:gubi__croissant": {
+   "box": [
+    6,
+    203,
+    544,
+    358
+   ],
+   "extent": [
+    1.8961700201034546,
+    0.5183699727058411,
+    0.6359400153160095
+   ],
+   "file": "3293324eeb55b26b.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/605d97093e2943003507edd6/original.png?1616746249",
+   "photoIndex": 0,
+   "score": 0.914,
+   "wh": [
+    550,
+    550
+   ]
+  },
+  "g:heller__swell-wall-catchall-收納壁掛架": {
+   "box": [
+    108,
+    274,
+    529,
+    482
+   ],
+   "extent": [
+    1.8745900392532349,
+    0.946940004825592,
+    0.21334999799728394
+   ],
+   "file": "d78e9b5f39c99ba1.glb",
+   "photo": "https://cdn.shopify.com/s/files/1/0056/1827/0297/files/20230517_SWELL_Red-v2_a99a61ab-3d79-4f2e-abd1-20f2ca4acd5a.jpg?v=1792647999",
+   "photoIndex": 0,
+   "score": 0.861,
+   "wh": [
+    640,
+    800
+   ]
+  },
+  "g:karimoku-case__a-s01-單人": {
+   "box": [
+    93,
+    204,
+    723,
+    673
+   ],
+   "extent": [
+    1.8956600427627563,
+    1.3148000240325928,
+    1.5714600086212158
+   ],
+   "file": "e5bf1292b6b9d3e8.glb",
+   "photo": "https://www.loft29.com.tw/images/202310/20231013174106295.jpg",
+   "photoIndex": 0,
+   "score": 0.915,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:karimoku-case__a-s02-三人": {
+   "box": [
+    28,
+    304,
+    776,
+    564
+   ],
+   "extent": [
+    1.8964500427246094,
+    0.6044399738311768,
+    0.6823599934577942
+   ],
+   "file": "7a8bf7f753a4caef.glb",
+   "photo": "https://www.loft29.com.tw/images/202501/20250108171121864.jpg",
+   "photoIndex": 1,
+   "score": 0.914,
+   "wh": [
+    800,
+    800
+   ]
+  }
+ }
+}

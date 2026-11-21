@@ -69,6 +69,9 @@ def site(tmp_path: Path) -> Path:
     (folder / "goods" / "index.json").write_text('{"groups": []}', encoding="utf-8")
     (folder / "goods" / "lamp-pendant.json").write_text('{"items": []}', encoding="utf-8")
     (folder / "goods" / "notes.txt").write_text("不要給別人看", encoding="utf-8")
+    (folder / "models3d").mkdir()
+    (folder / "models3d" / "index.json").write_text('{"models": {}}', encoding="utf-8")
+    (folder / "models3d" / "0a1b2c3d4e5f6789.glb").write_bytes(b"glTF-fake")
     (folder / "notes.txt").write_text("不要給別人看", encoding="utf-8")
     (folder / "webalign.js").write_text("// 網頁版對齊 SetdressAlign", encoding="utf-8")
     (folder / "models").mkdir()
@@ -268,8 +271,24 @@ def test_serves_every_goods_file(url: str) -> None:
                 assert res.headers["Content-Type"].startswith("application/json")
 
 
+def test_serves_the_ai_3d_models(url: str) -> None:
+    """AI 生的 3D（docs/model3d.md）：models3d 資料夾裡的 .glb 和 index.json。"""
+    with urllib.request.urlopen(url + "/models3d/index.json", timeout=10) as res:
+        assert "models" in res.read().decode("utf-8")
+    with urllib.request.urlopen(url + "/models3d/0a1b2c3d4e5f6789.glb", timeout=10) as res:
+        assert res.read() == b"glTF-fake"
+        assert res.headers["Content-Type"] == "model/gltf-binary"
+
+
 @pytest.mark.parametrize(
-    "path", ["/goods/notes.txt", "/goods/../notes.txt", "/goods/%2e%2e/notes.txt"]
+    "path",
+    [
+        "/goods/notes.txt",
+        "/goods/../notes.txt",
+        "/goods/%2e%2e/notes.txt",
+        "/goods/x.glb",
+        "/models3d/x.txt",
+    ],
 )
 def test_only_json_in_the_goods_folder(url: str, path: str) -> None:
     with pytest.raises(urllib.error.HTTPError) as err:

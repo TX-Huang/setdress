@@ -84,5 +84,48 @@
     return sum;
   }
 
-  return { photoUrl, thumbUrl, standeeSize, sizeLabel, startY, heightRange, heightAfterResize, total, WIDTH };
+  // ---------- AI 生的 3D（docs/model3d.md）----------
+  // 讀 tools/model3d/glb.py 存的 GLB：點、照片座標、面（只有一個網格，沒有圖片）
+  const TYPES = { 5126: Float32Array, 5123: Uint16Array, 5125: Uint32Array };
+  function parseGlb(buffer) {
+    const view = new DataView(buffer);
+    if (buffer.byteLength < 20 || view.getUint32(0, true) !== 0x46546c67) throw new Error('不是 GLB');
+    const jsonLen = view.getUint32(12, true);
+    const doc = JSON.parse(new TextDecoder().decode(new Uint8Array(buffer, 20, jsonLen)));
+    const binStart = 20 + jsonLen + 8;
+    const read = (i) => {
+      const a = doc.accessors[i], v = doc.bufferViews[a.bufferView], Type = TYPES[a.componentType];
+      const width = { VEC3: 3, VEC2: 2, SCALAR: 1 }[a.type];
+      return new Type(buffer.slice(binStart + (v.byteOffset || 0), binStart + (v.byteOffset || 0) + a.count * width * Type.BYTES_PER_ELEMENT));
+    };
+    const prim = doc.meshes[0].primitives[0];
+    return { positions: read(prim.attributes.POSITION), uvs: read(prim.attributes.TEXCOORD_0), indices: read(prim.indices) };
+  }
+
+  // 3D 的一單位是幾公尺：跟立牌同一個規則（寬、高各算一次取大的）。extent：3D 的寬、高、深（模型單位）
+  const modelScale = (size, extent) => standeeSize(size, [0, 0, extent[0], extent[1]]).w / extent[0];
+
+  // 這個尺寸有沒有 3D：做 3D 用的那張照片在這個尺寸的同一個位置才算
+  // （小的紅椅子、大的藍椅子；藍色款前面是自己的照片、後面才是紅色的大圖：Codex 審查）
+  function modelFor(models, item, sizeIndex) {
+    const m = models && models[item.id], s = item.sizes[sizeIndex] || item.sizes[0];
+    return m && s.photos[m.photoIndex] === m.photo ? m : null;
+  }
+
+  // 現在讀到的照片跟做 3D 時是不是同一張（店家可能換了同一個網址的照片，Codex 審查）：
+  // 照片比例差不到 2%，商品在照片裡的位置（換成 0 到 1）差不到 10%
+  // （同一張照片縮放不同，去背邊緣會多留或少留一小塊，實測差到 8%）
+  const ASPECT_TOL = 0.02, BOX_TOL = 0.1;
+  function sameFraming(model, box, wh) {
+    const [w0, h0] = model.wh, [w1, h1] = wh;
+    if (Math.abs(w0 / h0 / (w1 / h1) - 1) > ASPECT_TOL) return false;
+    const norm = (b, w, h) => [b[0] / w, b[1] / h, b[2] / w, b[3] / h];
+    const a = norm(model.box, w0, h0), b = norm(box, w1, h1);
+    return a.every((v, i) => Math.abs(v - b[i]) <= BOX_TOL);
+  }
+
+  return {
+    photoUrl, thumbUrl, standeeSize, sizeLabel, startY, heightRange, heightAfterResize, total, WIDTH,
+    parseGlb, modelScale, modelFor, sameFraming,
+  };
 });

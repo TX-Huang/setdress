@@ -14,3 +14,8 @@ __pycache__/
 # 舊的私人 repo 的改動紀錄（本機備份，不上傳）
 .git-private-backup/
 .web-publish/
+
+# AI 生 3D（docs/model3d.md）：模型程式、環境、產生的中間檔只放本機
+tools/model3d/.venv/
+tools/model3d/vendor/
+tools/model3d/out/

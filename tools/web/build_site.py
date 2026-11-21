@@ -39,15 +39,19 @@ SITE: dict[str, str | None] = {
 
 # 網站上的資料夾 → (專案裡的資料夾, 副檔名)：裡面這種檔案全部出去
 # （全部商品一類一個 JSON，檔名跟著資料變）
-SITE_DIRS = {"goods": ("prototype/goods", ".json")}
+SITE_DIRS = {
+    "goods": ("prototype/goods", (".json",)),
+    "models3d": ("prototype/models3d", (".glb", ".json")),  # AI 生的 3D（docs/model3d.md）
+}
 
 
 def site_files(root: Path) -> dict[str, str | None]:
     """白名單：固定的檔案，加上 SITE_DIRS 資料夾裡現在有的檔案。"""
     files = dict(SITE)
-    for dest_dir, (src_dir, suffix) in SITE_DIRS.items():
-        for f in sorted((root / src_dir).glob(f"*{suffix}")):
-            files[f"{dest_dir}/{f.name}"] = f"{src_dir}/{f.name}"
+    for dest_dir, (src_dir, suffixes) in SITE_DIRS.items():
+        for f in sorted((root / src_dir).glob("*")):
+            if f.suffix in suffixes:
+                files[f"{dest_dir}/{f.name}"] = f"{src_dir}/{f.name}"
     return files
 
 

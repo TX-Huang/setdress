@@ -193,5 +193,26 @@
     return { ok: true, box, alpha: shrink(keep, w, h) };
   }
 
-  return { cutout, BG_TOL };
+  // 去背以外的地方用最近的商品顏色補（AI 生的 3D 從正面投影照片：側面會碰到照片的背景，
+  // 不補會出現白邊；docs/model3d.md 第 9 句）。data：RGBA（直接改），alpha：0 或 255
+  function fillBackground(data, alpha, w, h) {
+    const n = w * h, from = new Int32Array(n).fill(-1), queue = new Int32Array(n);
+    let head = 0, tail = 0;
+    for (let i = 0; i < n; i++) if (alpha[i] >= 128) { from[i] = i; queue[tail++] = i; }
+    // 一層一層往外長（每個像素只看一次；不為每個像素做新的函式，手機比較快：Codex 審查）
+    let src = -1;
+    const visit = (j) => { if (from[j] < 0) { from[j] = src; queue[tail++] = j; } };
+    while (head < tail) {
+      const i = queue[head++];
+      src = from[i];
+      eachNeighbour(i, w, n, visit);
+    }
+    for (let i = 0; i < n; i++) {
+      if (from[i] < 0 || from[i] === i) continue;
+      const s = from[i] * 4;
+      data[i * 4] = data[s]; data[i * 4 + 1] = data[s + 1]; data[i * 4 + 2] = data[s + 2]; data[i * 4 + 3] = 255;
+    }
+  }
+
+  return { cutout, fillBackground, BG_TOL };
 });

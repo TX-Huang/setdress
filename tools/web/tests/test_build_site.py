@@ -27,6 +27,9 @@ def project(tmp_path: Path) -> Path:
         "prototype/goods/index.json": "{}",
         "prototype/goods/sofa.json": "{}",
         "prototype/goods/notes.txt": "不是 json，不出去",
+        "prototype/models3d/index.json": "{}",  # AI 生的 3D（docs/model3d.md）
+        "prototype/models3d/0a1b2c3d4e5f6789.glb": "glTF",
+        "prototype/models3d/notes.txt": "不出去",
         "prototype/models/mobile_sam_image_encoder.onnx": "onnx",
         "prototype/models/sam_mask_decoder_single.onnx": "onnx",
         "prototype/models/migan_pipeline_v2.onnx": "onnx",
@@ -104,6 +107,14 @@ def test_every_goods_file_goes_online_but_nothing_else_from_that_folder(
     files = listing(dest)
     assert {"goods.js", "cutout.js", "goods/index.json", "goods/sofa.json"} <= files
     assert "goods/notes.txt" not in files
+
+
+def test_the_ai_3d_models_go_online(project: Path, tmp_path: Path) -> None:
+    dest = tmp_path / "site"
+    stage(project, dest)
+    files = listing(dest)
+    assert {"models3d/index.json", "models3d/0a1b2c3d4e5f6789.glb"} <= files
+    assert "models3d/notes.txt" not in files
 
 
 def test_a_goods_file_that_is_gone_is_removed_from_the_site(project: Path, tmp_path: Path) -> None:

@@ -41,6 +41,9 @@ jobs:
       - name: 從照片描輪廓的測試（畫出來的形狀，不用真的照片）
         working-directory: tools/outline
         run: python -m pytest -q
+      - name: AI 生 3D 的測試（假的 AI，不用顯示卡）
+        working-directory: tools/model3d
+        run: python -m pytest -q
       - name: 爬蟲的測試（不連網路；沒有 lampclub 網頁副本的 8 個會自動跳過）
         working-directory: tools/softgoods
         run: python -m pytest -q
