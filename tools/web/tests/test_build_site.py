@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from build_site import SITE, main, stage
+from build_site import SITE, main, site_files, stage
 
 MODEL = "prototype/models/moge-2-s-fp16.onnx"
 
@@ -22,6 +22,11 @@ def project(tmp_path: Path) -> Path:
         "prototype/erase.js": "// erase",  # 擦掉照片裡的東西（docs/erase.md）
         "prototype/decor.js": "// decor",  # 擺飾：花瓶、花器（docs/decor.md）
         "prototype/rugs.js": "// rugs",  # 地毯（docs/rugs.md）
+        "prototype/goods.js": "// goods",  # 全部商品（docs/goods.md）
+        "prototype/cutout.js": "// cutout",
+        "prototype/goods/index.json": "{}",
+        "prototype/goods/sofa.json": "{}",
+        "prototype/goods/notes.txt": "不是 json，不出去",
         "prototype/models/mobile_sam_image_encoder.onnx": "onnx",
         "prototype/models/sam_mask_decoder_single.onnx": "onnx",
         "prototype/models/migan_pipeline_v2.onnx": "onnx",
@@ -50,7 +55,7 @@ def listing(folder: Path) -> set[str]:
 def test_copies_exactly_the_site_files(project: Path, tmp_path: Path) -> None:
     dest = tmp_path / "site"
     stage(project, dest)
-    assert listing(dest) == set(SITE)
+    assert listing(dest) == set(site_files(project))
     assert (dest / "index.html").read_text(encoding="utf-8") == "<title>Setdress 原型</title>"
     assert (dest / "models" / "moge-2-s-fp16.onnx").read_text(encoding="utf-8") == "onnx"
 
@@ -90,6 +95,25 @@ def test_the_rugs_go_online() -> None:
     assert "rugs.js" in SITE  # docs/rugs.md
 
 
+def test_every_goods_file_goes_online_but_nothing_else_from_that_folder(
+    project: Path, tmp_path: Path
+) -> None:
+    """全部商品（docs/goods.md）：一類一個 JSON，檔名跟著資料變，整個資料夾的 .json 都出去。"""
+    dest = tmp_path / "site"
+    stage(project, dest)
+    files = listing(dest)
+    assert {"goods.js", "cutout.js", "goods/index.json", "goods/sofa.json"} <= files
+    assert "goods/notes.txt" not in files
+
+
+def test_a_goods_file_that_is_gone_is_removed_from_the_site(project: Path, tmp_path: Path) -> None:
+    dest = tmp_path / "site"
+    stage(project, dest)
+    (project / "prototype/goods/sofa.json").unlink()
+    stage(project, dest)
+    assert "goods/sofa.json" not in listing(dest)
+
+
 def test_the_decor_items_go_online() -> None:
     assert "decor.js" in SITE  # docs/decor.md 第 9 句
 
@@ -103,4 +127,4 @@ def test_missing_model_stops_with_a_hint(project: Path, tmp_path: Path) -> None:
 def test_command_line_builds_the_site_folder(project: Path, tmp_path: Path) -> None:
     dest = tmp_path / "_site"
     assert main(["--dest", str(dest)], root=project) == 0
-    assert listing(dest) == set(SITE)
+    assert listing(dest) == set(site_files(project))

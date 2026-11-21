@@ -16,6 +16,7 @@ import argparse
 import base64
 import io
 import json
+import re
 import sys
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
@@ -41,13 +42,33 @@ SITE_FILES = {
     "/erase.js": "erase.js",  # 擦掉照片裡的東西（docs/erase.md）
     "/decor.js": "decor.js",  # 擺飾：花瓶、花器（docs/decor.md）
     "/rugs.js": "rugs.js",  # 地毯（docs/rugs.md）
+    "/goods.js": "goods.js",  # 全部商品（docs/goods.md）
+    "/cutout.js": "cutout.js",  # 商品照去背
     "/models/mobile_sam_image_encoder.onnx": "models/mobile_sam_image_encoder.onnx",
     "/models/sam_mask_decoder_single.onnx": "models/sam_mask_decoder_single.onnx",
     "/models/migan_pipeline_v2.onnx": "models/migan_pipeline_v2.onnx",
     "/webalign.js": "webalign.js",
     "/models/moge-2-s-fp16.onnx": "models/moge-2-s-fp16.onnx",  # 網頁版 AI（export_onnx.py 產生）
 }
+# 資料夾裡檔名簡單（小寫英文、數字、-）的這種檔案都給：全部商品一類一個 JSON，檔名跟著資料變
+SITE_DIRS = {"/goods/": ("goods", ".json")}
+SAFE_NAME = re.compile(r"[a-z0-9-]+")
+
+
+def site_name(path: str) -> str | None:
+    """網址的路徑 → prototype 裡的檔名；不在白名單上回 None。"""
+    if path in SITE_FILES:
+        return SITE_FILES[path]
+    for prefix, (folder, suffix) in SITE_DIRS.items():
+        rest = path.removeprefix(prefix)
+        stem = rest.removesuffix(suffix)
+        if rest != path and stem != rest and SAFE_NAME.fullmatch(stem):
+            return f"{folder}/{rest}"
+    return None
+
+
 CONTENT_TYPES = {
+    ".json": "application/json; charset=utf-8",
     ".html": "text/html; charset=utf-8",
     ".js": "text/javascript; charset=utf-8",
     ".onnx": "application/octet-stream",
@@ -126,7 +147,7 @@ class AlignHandler(BaseHTTPRequestHandler):
 
     def _site_file(self) -> Path | None:
         """白名單上、而且真的存在的檔案；不是的話回 404 並傳回 None。"""
-        name = SITE_FILES.get(self.path.split("?")[0])
+        name = site_name(self.path.split("?")[0])
         file = self.site / name if name else None
         if file is None or not file.is_file():  # 模型還沒用 export_onnx.py 做出來時也是找不到
             self._json(404, {"error": "找不到"})

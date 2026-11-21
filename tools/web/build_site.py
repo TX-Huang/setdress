@@ -22,6 +22,8 @@ SITE: dict[str, str | None] = {
     "erase.js": "prototype/erase.js",  # 擦掉照片裡的東西（docs/erase.md）
     "decor.js": "prototype/decor.js",  # 擺飾：花瓶、花器（docs/decor.md）
     "rugs.js": "prototype/rugs.js",  # 地毯（docs/rugs.md）
+    "goods.js": "prototype/goods.js",  # 全部商品（docs/goods.md）
+    "cutout.js": "prototype/cutout.js",  # 商品照去背
     "webalign.js": "prototype/webalign.js",
     "models/moge-2-s-fp16.onnx": "prototype/models/moge-2-s-fp16.onnx",
     "models/LICENSE-MoGe.txt": "prototype/models/LICENSE-MoGe.txt",
@@ -35,12 +37,27 @@ SITE: dict[str, str | None] = {
 }
 
 
+# 網站上的資料夾 → (專案裡的資料夾, 副檔名)：裡面這種檔案全部出去
+# （全部商品一類一個 JSON，檔名跟著資料變）
+SITE_DIRS = {"goods": ("prototype/goods", ".json")}
+
+
+def site_files(root: Path) -> dict[str, str | None]:
+    """白名單：固定的檔案，加上 SITE_DIRS 資料夾裡現在有的檔案。"""
+    files = dict(SITE)
+    for dest_dir, (src_dir, suffix) in SITE_DIRS.items():
+        for f in sorted((root / src_dir).glob(f"*{suffix}")):
+            files[f"{dest_dir}/{f.name}"] = f"{src_dir}/{f.name}"
+    return files
+
+
 def stage(root: Path, dest: Path) -> None:
     """把白名單上的檔案複製到 dest；dest 裡不在白名單上的舊檔案刪掉（.git 不動）。"""
     _check_sources(root)
+    files = site_files(root)
     dest.mkdir(parents=True, exist_ok=True)
-    _remove_stale(dest)
-    for name, src in SITE.items():
+    _remove_stale(dest, files)
+    for name, src in files.items():
         target = dest / name
         target.parent.mkdir(parents=True, exist_ok=True)
         if src:
@@ -56,10 +73,10 @@ def _check_sources(root: Path) -> None:
             raise FileNotFoundError(f"找不到 {src}。{hint}")
 
 
-def _remove_stale(dest: Path) -> None:
+def _remove_stale(dest: Path, files: dict[str, str | None]) -> None:
     for old in dest.rglob("*"):
         rel = old.relative_to(dest)
-        if old.is_file() and ".git" not in rel.parts and rel.as_posix() not in SITE:
+        if old.is_file() and ".git" not in rel.parts and rel.as_posix() not in files:
             old.unlink()
 
 

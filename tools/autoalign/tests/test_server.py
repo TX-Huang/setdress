@@ -63,6 +63,12 @@ def site(tmp_path: Path) -> Path:
     (folder / "erase.js").write_text("// 擦掉 SetdressErase", encoding="utf-8")
     (folder / "decor.js").write_text("// 擺飾 SetdressDecor", encoding="utf-8")
     (folder / "rugs.js").write_text("// 地毯 SetdressRugs", encoding="utf-8")
+    (folder / "goods.js").write_text("// 全部商品 SetdressGoods", encoding="utf-8")
+    (folder / "cutout.js").write_text("// 去背 SetdressCutout", encoding="utf-8")
+    (folder / "goods").mkdir()
+    (folder / "goods" / "index.json").write_text('{"groups": []}', encoding="utf-8")
+    (folder / "goods" / "lamp-pendant.json").write_text('{"items": []}', encoding="utf-8")
+    (folder / "goods" / "notes.txt").write_text("不要給別人看", encoding="utf-8")
     (folder / "notes.txt").write_text("不要給別人看", encoding="utf-8")
     (folder / "webalign.js").write_text("// 網頁版對齊 SetdressAlign", encoding="utf-8")
     (folder / "models").mkdir()
@@ -246,6 +252,29 @@ def test_serves_the_crawled_lamp_catalog(url: str) -> None:
 def test_serves_the_rugs(url: str) -> None:
     with urllib.request.urlopen(url + "/rugs.js", timeout=10) as res:  # docs/rugs.md
         assert "SetdressRugs" in res.read().decode("utf-8")
+
+
+def test_serves_every_goods_file(url: str) -> None:
+    """全部商品（docs/goods.md）：一類一個 JSON，檔名不固定，整個資料夾的 .json 都給。"""
+    for path, text in [
+        ("/goods.js", "SetdressGoods"),
+        ("/cutout.js", "SetdressCutout"),
+        ("/goods/index.json", "groups"),
+        ("/goods/lamp-pendant.json", "items"),
+    ]:
+        with urllib.request.urlopen(url + path, timeout=10) as res:
+            assert text in res.read().decode("utf-8"), path
+            if path.endswith(".json"):
+                assert res.headers["Content-Type"].startswith("application/json")
+
+
+@pytest.mark.parametrize(
+    "path", ["/goods/notes.txt", "/goods/../notes.txt", "/goods/%2e%2e/notes.txt"]
+)
+def test_only_json_in_the_goods_folder(url: str, path: str) -> None:
+    with pytest.raises(urllib.error.HTTPError) as err:
+        urllib.request.urlopen(url + path, timeout=10)
+    assert err.value.code == 404
 
 
 def test_serves_the_decor_items(url: str) -> None:
