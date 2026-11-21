@@ -1286,7 +1286,20 @@ async function photoTexture(model, allowTop) {
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.flipY = false; // 照片座標 v = 0 是照片最上面（glTF 一樣）
-  return { tex };
+  return { tex, soft: softTexture(img) };
+}
+// 照片的平滑顏色（長邊 16 格）：照片沒拍到的側面、背面用（docs/model3d.md 第 17 句）
+const SOFT_CELLS = 16;
+function softTexture(img) {
+  const s = window.SetdressCutout.softColors(img.data, img.width, img.height, SOFT_CELLS);
+  const c = canvasOf(s.w, s.h);
+  c.getContext('2d').putImageData(new ImageData(s.data, s.w, s.h), 0, 0);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.flipY = false;
+  tex.generateMipmaps = false;
+  tex.minFilter = tex.magFilter = THREE.LinearFilter; // 格子之間平滑過渡
+  return tex;
 }
 async function makeModel(model, allowTop) {
   let parts;
@@ -1303,7 +1316,7 @@ async function makeModel(model, allowTop) {
   geometry.setAttribute('uv', new THREE.BufferAttribute(parts.uvs, 2));
   geometry.setIndex(new THREE.BufferAttribute(parts.indices, 1));
   geometry.computeVertexNormals();
-  return { kind: '3d', geometry, tex: photo.tex, extent: model.extent };
+  return { kind: '3d', geometry, tex: photo.tex, soft: photo.soft, extent: model.extent };
 }
 
 // 去背好的照片：同一組照片只做一次（同一件放兩次、兩個尺寸同一組照片）。
@@ -1337,6 +1350,7 @@ function releaseLook(key) {
     job.then((look) => {
       if (!look) return;
       if (look.tex) look.tex.dispose();
+      if (look.soft) look.soft.dispose();
       if (look.geometry) look.geometry.dispose(); // 3D 的形狀是大家共用的，最後一份拿掉才放
     });
   }
@@ -1374,12 +1388,32 @@ function disposeView(v) {
   }
   v.mesh = v.shadow = null;
 }
+// 3D 的材質：正對照片的面用照片，照片沒拍到的側面、背面用平滑顏色（docs/model3d.md 第 16 句）。
+// 照片那一面朝 +Z，所以「多正對照片」就是模型座標的法線 z；跟 goods.js 的 frontWeight 同一組數字
+const glslFloat = (x) => x.toFixed(4);
+function modelMaterial(tex, soft) {
+  const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9, metalness: 0 });
+  mat.onBeforeCompile = (shader) => {
+    shader.uniforms.softMap = { value: soft };
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying float vFront;')
+      .replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\nvFront = normalize( objectNormal ).z;');
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying float vFront;\nuniform sampler2D softMap;')
+      .replace('#include <map_fragment>', [
+        `float front = smoothstep( ${glslFloat(G.FRONT_LO)}, ${glslFloat(G.FRONT_HI)}, vFront );`,
+        'diffuseColor *= mix( texture2D( softMap, vMapUv ), texture2D( map, vMapUv ), front );',
+      ].join('\n'));
+  };
+  mat.customProgramCacheKey = () => 'setdress-front-blend';
+  return mat;
+}
 // AI 生的 3D：照尺寸縮放、會被燈照到、地上有影子；貼圖讀不到就用一塊顏色
 function modelMesh(v, s) {
   const scale = G.modelScale(s, v.look.extent), [ex, ey, ez] = v.look.extent;
   v.dims = { w: ex * scale, h: ey * scale, d: ez * scale };
   const mat = v.look.tex
-    ? new THREE.MeshStandardMaterial({ map: v.look.tex, roughness: 0.9, metalness: 0 })
+    ? modelMaterial(v.look.tex, v.look.soft)
     : new THREE.MeshStandardMaterial({ color: PLACEHOLDER, roughness: 0.9 });
   const mesh = new THREE.Mesh(v.look.geometry, mat);
   mesh.scale.setScalar(scale);
@@ -2725,5 +2759,5 @@ setTab('place');
 new ResizeObserver(layout).observe($('stage'));
 window.addEventListener('resize', layout);
 // 網址加 #debug 時，讓瀏覽器主控台量得到 3D 物件（檢查尺寸用）
-if (location.hash === '#debug') window.__setdress = { THREE, state, camera, canvas, lampModel, lampGroup, update, syncAll, draw, halo, ai, ruler, erase, photo, currentPhoto, applyOccluder, depthNow: () => photoDepth, decorGroup, DECOR, rugTopMat, RUGS, GOODS, placedViews, addPlaced, goodsOfGroup, standeeOf };
+if (location.hash === '#debug') window.__setdress = { THREE, state, camera, canvas, lampModel, lampGroup, update, syncAll, draw, halo, ai, ruler, erase, photo, currentPhoto, applyOccluder, depthNow: () => photoDepth, decorGroup, DECOR, rugTopMat, RUGS, GOODS, placedViews, addPlaced, goodsOfGroup, standeeOf, modelMaterial, renderer };
 </script>

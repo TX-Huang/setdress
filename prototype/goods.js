@@ -122,6 +122,17 @@
   }
   const turn90 = (deg) => angle(deg + 90);
 
+  // 3D 的一點用多少照片（docs/model3d.md 第 16 句）：nz 是面朝 +Z（照片那一面）的程度，
+  // 0.6 以上完全用照片，0.25 以下（照片被拉長 4 倍以上）完全用平滑顏色，中間 smoothstep。
+  // 試過 0.35/0.7、0.25/0.6、0.2/0.5：0.35/0.7 正面變太多（有的差到 3.3），0.2/0.5 側面條紋少得比較少，
+  // 0.25/0.6 兩邊都好（docs/model3d.md 第 18 句）。
+  // 網頁的 shader 用同一組數字（index.html 的 modelMaterial）
+  const FRONT_LO = 0.25, FRONT_HI = 0.6;
+  function frontWeight(nz) {
+    const t = Math.min(1, Math.max(0, (nz - FRONT_LO) / (FRONT_HI - FRONT_LO)));
+    return t * t * (3 - 2 * t);
+  }
+
   // ---------- AI 生的 3D（docs/model3d.md）----------
   // 讀 tools/model3d/glb.py 存的 GLB：點、照片座標、面（只有一個網格，沒有圖片）
   const TYPES = { 5126: Float32Array, 5123: Uint16Array, 5125: Uint32Array };
@@ -164,6 +175,6 @@
 
   return {
     photoUrl, thumbUrl, standeeSize, sizeLabel, startY, heightRange, heightAfterResize, total, WIDTH,
-    parseGlb, modelScale, modelFor, sameFraming, startYaw, snapYaw, turn90,
+    parseGlb, modelScale, modelFor, sameFraming, startYaw, snapYaw, turn90, FRONT_LO, FRONT_HI, frontWeight,
   };
 });

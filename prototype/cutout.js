@@ -214,5 +214,26 @@
     }
   }
 
-  return { cutout, fillBackground, BG_TOL };
+  // 照片的平滑顏色（docs/model3d.md 第 17 句）：縮成長邊 cells 格，每格是那一格的平均。
+  // 3D 照片沒拍到的側面、背面用它（放大時格子之間平滑過渡），沒有拉長的條紋。照片比格子小就照原本
+  function softColors(data, w, h, cells) {
+    const scale = Math.min(1, cells / Math.max(w, h));
+    const cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
+    const out = new Uint8ClampedArray(cw * ch * 4);
+    for (let gy = 0; gy < ch; gy++) {
+      const y0 = Math.floor((gy * h) / ch), y1 = Math.floor(((gy + 1) * h) / ch);
+      for (let gx = 0; gx < cw; gx++) {
+        const x0 = Math.floor((gx * w) / cw), x1 = Math.floor(((gx + 1) * w) / cw);
+        const sum = [0, 0, 0];
+        for (let y = y0; y < y1; y++) {
+          for (let x = x0; x < x1; x++) for (let c = 0; c < 3; c++) sum[c] += data[(y * w + x) * 4 + c];
+        }
+        const n = (x1 - x0) * (y1 - y0), o = (gy * cw + gx) * 4;
+        out.set([sum[0] / n, sum[1] / n, sum[2] / n, 255], o); // Uint8ClampedArray 會四捨五入
+      }
+    }
+    return { data: out, w: cw, h: ch };
+  }
+
+  return { cutout, fillBackground, softColors, BG_TOL };
 });

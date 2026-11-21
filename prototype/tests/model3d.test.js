@@ -134,3 +134,77 @@ test('models3d/index.json：每一筆的 GLB 在、讀得出來、照片座標�
     assert.ok(m.score >= 0.6, id);
   }
 });
+
+// ---------- 側面、背面不要條紋（docs/model3d.md 第 16、17 句） ----------
+const { softColors } = require('../cutout.js');
+
+test('frontWeight：正對照片（nz 0.6 以上）完全用照片，0.25 以下完全用平滑顏色', () => {
+  assert.equal(G.frontWeight(1), 1);
+  assert.equal(G.frontWeight(0.6), 1);
+  assert.equal(G.frontWeight(0.25), 0);
+  assert.equal(G.frontWeight(0), 0); // 側面
+  assert.equal(G.frontWeight(-1), 0); // 背面
+});
+
+test('frontWeight：中間慢慢換（正中間一半、越正越多）', () => {
+  assert.ok(Math.abs(G.frontWeight((G.FRONT_LO + G.FRONT_HI) / 2) - 0.5) < 1e-9);
+  let last = -1;
+  for (let nz = 0.3; nz <= 0.75; nz += 0.01) {
+    const w = G.frontWeight(nz);
+    assert.ok(w >= last, `nz ${nz.toFixed(2)} 應該不比前面少`);
+    last = w;
+  }
+});
+
+const rgba = (w, h, at) => {
+  const d = new Uint8ClampedArray(w * h * 4);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) d.set([...at(x, y), 255], (y * w + x) * 4);
+  return d;
+};
+
+test('softColors：長邊縮成 16 格，短邊照比例', () => {
+  const out = softColors(rgba(100, 50, () => [10, 20, 30]), 100, 50, 16);
+  assert.equal(out.w, 16);
+  assert.equal(out.h, 8);
+  assert.equal(out.data.length, 16 * 8 * 4);
+});
+
+test('softColors：一樣顏色的照片，每格都是那個顏色', () => {
+  const out = softColors(rgba(40, 30, () => [10, 20, 30]), 40, 30, 16);
+  for (let i = 0; i < out.w * out.h; i++) assert.deepEqual([...out.data.slice(i * 4, i * 4 + 4)], [10, 20, 30, 255]);
+});
+
+test('softColors：每格是那一格的平均（左紅右藍、黑白相間）', () => {
+  const halves = softColors(rgba(4, 2, (x) => (x < 2 ? [200, 0, 0] : [0, 0, 200])), 4, 2, 2);
+  assert.deepEqual([...halves.data], [200, 0, 0, 255, 0, 0, 200, 255]);
+  const checker = softColors(rgba(2, 2, (x, y) => ((x + y) % 2 ? [255, 255, 255] : [0, 0, 0])), 2, 2, 1);
+  assert.deepEqual([...checker.data], [128, 128, 128, 255]);
+});
+
+test('softColors：照片比格子小就照原本（不放大）', () => {
+  const src = rgba(3, 1, (x) => [x * 10, 0, 0]);
+  const out = softColors(src, 3, 1, 16);
+  assert.equal(out.w, 3);
+  assert.equal(out.h, 1);
+  assert.deepEqual([...out.data], [...src]);
+});
+
+test('frontWeight：兩頭是平的（smoothstep，跟 shader 一樣；換的地方看不出接縫）', () => {
+  const at = (t) => G.frontWeight(G.FRONT_LO + t * (G.FRONT_HI - G.FRONT_LO));
+  assert.ok(at(0.05) < 0.01, '剛開始換的地方幾乎還是平滑顏色');
+  assert.ok(at(0.95) > 0.99, '快換完的地方幾乎已經是照片');
+  assert.ok(Math.abs(at(0.25) - 0.15625) < 1e-9);
+});
+
+test('frontWeight：nz 剛超過 0.25 就開始用一點照片', () => {
+  assert.ok(G.frontWeight(0.27) > 0);
+  assert.ok(G.frontWeight(0.58) < 1);
+});
+
+test('softColors：每格用到那一格的每個像素（不多也不少）', () => {
+  const row = softColors(rgba(4, 1, (x) => [[0, 100, 200, 60][x], 0, 0]), 4, 1, 2);
+  assert.deepEqual([row.data[0], row.data[4]], [50, 130]);
+  const col = softColors(rgba(2, 4, (x, y) => (y < 2 ? [200, 0, 0] : [0, 0, 200])), 2, 4, 2);
+  assert.equal(col.w, 1);
+  assert.deepEqual([...col.data], [200, 0, 0, 255, 0, 0, 200, 255]);
+});
