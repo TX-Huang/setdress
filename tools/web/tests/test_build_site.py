@@ -21,6 +21,7 @@ def project(tmp_path: Path) -> Path:
         "prototype/catalog.js": "// catalog",  # 爬到的燈（docs/catalog.md 第 14 句）
         "prototype/erase.js": "// erase",  # 擦掉照片裡的東西（docs/erase.md）
         "prototype/decor.js": "// decor",  # 擺飾：花瓶、花器（docs/decor.md）
+        "prototype/rugs.js": "// rugs",  # 地毯（docs/rugs.md）
         "prototype/models/mobile_sam_image_encoder.onnx": "onnx",
         "prototype/models/sam_mask_decoder_single.onnx": "onnx",
         "prototype/models/migan_pipeline_v2.onnx": "onnx",
@@ -83,6 +84,10 @@ def test_the_erase_tool_and_its_models_and_licenses_go_online() -> None:
         "models/LICENSE-MI-GAN.txt",
     ):
         assert name in SITE, name
+
+
+def test_the_rugs_go_online() -> None:
+    assert "rugs.js" in SITE  # docs/rugs.md
 
 
 def test_the_decor_items_go_online() -> None:

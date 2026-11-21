@@ -10,12 +10,12 @@
 
 | | |
 |---|---|
-| `prototype/` | 網頁：`index.html`（Three.js）、`lamps.js`（燈具目錄）、`catalog.js`（爬到的燈，`tools/outline/export_catalog.py` 產生）、`erase.js`（擦掉照片裡的東西）、`decor.js`（爬到的花瓶、花器）、`webalign.js`（網頁版 AI 對齊、量尺）、`models/`（AI 模型：MoGe-2 小版、MobileSAM、MI-GAN，ONNX） |
+| `prototype/` | 網頁：`index.html`（Three.js）、`lamps.js`（燈具目錄）、`catalog.js`（爬到的燈，`tools/outline/export_catalog.py` 產生）、`erase.js`（擦掉照片裡的東西）、`decor.js`（爬到的花瓶、花器）、`rugs.js`（爬到的地毯，`tools/outline/rugs.py` 產生）、`webalign.js`（網頁版 AI 對齊、量尺）、`models/`（AI 模型：MoGe-2 小版、MobileSAM、MI-GAN，ONNX） |
 | `tools/autoalign/` | Python：本機 AI 對齊服務 `server.py`、找地板天花板 `geometry.py`、遮擋 `occlusion.py`、轉模型 `export_onnx.py` |
 | `tools/outline/` | 沒有原廠 3D 時：從商品照片描側面輪廓，轉成 3D；`batch.py` 對爬到的全部圓形燈批次跑（照片只在本機，見 `docs/outline.md`） |
 | `tools/softgoods/` | 軟裝商品爬蟲：把台灣各家通路的商品和價格抓進同一個資料庫、算比價（先讀 `HANDOVER.md`） |
 | `tools/web/` | `build_site.py`：只把網站要的檔案放進 `_site`（白名單） |
-| `docs/` | 規格和結果：[MVP 規格](docs/mvp-spec.md)、[AI 自動對齊](docs/auto-align.md)、[網頁版](docs/web-align.md)、[燈具目錄](docs/lamps.md)、[爬到的燈放進模擬器](docs/catalog.md)、[擦掉照片裡的東西](docs/erase.md)、[擺飾：花瓶、花器](docs/decor.md)、[自動描輪廓](docs/outline.md)、[量尺](docs/ruler.md) |
+| `docs/` | 規格和結果：[MVP 規格](docs/mvp-spec.md)、[AI 自動對齊](docs/auto-align.md)、[網頁版](docs/web-align.md)、[燈具目錄](docs/lamps.md)、[爬到的燈放進模擬器](docs/catalog.md)、[擦掉照片裡的東西](docs/erase.md)、[擺飾：花瓶、花器](docs/decor.md)、[地毯：照片當花紋](docs/rugs.md)、[自動描輪廓](docs/outline.md)、[量尺](docs/ruler.md) |
 
 ## 測試
 

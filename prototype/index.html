@@ -176,21 +176,30 @@ select, input[type="search"] { width: 100%; min-width: 0; font: inherit; min-hei
     <div class="tabpanel" role="tabpanel" id="panel-place" aria-labelledby="tab-place">
       <article class="item" id="card-rug">
         <div class="item-head">
-          <div><h3>羊毛幾何地毯</h3><p class="spec" id="rug-spec">160 × 230 cm · 羊毛</p></div>
+          <div><h3 id="rug-name"></h3><p class="spec" id="rug-spec"></p></div>
           <span class="price" id="rug-price"></span>
         </div>
+        <p class="spec" id="rug-shop"></p>
+        <details class="offers">
+          <summary>各家價格</summary>
+          <ul id="rug-offers"></ul>
+        </details>
         <label class="switch"><input type="checkbox" id="rug-visible"> 放進照片</label>
         <div class="ctl">
+          <label for="rug-pick">換一張地毯</label>
+          <input type="search" id="rug-search" placeholder="搜尋品牌、型號" aria-label="搜尋地毯">
+          <select id="rug-pick"></select>
+          <p class="spec" id="rug-count"></p>
+        </div>
+        <div class="ctl">
           <label for="rug-size">尺寸</label>
-          <select id="rug-size">
-            <option value="160x230">160 × 230 cm</option>
-            <option value="200x290">200 × 290 cm</option>
-          </select>
+          <select id="rug-size"></select>
         </div>
         <div class="ctl">
           <div class="ctl-head"><label for="rug-rot">旋轉</label><output id="rug-rot-out" for="rug-rot"></output></div>
           <input type="range" id="rug-rot" min="-90" max="90" step="1">
         </div>
+        <p class="note" id="rug-note"></p>
       </article>
 
       <article class="item" id="card-lamp">
@@ -266,7 +275,7 @@ select, input[type="search"] { width: 100%; min-width: 0; font: inherit; min-hei
       </article>
 
       <div class="total"><span>總計</span><strong id="total"></strong></div>
-      <p class="note">不含運費、安裝。<span id="price-source"></span>，以通路頁面為準；地毯是假的。</p>
+      <p class="note">不含運費、安裝。<span id="price-source"></span>，以通路頁面為準。</p>
     </div>
 
     <div class="tabpanel" role="tabpanel" id="panel-light" aria-labelledby="tab-light" hidden>
@@ -341,6 +350,7 @@ select, input[type="search"] { width: 100%; min-width: 0; font: inherit; min-hei
 <script src="catalog.js"></script>
 <script src="erase.js"></script>
 <script src="decor.js"></script>
+<script src="rugs.js"></script>
 <script src="webalign.js"></script>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
@@ -348,7 +358,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.m
 // 燈具目錄和擺放、價格的計算在 lamps.js（有 Node 測試：prototype/tests/）
 const {
   LAMPS, CATEGORIES, UPDATED, lampFit, fittedBounds, mountY, clampHang, maxHang, cordSpan, bestOffer, sizeLabel,
-  dragPlane, withShape, catalogLamp, decorItem, searchLamps,
+  dragPlane, withShape, catalogLamp, decorItem, searchLamps, rugShape, fetchPhoto,
+  rugSizeLabel, rugStartSize, rugNote, photoCache,
 } = window.SetdressLamps;
 
 const DEG = Math.PI / 180;
@@ -357,14 +368,11 @@ const fmtNT = (n) => 'NT$ ' + n.toLocaleString('zh-TW');
 const FLOOR = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 
 // ---------- 商品（地毯是假資料；燈在 lamps.js） ----------
-const PRODUCTS = {
-  rug: {
-    sizes: {
-      '160x230': { w: 2.3, d: 1.6, price: 8900, label: '160 × 230 cm · 羊毛' },
-      '200x290': { w: 2.9, d: 2.0, price: 13800, label: '200 × 290 cm · 羊毛' },
-    },
-  },
-};
+// 地毯：爬到的真的地毯（rugs.js；docs/rugs.md）。照片只有連結，打開時從店家讀來當花紋
+const RUGS = window.SetdressRugs ? window.SetdressRugs.items : [];
+const RUG_BY_ID = new Map(RUGS.map((r) => [r.id, r]));
+const FIRST_RUG = (RUGS.find((r) => r.photo) || RUGS[0] || {}).id || null; // 預設：第一張有照片花紋的
+const currentRug = () => RUG_BY_ID.get(state.rug.id) || null;
 // 精選 14 盞（手描，lamps.js）＋爬到的燈（照片自動描，catalog.js；docs/catalog.md）
 const CATALOG = (window.SetdressCatalog ? window.SetdressCatalog.lamps : []).map(catalogLamp);
 const ALL_LAMPS = [...LAMPS, ...CATALOG];
@@ -384,7 +392,8 @@ const state = {
     id: 'louis-poulsen-panthella', shape: 'hand', visible: true, on: true, lumen: 800, kelvin: 2700,
     hang: 1.7, table: 0.75, wallY: 1.6, rot: 0, x: 1.6, z: -4.0,
   },
-  rug: { size: '160x230', visible: true, x: 0, z: -3.2, rot: 0 },
+  // 地毯：id、選的尺寸（第幾個）
+  rug: { id: FIRST_RUG, size: FIRST_RUG ? rugStartSize(RUG_BY_ID.get(FIRST_RUG)) : 0, visible: true, x: 0, z: -3.2, rot: 0 },
   // 擺飾（花瓶、花器；docs/decor.md）：一開始不放
   decor: { id: null, visible: false, table: 0.75, rot: 0, x: -1.0, z: -3.6 },
   selected: null,
@@ -467,41 +476,23 @@ function artTexture() {
   return t;
 }
 
-function rugTexture() {
-  const W = 1150, H = 800, c = canvasOf(W, H), g = c.getContext('2d');
-  g.fillStyle = '#d8cebd'; g.fillRect(0, 0, W, H);
-  const b = 46, bw = 30;
-  g.fillStyle = '#3e3b37';
-  g.fillRect(b, b, W - 2 * b, bw); g.fillRect(b, H - b - bw, W - 2 * b, bw);
-  g.fillRect(b, b, bw, H - 2 * b); g.fillRect(W - b - bw, b, bw, H - 2 * b);
-  const il = b + bw + 22;
-  g.strokeStyle = '#3e3b37'; g.lineWidth = 4; g.strokeRect(il, il, W - 2 * il, H - 2 * il);
-  const x0 = il + 30, y0 = il + 30, x1 = W - il - 30, y1 = H - il - 30;
-  g.save();
-  g.beginPath(); g.rect(x0, y0, x1 - x0, y1 - y0); g.clip();
-  const step = 92, r = step / 2 * 0.9;
-  let row = 0;
-  for (let y = y0 - step / 2; y < y1 + step; y += step / 2, row++) {
-    for (let x = x0 - step + (row % 2 ? step / 2 : 0); x < x1 + step; x += step) {
-      g.beginPath();
-      g.moveTo(x, y - r); g.lineTo(x + r, y); g.lineTo(x, y + r); g.lineTo(x - r, y); g.closePath();
-      g.fillStyle = row % 3 === 0 ? '#9aa48e' : '#cbbfac';
-      g.fill();
-      g.strokeStyle = 'rgba(62, 59, 55, 0.55)'; g.lineWidth = 3; g.stroke();
-    }
+// 地毯的花紋：從店家讀照片（只有 Shopify、Shopline 允許別的網站讀）。
+// 讀到的照片變成本機的 blob 網址再貼，讀不到就回 null（地毯用顏色）。讀過的留 6 張
+async function loadRugTexture(url) {
+  const blob = await fetchPhoto(url, fetch);
+  if (!blob) return null;
+  const local = URL.createObjectURL(blob);
+  try {
+    const tex = await new THREE.TextureLoader().loadAsync(local);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+  } catch {
+    return null; // 不是圖片（店家換了內容）
+  } finally {
+    URL.revokeObjectURL(local);
   }
-  g.restore();
-  const rnd = seeded(11);
-  for (let i = 0; i < 26000; i++) {
-    const v = rnd() < 0.5 ? 0 : 255;
-    g.fillStyle = `rgba(${v}, ${v}, ${v}, 0.05)`;
-    g.fillRect(rnd() * W, rnd() * H, 2, 2);
-  }
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  t.anisotropy = 8;
-  return t;
 }
+const rugTexture = photoCache(loadRugTexture, 6);
 
 // 點光源照在地板上的亮度：1 / (1 + (r/h)^2)^1.5。平面邊長 = 8h，所以同一張圖適用所有高度。
 function glowTexture(cone) {
@@ -771,9 +762,10 @@ const selMat = new THREE.MeshBasicMaterial({ color: 0xe8a14a, transparent: true,
 const rugGroup = new THREE.Group();
 rugGroup.userData.key = 'rug';
 scene.add(rugGroup);
-const rugTopMat = new THREE.MeshStandardMaterial({ map: rugTexture(), roughness: 1 });
+const rugTopMat = new THREE.MeshStandardMaterial({ color: 0x9c978f, roughness: 1 });
 const rugSideMat = new THREE.MeshStandardMaterial({ color: 0x8c8274, roughness: 1 });
-let rugMesh = null, rugFrame = null, rugBuiltSize = '';
+let rugMesh = null, rugFrame = null, rugBuiltKey = '';
+const rugKey = () => `${state.rug.id}:${state.rug.size}`;
 
 function rectRing(w, d, gap, thick) {
   const ow = w / 2 + gap + thick, od = d / 2 + gap + thick, iw = w / 2 + gap, id = d / 2 + gap;
@@ -784,22 +776,48 @@ function rectRing(w, d, gap, thick) {
   shape.holes.push(hole);
   return new THREE.ShapeGeometry(shape);
 }
+// 照尺寸和照片描的外形做一片薄薄的地毯；有照片就貼照片（讀不到就用顏色）
 function buildRug() {
-  const s = PRODUCTS.rug.sizes[state.rug.size];
   if (rugMesh) {
     rugGroup.remove(rugMesh, rugFrame);
     rugMesh.geometry.dispose();
     rugFrame.geometry.dispose();
+    rugMesh = rugFrame = null;
   }
-  rugMesh = new THREE.Mesh(new THREE.BoxGeometry(s.w, 0.012, s.d), [rugSideMat, rugSideMat, rugTopMat, rugSideMat, rugSideMat, rugSideMat]);
-  rugMesh.position.y = 0.006;
+  rugBuiltKey = rugKey();
+  const item = currentRug();
+  if (!item) return;
+  const shape = rugShape(item, state.rug.size);
+  // 平面上的外形：Shape 在 XY 平面，轉成躺在地上（y 往上是厚度、z = -y）
+  const outline = new THREE.Shape(shape.points.map(([x, z]) => new THREE.Vector2(x, -z)));
+  const geo = new THREE.ExtrudeGeometry(outline, { depth: 0.012, bevelEnabled: false, curveSegments: 1 });
+  geo.rotateX(-Math.PI / 2);
+  if (shape.toUV) {
+    const pos = geo.attributes.position, uv = geo.attributes.uv;
+    for (let i = 0; i < pos.count; i++) uv.setXY(i, ...shape.toUV(pos.getX(i), pos.getZ(i)));
+    uv.needsUpdate = true;
+  }
+  rugTopMat.map = null;
+  rugTopMat.color.setHex(item.colour);
+  rugTopMat.needsUpdate = true;
+  if (shape.toUV) { // 照片能用在這個尺寸才貼
+    const built = rugBuiltKey;
+    rugTexture(item.photo.url).then((tex) => {
+      // 讀不到（店家伺服器擋、網路斷）：留著顏色。讀好之前換了地毯或尺寸：不貼（Codex 審查）
+      if (!tex || rugBuiltKey !== built) return;
+      rugTopMat.map = tex;
+      rugTopMat.color.setHex(0xffffff);
+      rugTopMat.needsUpdate = true;
+      requestRender();
+    });
+  }
+  rugMesh = new THREE.Mesh(geo, [rugTopMat, rugSideMat]);
   rugMesh.receiveShadow = true;
-  rugFrame = new THREE.Mesh(rectRing(s.w, s.d, 0.04, 0.06), selMat);
+  rugFrame = new THREE.Mesh(rectRing(shape.w, shape.d, 0.04, 0.06), selMat);
   rugFrame.rotation.x = -Math.PI / 2;
   rugFrame.position.y = 0.016;
   rugFrame.renderOrder = 4;
   rugGroup.add(rugMesh, rugFrame);
-  rugBuiltSize = state.rug.size;
 }
 
 // 燈
@@ -1001,8 +1019,8 @@ function updateLighting() {
 }
 
 function updateRug() {
-  if (rugBuiltSize !== state.rug.size) buildRug();
-  rugGroup.visible = state.rug.visible;
+  if (rugBuiltKey !== rugKey()) buildRug();
+  rugGroup.visible = state.rug.visible && Boolean(currentRug());
   rugGroup.position.set(state.rug.x, 0, state.rug.z);
   rugGroup.rotation.y = state.rug.rot * DEG;
 }
@@ -1151,14 +1169,14 @@ function updateSelection() {
 }
 
 function updateTexts() {
-  const rug = PRODUCTS.rug.sizes[state.rug.size];
+  const rug = currentRug(), rugSize = rug && (rug.sizes[state.rug.size] || rug.sizes[0]);
+  const rugPrice = rugSize ? bestOffer(rugSize.offers).offer.price : 0;
   const lampPrice = bestOffer(currentLamp().offers).offer.price;
-  $('rug-spec').textContent = rug.label;
-  $('rug-price').textContent = fmtNT(rug.price);
+  $('rug-price').textContent = rug ? fmtNT(rugPrice) : '';
   $('lamp-price').textContent = fmtNT(lampPrice);
   const item = currentDecor(), decorPrice = item ? bestOffer(item.offers).offer.price : 0;
   $('decor-price').textContent = item ? fmtNT(decorPrice) : '';
-  const total = (state.rug.visible ? rug.price : 0) + (state.lamp.visible ? lampPrice : 0)
+  const total = (state.rug.visible ? rugPrice : 0) + (state.lamp.visible ? lampPrice : 0)
     + (state.decor.visible && item ? decorPrice : 0); // 擺飾放進照片才算
   $('total').textContent = fmtNT(total);
 }
@@ -1201,6 +1219,22 @@ function offerItem(o) {
   li.append(name, price);
   return li;
 }
+// 地毯的卡片：名稱、選的尺寸、最便宜的通路、各家價格、花紋從哪裡來（沒有 rugs.js 就整張藏起來）
+function renderRugCard(item) {
+  $('card-rug').hidden = !item;
+  if (!item) return;
+  const size = item.sizes[state.rug.size] || item.sizes[0], best = bestOffer(size.offers);
+  $('rug-name').textContent = `${item.brand} ${item.name}`;
+  $('rug-spec').textContent = [item.category, rugSizeLabel(size)].join(' · ');
+  const where = best.noneInStock ? `最便宜：${best.offer.store}（沒有一家標示有現貨）` : `最便宜有現貨：${best.offer.store}`;
+  $('rug-shop').textContent = `${where} · 更新於 ${item.updated} · `;
+  $('rug-shop').append(outLink(best.offer.url, `到 ${best.offer.store} 看 ↗`));
+  $('rug-offers').replaceChildren(...size.offers.map(offerItem));
+  $('rug-size').replaceChildren(...item.sizes.map((s, i) => new Option(rugSizeLabel(s), String(i))));
+  $('rug-size').value = String(state.rug.size);
+  $('rug-note').textContent = rugNote(item, state.rug.size);
+}
+
 // 擺飾的卡片（沒有 decor.js 就整張藏起來）
 function renderDecorCard(item) {
   $('card-decor').hidden = !item;
@@ -1603,8 +1637,12 @@ const deg = (d) => (v) => `${v.toFixed(d)}°`;
 const meters = (v) => `${v.toFixed(2)} m`;
 
 bindCheck('rug-visible', () => state.rug.visible, (v) => { state.rug.visible = v; });
-$('rug-size').addEventListener('change', (e) => { state.rug.size = e.target.value; update(); });
-syncers.push(() => { $('rug-size').value = state.rug.size; });
+$('rug-size').addEventListener('change', (e) => {
+  state.rug.size = Number(e.target.value);
+  renderRugCard(currentRug());
+  update();
+});
+syncers.push(() => { $('rug-size').value = String(state.rug.size); });
 bindRange('rug-rot', () => state.rug.rot, (v) => { state.rug.rot = v; }, deg(0));
 
 bindCheck('lamp-visible', () => state.lamp.visible, (v) => { state.lamp.visible = v; });
@@ -1698,6 +1736,37 @@ syncers.push(() => {
 });
 fillDecorPick();
 renderDecorCard(currentDecor());
+
+const rugPick = $('rug-pick'), rugSearch = $('rug-search');
+// 換地毯的選單：有照片花紋的排前面；搜尋框只列出符合的（正在用的那張一定列著）
+function fillRugPick() {
+  const found = searchLamps(RUGS, rugSearch.value), current = currentRug();
+  const shown = !current || found.includes(current) ? found : [current, ...found];
+  const groups = [];
+  for (const [label, withPhoto] of [['有照片花紋', true], ['只有顏色', false]]) {
+    const list = shown.filter((r) => Boolean(r.photo) === withPhoto).sort(byName);
+    if (!list.length) continue;
+    const group = document.createElement('optgroup');
+    group.label = label;
+    for (const r of list) group.append(new Option(`${r.brand} ${r.name}${r.variant ? `（${r.variant}）` : ''}`, r.id));
+    groups.push(group);
+  }
+  rugPick.replaceChildren(...groups);
+  rugPick.value = state.rug.id;
+  const photos = RUGS.filter((r) => r.photo).length;
+  $('rug-count').textContent = rugSearch.value.trim() ? `找到 ${found.length} 張` : `爬到的 ${RUGS.length} 張（${photos} 張有照片花紋）`;
+}
+rugSearch.addEventListener('input', fillRugPick);
+rugPick.addEventListener('change', () => {
+  state.rug.id = rugPick.value; // 位置、旋轉都不變；尺寸選照片能用的第一個
+  state.rug.size = rugStartSize(currentRug());
+  renderRugCard(currentRug());
+  syncAll();
+  update();
+});
+syncers.push(() => { rugPick.value = state.rug.id; });
+fillRugPick();
+renderRugCard(currentRug());
 
 bindCheck('lamp-on', () => state.lamp.on, (v) => { state.lamp.on = v; });
 bindRange('lamp-lumen', () => state.lamp.lumen, (v) => { state.lamp.lumen = v; }, (v) => `${v} lm`);
@@ -2090,5 +2159,5 @@ setTab('place');
 new ResizeObserver(layout).observe($('stage'));
 window.addEventListener('resize', layout);
 // 網址加 #debug 時，讓瀏覽器主控台量得到 3D 物件（檢查尺寸用）
-if (location.hash === '#debug') window.__setdress = { THREE, state, camera, canvas, lampModel, lampGroup, update, syncAll, draw, halo, ai, ruler, erase, photo, currentPhoto, applyOccluder, depthNow: () => photoDepth, decorGroup, DECOR };
+if (location.hash === '#debug') window.__setdress = { THREE, state, camera, canvas, lampModel, lampGroup, update, syncAll, draw, halo, ai, ruler, erase, photo, currentPhoto, applyOccluder, depthNow: () => photoDepth, decorGroup, DECOR, rugTopMat, RUGS };
 </script>

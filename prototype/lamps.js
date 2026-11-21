@@ -389,7 +389,86 @@
     const parts = bandParts(entry, (b) => ({ m: 'ceramic', c: b.c }));
     return { ...entry, source: 'decor', page: bestOffer(entry.offers).offer.url, parts };
   }
+  // 地毯（rugs.js；docs/rugs.md）：照選的尺寸，算地上的外形（公尺，中心在原點，[x, z]）
+  // 和每個點在照片上的位置（貼花紋用；照片上下顛倒：v = 1 是照片最上面）。
+  // 照片裡地毯是橫的，長邊就放左右（x）；直的放前後（z）。沒有照片：長方形或圓形，uvs 是 null
+  const ROUND_STEPS = 32;
+  function rugShape(item, sizeIndex) {
+    const s = item.sizes[sizeIndex] || item.sizes[0];
+    const p = s.photoFits ? item.photo : null; // 照片不能用在這個尺寸就不貼，免得拉歪
+    const wide = p ? p.wide : true;
+    const w = (wide ? s.w : s.d) / 100, d = (wide ? s.d : s.w) / 100;
+    let ring = p ? p.outline : [[0, 0], [1, 0], [1, 1], [0, 1]];
+    if (!p && s.shape === 'round') {
+      ring = Array.from({ length: ROUND_STEPS }, (_, i) => {
+        const a = (2 * Math.PI * i) / ROUND_STEPS;
+        return [0.5 + 0.5 * Math.cos(a), 0.5 + 0.5 * Math.sin(a)];
+      });
+    }
+    const points = ring.map(([u, v]) => [(u - 0.5) * w, (v - 0.5) * d]);
+    if (!p) return { w, d, points, uvs: null, toUV: null };
+    const [x0, y0, x1, y1] = p.crop;
+    // 地上任何一點 [x, z] → 照片上的位置（3D 的面上每個點都用這個貼花紋）
+    const toUV = (x, z) => [x0 + (x / w + 0.5) * (x1 - x0), 1 - (y0 + (z / d + 0.5) * (y1 - y0))];
+    return { w, d, points, uvs: points.map(([x, z]) => toUV(x, z)), toUV };
+  }
+
+  const rugSizeLabel = (s) => (s.shape === 'round' ? `直徑 ${s.w} cm` : `${s.w} × ${s.d} cm`);
+
+  // 選一件地毯時先選照片能用的第一個尺寸（一打開就看得到花紋）；都不能用就第一個
+  const rugStartSize = (item) => Math.max(0, item.sizes.findIndex((s) => s.photoFits));
+
+  // 卡片下面的說明：花紋從哪裡來、為什麼沒有花紋。款式名稱常帶著別的尺寸，所以另外寫「照片是哪款」
+  function rugNote(item, sizeIndex) {
+    const s = item.sizes[sizeIndex] || item.sizes[0];
+    // 同一個尺寸有好幾款（顏色）時，價格取最便宜的那款，不一定是照片那款（Codex 審查）
+    const which = item.variant ? `；照片是「${item.variant}」這款（價格是這個尺寸各款裡最便宜的）` : '';
+    if (!item.photo) return `這張的照片不能當花紋（斜著拍、近拍，或店家伺服器不讓別的網站讀），只用照片的顏色${which}`;
+    if (!s.photoFits) {
+      const ok = item.sizes.filter((x) => x.photoFits).map(rugSizeLabel).join('、');
+      return `這個尺寸的長寬（或圓的方的）跟照片不一樣，不貼照片、只用照片的顏色；${ok} 有花紋${which}`;
+    }
+    return `花紋是店家的商品照（打開時從店家讀，照片不存在這個網站）；形狀照照片描的${which}`;
+  }
+
+  // 從店家讀照片（跨網站讀）。第一次被擋或回錯誤碼，可能是瀏覽器存了一份「不准別的網站讀」的舊檔，
+  // 所以不用舊檔、重新跟店家要一次。兩次都不行回 null（地毯就用顏色）。fetchFn 是瀏覽器的 fetch（測試換假的）
+  async function fetchPhoto(url, fetchFn) {
+    for (const opts of [{ mode: 'cors' }, { mode: 'cors', cache: 'reload' }]) {
+      try {
+        const res = await fetchFn(url, opts);
+        if (res.ok) return await res.blob();
+      } catch {
+        // 被擋或網路斷：換下一種方式
+      }
+    }
+    return null;
+  }
+
+  // 讀過的花紋留 limit 張（同一張不重讀）；太多就丟掉最久沒用的那張、放掉顯示卡記憶體；
+  // 讀不到的（回 null）不留，下次再試。load(url) 回 Promise<貼圖 | null>
+  function photoCache(load, limit) {
+    const kept = new Map(); // 照用的先後排：最後面是剛用過的
+    const evict = () => {
+      const [oldest, gone] = kept.entries().next().value;
+      kept.delete(oldest);
+      gone.then((tex) => tex && tex.dispose());
+    };
+    return (url) => {
+      const had = kept.get(url);
+      kept.delete(url);
+      const p = had || load(url).then((tex) => {
+        if (!tex && kept.get(url) === p) kept.delete(url);
+        return tex;
+      });
+      kept.set(url, p);
+      while (kept.size > limit) evict();
+      return p;
+    };
+  }
+
   // 搜尋：空白分開的每個字都要出現在品牌、型號、類別或款式裡（不分大小寫）
+
   function searchLamps(lamps, query) {
     const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
     const text = (l) => `${l.brand} ${l.name} ${l.category} ${l.variant || ''}`.toLowerCase();
@@ -436,6 +515,6 @@
     LAMPS, CATEGORIES, MOUNTS, STOCK, UPDATED, MIN_CORD,
     partBounds, designBounds, lampFit, fittedBounds, lampHeight,
     mountY, maxHang, clampHang, cordSpan, bestOffer, sizeLabel, dragPlane, withShape,
-    catalogLamp, decorItem, searchLamps,
+    catalogLamp, decorItem, searchLamps, rugShape, fetchPhoto, rugSizeLabel, rugStartSize, rugNote, photoCache,
   };
 });

@@ -40,6 +40,7 @@ SITE_FILES = {
     "/catalog.js": "catalog.js",  # 爬到的燈（export_catalog.py 產生）
     "/erase.js": "erase.js",  # 擦掉照片裡的東西（docs/erase.md）
     "/decor.js": "decor.js",  # 擺飾：花瓶、花器（docs/decor.md）
+    "/rugs.js": "rugs.js",  # 地毯（docs/rugs.md）
     "/models/mobile_sam_image_encoder.onnx": "models/mobile_sam_image_encoder.onnx",
     "/models/sam_mask_decoder_single.onnx": "models/sam_mask_decoder_single.onnx",
     "/models/migan_pipeline_v2.onnx": "models/migan_pipeline_v2.onnx",
