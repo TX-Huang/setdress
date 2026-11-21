@@ -525,6 +525,70 @@
     // 鏡頭座標的 z 是 -1，乘上 d 剛好往正前方 d 公尺
     return d > 0 ? { point: along(o, dir, d), from: 'depth' } : planePoint(o, dir, cam);
   }
+  // ---------- 牆往哪個方向（docs/model3d.md 第 12 句）----------
+  // 照片上撒格子點、用深度換成房間裡的點（跟量尺同一套），相鄰三點算面的方向；
+  // 直立的面（牆、櫃子、沙發側面）的方向對 90° 取餘數投票（房間的牆通常互相垂直），最多的就是牆。
+  // 回 0 到 90 度（0 是牆跟畫面平行）；直立的面太少（沒有深度）回 null
+  const WALL_GRID = 64, WALL_MIN_VOTES = 60, WALL_MAX_UP = 0.25, WALL_JUMP = 0.15, WALL_SMOOTH = 3;
+  const WALL_MIN_SHARE = 0.2; // 最多的那個方向（左右 3°）至少要有這麼多的票，不然是亂的房間、不猜（Codex 審查）
+  // 格子點落在深度圖的像素中心（不然相鄰兩點會讀到同一個像素，面看起來一階一階、方向偏向正對鏡頭）
+  function wallGrid(cam, depth) {
+    const t = Math.tan((cam.fov * DEG) / 2), R = camRotation(cam), o = [0, cam.height, 0];
+    const step = Math.max(1, Math.floor(Math.max(depth.width, depth.height) / WALL_GRID));
+    const cols = Math.floor(depth.width / step), rows = Math.floor(depth.height / step), pts = [];
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        const px = col * step, py = row * step, raw = depth.meters[py * depth.width + px];
+        const d = Number.isFinite(raw) ? raw : 0; // 無限大、不是數字的點跳過（Codex 審查）
+        const u = (px + 0.5) / depth.width, v = (py + 0.5) / depth.height;
+        const c = [(2 * u - 1) * t * cam.aspect, (1 - 2 * v) * t, -1];
+        pts.push(d > 0 ? along(o, R.map((r) => r[0] * c[0] + r[1] * c[1] + r[2] * c[2]), d) : null);
+      }
+    }
+    return { pts, cols, rows };
+  }
+  const sub3 = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+  const len3 = (a) => Math.hypot(a[0], a[1], a[2]);
+  // 三個相鄰的點圍成的面，是直立的話回它朝哪（度，水平方向）；不是、或跨過深度斷掉的地方回 null
+  function uprightFacing(a, b, c) {
+    if (!a || !b || !c) return null;
+    const ab = sub3(b, a), ac = sub3(c, a), far = WALL_JUMP * len3(a);
+    if (len3(ab) > far || len3(ac) > far) return null;
+    const n = [ab[1] * ac[2] - ab[2] * ac[1], ab[2] * ac[0] - ab[0] * ac[2], ab[0] * ac[1] - ab[1] * ac[0]];
+    const size = len3(n);
+    if (!size || Math.abs(n[1] / size) > WALL_MAX_UP) return null;
+    return Math.atan2(n[0], n[2]) / DEG;
+  }
+  // 1° 一格的票，左右抹平後最高的那格，再用附近的票算小數；最高的那組票太少（沒有明顯的方向）回 null
+  function peakDeg(votes) {
+    const at = (i) => votes[((i % 90) + 90) % 90];
+    let best = 0, bestScore = -1;
+    for (let i = 0; i < 90; i++) {
+      let score = 0;
+      for (let k = -WALL_SMOOTH; k <= WALL_SMOOTH; k++) score += at(i + k);
+      if (score > bestScore) { best = i; bestScore = score; }
+    }
+    const total = votes.reduce((a, b) => a + b, 0);
+    if (!total || bestScore < WALL_MIN_SHARE * total) return null;
+    let sum = 0, weight = 0;
+    for (let k = -WALL_SMOOTH; k <= WALL_SMOOTH; k++) { sum += (best + k + 0.5) * at(best + k); weight += at(best + k); }
+    return (((sum / weight) % 90) + 90) % 90;
+  }
+  function wallAngle(cam, depth) {
+    if (!depth || !depth.meters) return null;
+    const { pts, cols, rows } = wallGrid(cam, depth), votes = new Float32Array(90);
+    let count = 0;
+    for (let row = 0; row < rows - 1; row++) {
+      for (let col = 0; col < cols - 1; col++) {
+        const i = row * cols + col, deg = uprightFacing(pts[i], pts[i + 1], pts[i + cols]);
+        if (deg === null) continue;
+        votes[Math.floor((((deg % 90) + 90) % 90)) % 90] += 1;
+        count++;
+      }
+    }
+    return count < WALL_MIN_VOTES ? null : peakDeg(votes);
+  }
+
   // 房間裡的一點 → 照片上的位置 { u, v }
   function projectToPhoto(cam, p) {
     const R = camRotation(cam), w = [p[0], p[1] - cam.height, p[2]];
@@ -548,7 +612,7 @@
 
   return {
     NoFloorError, fitCamera, upVector, tiltDeg, occluderDepthMm, recoverFocalShift, modelOutputToPoints,
-    tokenGrid, modelInputSize, alignResult, rulerPoint, projectToPhoto,
-    _internal: { layers, focalShiftSamples, focalShiftCost }, // 只給測試用
+    tokenGrid, modelInputSize, alignResult, rulerPoint, projectToPhoto, wallAngle,
+    _internal: { layers, focalShiftSamples, focalShiftCost, peakDeg, uprightFacing }, // 只給測試用
   };
 });

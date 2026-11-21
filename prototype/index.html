@@ -1354,6 +1354,8 @@ function loadLook(p) {
     if (!now || now.loadId !== id) return;
     now.look = look;
     now.status = !look ? 'none' : look.kind === '3d' ? '3d' : look.cut ? 'cut' : 'whole';
+    // 3D 第一次出現：轉成跟牆平行、正面朝鏡頭那一側；之後方向固定（docs/model3d.md 第 11、13 句）
+    if (now.status === '3d' && p.yaw === undefined) autoYaw(p);
     buildPlaced(p);
     p.y = G.heightAfterResize(p.y, p.mount, p.mount, now.dims.h, state.cam.ceiling);
     renderPlacedCard(p);
@@ -1422,7 +1424,7 @@ function addPlaced(item) {
   const s = item.sizes[0];
   placedCount += 1;
   const p = {
-    key: `g${placedCount}`, id: item.id, size: 0, mount: s.mount, rot: 0,
+    key: `g${placedCount}`, id: item.id, size: 0, mount: s.mount, yaw: undefined, flip: false,
     x: ((placedCount % 5) - 2) * 0.45, z: s.mount === 'wall' ? -3.6 : -2.8,
     y: G.startY(s.mount, s.h / 100, state.cam.ceiling),
   };
@@ -1469,13 +1471,34 @@ const placedRing = new THREE.Mesh(new THREE.RingGeometry(0.26, 0.32, 64), selMat
 placedRing.rotation.x = -Math.PI / 2;
 placedRing.renderOrder = 4;
 scene.add(placedRing);
+// 正面朝鏡頭的角度（度）
+const facingDeg = (p) => Math.atan2(camera.position.x - p.x, camera.position.z - p.z) / DEG;
+// 房間的牆往哪個方向（0 到 90 度；docs/model3d.md 第 12 句）：照片的深度或對齊換了才重算
+let wallCache = { key: null, deg: null, version: 0 };
+function roomWall() {
+  const c = state.cam, key = `${c.height}|${c.pitch}|${c.roll}|${c.fov}|${photo.aspect}`;
+  if (wallCache.depth !== photoDepth || wallCache.key !== key) {
+    const deg = window.SetdressAlign.wallAngle({ ...c, aspect: photo.aspect }, photoDepth);
+    // 沒有深度（示範房間）：牆跟畫面平行；有深度但看不出牆（亂的房間）：null，3D 照原本面對鏡頭
+    wallCache = { key, depth: photoDepth, deg: photoDepth ? deg : 0, version: wallCache.version + 1 };
+  }
+  return wallCache.deg;
+}
+// 自動轉的方向（跟牆平行、正面朝鏡頭那一側）。照片對齊好、換照片時重新轉；使用者自己轉過就不動（Codex 審查）
+function autoYaw(p) {
+  p.yaw = G.startYaw(facingDeg(p), roomWall());
+  p.yawAuto = true;
+  p.yawFor = wallCache.version;
+}
 function updatePlaced() {
   for (const p of state.placed) {
     const v = placedViews.get(p.key);
     v.root.position.set(p.x, p.y, p.z);
-    // 面對鏡頭；3D 再加上自己轉的角度（立牌永遠正面朝鏡頭）
-    const turn = v.look && v.look.kind === '3d' ? p.rot * DEG : 0;
-    v.root.rotation.y = Math.atan2(camera.position.x - p.x, camera.position.z - p.z) + turn;
+    // 3D：方向固定在房間裡（拖到別的地方不會自己轉）；立牌：永遠正面朝鏡頭，可以左右翻轉
+    const solid = v.look && v.look.kind === '3d';
+    if (solid && p.yawAuto && (roomWall(), p.yawFor !== wallCache.version)) autoYaw(p);
+    v.root.rotation.y = (solid ? p.yaw : facingDeg(p)) * DEG;
+    if (v.mesh) v.mesh.scale.x = Math.abs(v.mesh.scale.x) * (!solid && p.flip ? -1 : 1);
   }
   // 選取圈：地上、桌上的畫在底部；牆上、天花板的畫在正下方的地板
   const sel = placedOf(state.selected);
@@ -1497,7 +1520,7 @@ const el = (tag, cls, text) => {
 };
 const PLACED_NOTE = {
   loading: '讀照片中…（從店家讀，在你的瀏覽器裡去背）',
-  cut: '照片是店家的商品照，在你的瀏覽器裡去背；大小照店家標的尺寸。從正面看最像（它永遠面對鏡頭）',
+  cut: '照片是店家的商品照，在你的瀏覽器裡去背；大小照店家標的尺寸。它永遠面對鏡頭、不能轉角度（可以左右翻轉）；要轉角度請挑有 3D 的',
   '3d': '3D：形狀是 AI 從店家照片生的，顏色是同一張照片投影上去的（看不到的背面用正面的顏色）；大小照店家標的尺寸',
   whole: '這件的照片都不是單色背景，沒辦法去背，先用整張照片',
   none: '照片讀不到，先用一塊顏色代替',
@@ -1526,20 +1549,44 @@ function heightControl(p, range) {
   box.append(head, input);
   return box;
 }
-// 3D 可以轉（-180° 到 180°，0 是照片那一面朝鏡頭）
+// 3D 可以轉（-180° 到 180°，房間裡的方向）：拉到牆的方向 5° 以內會吸過去；「轉 90°」靠到旁邊那面牆
 function rotateControl(p) {
   const box = el('div', 'ctl'), head = el('div', 'ctl-head'), out = el('output'), input = el('input');
-  Object.assign(input, { type: 'range', min: '-180', max: '180', step: '1', value: String(p.rot) });
+  const show = () => { input.value = String(Math.round(p.yaw)); out.textContent = `${Math.round(p.yaw)}°`; };
+  Object.assign(input, { type: 'range', min: '-180', max: '180', step: '1' });
   input.setAttribute('aria-label', '旋轉');
-  out.textContent = `${p.rot}°`;
-  head.append(el('span', 'ctl-label', '旋轉'), out);
+  head.append(el('span', 'ctl-label', '旋轉（靠近牆的方向會吸過去）'), out);
   input.addEventListener('input', () => {
-    p.rot = Number(input.value);
-    out.textContent = `${p.rot}°`;
+    p.yaw = G.snapYaw(Number(input.value), roomWall());
+    p.yawAuto = false; // 自己轉過：對齊換了也不動
+    show();
     update();
   });
-  box.append(head, input);
+  const turn = el('button', 'btn btn-small', '轉 90°');
+  turn.type = 'button';
+  turn.addEventListener('click', () => {
+    p.yawAuto = false;
+    p.yaw = G.turn90(p.yaw);
+    show();
+    update();
+  });
+  const row = el('div', 'item-actions');
+  row.append(turn);
+  show();
+  box.append(head, input, row);
   return box;
+}
+// 立牌：照片不能轉，可以左右翻轉（照片裡的商品朝另一邊）
+function flipControl(p) {
+  const btn = el('button', 'btn btn-small', '左右翻轉');
+  btn.type = 'button';
+  btn.setAttribute('aria-pressed', String(Boolean(p.flip)));
+  btn.addEventListener('click', () => {
+    p.flip = !p.flip;
+    btn.setAttribute('aria-pressed', String(p.flip));
+    update();
+  });
+  return btn;
 }
 function renderPlacedCard(p) {
   const item = goodsItem(p.id), s = sizeOf(p), best = bestOffer(s.offers);
@@ -1573,6 +1620,7 @@ function renderPlacedCard(p) {
   remove.type = 'button';
   remove.addEventListener('click', () => removePlaced(p.key));
   const actions = el('div', 'item-actions');
+  if (v.status === 'cut' || v.status === 'whole') actions.append(flipControl(p));
   actions.append(remove);
   parts.push(el('p', 'note', PLACED_NOTE[v.status]), actions);
   card.replaceChildren(...parts);

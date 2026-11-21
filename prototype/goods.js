@@ -100,6 +100,28 @@
     return sum;
   }
 
+  // ---------- 3D 的方向（docs/model3d.md 第 11 到 15 句）：角度都是度，(-180, 180] ----------
+  const angle = (a) => { const n = ((a % 360) + 360) % 360; return n > 180 ? n - 360 : n; };
+  const gap = (a, b) => Math.abs(angle(a - b));
+  // 牆的四個方向裡，離 deg 最近的那個；wallDeg 是 null（不知道牆在哪）回 null
+  function nearestWall(deg, wallDeg) {
+    if (wallDeg === null || wallDeg === undefined) return null;
+    const ks = [-2, -1, 0, 1, 2].map((k) => angle(wallDeg + k * 90));
+    return ks.reduce((best, w) => (gap(w, deg) < gap(best, deg) ? w : best));
+  }
+  // 放進來時：跟牆平行、正面朝鏡頭那一側（facingDeg：正面朝鏡頭的角度）
+  function startYaw(facingDeg, wallDeg) {
+    const w = nearestWall(facingDeg, wallDeg);
+    return w === null ? angle(facingDeg) : w;
+  }
+  // 滑桿拉到牆的方向 tol 度以內就吸過去
+  const SNAP_DEG = 5;
+  function snapYaw(deg, wallDeg, tol = SNAP_DEG) {
+    const w = nearestWall(deg, wallDeg);
+    return w !== null && gap(w, deg) <= tol ? w : angle(deg);
+  }
+  const turn90 = (deg) => angle(deg + 90);
+
   // ---------- AI 生的 3D（docs/model3d.md）----------
   // 讀 tools/model3d/glb.py 存的 GLB：點、照片座標、面（只有一個網格，沒有圖片）
   const TYPES = { 5126: Float32Array, 5123: Uint16Array, 5125: Uint32Array };
@@ -142,6 +164,6 @@
 
   return {
     photoUrl, thumbUrl, standeeSize, sizeLabel, startY, heightRange, heightAfterResize, total, WIDTH,
-    parseGlb, modelScale, modelFor, sameFraming,
+    parseGlb, modelScale, modelFor, sameFraming, startYaw, snapYaw, turn90,
   };
 });
