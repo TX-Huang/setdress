@@ -1,5 +1,1055 @@
 {
  "models": {
+  "g:10-heures-10__iris-totem": {
+   "box": [
+    260,
+    37,
+    519,
+    779
+   ],
+   "extent": [
+    0.6575800180435181,
+    1.896589994430542,
+    0.28459998965263367
+   ],
+   "file": "e1cb78d1d188870a.glb",
+   "photo": "https://www.loft29.com.tw/images/202411/20241121141648175.jpg",
+   "photoIndex": 0,
+   "score": 0.722,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:101-copenhagen__arc-置物邊櫃-咖啡色": {
+   "box": [
+    289,
+    215,
+    498,
+    695
+   ],
+   "extent": [
+    0.7521200180053711,
+    1.7843199968338013,
+    1.2927199602127075
+   ],
+   "file": "2b9e735e04306bf6.glb",
+   "photo": "https://cdn.shopify.com/s/files/1/0056/1827/0297/files/20307981_263013_Arc_Console_-_Coffee_2.jpg?v=1788793514",
+   "photoIndex": 3,
+   "score": 0.848,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:101-copenhagen__arc-餐桌-120-原色橡木": {
+   "box": [
+    39,
+    130,
+    338,
+    413
+   ],
+   "extent": [
+    1.8976399898529053,
+    1.8968499898910522,
+    1.5611399412155151
+   ],
+   "file": "58980c984c42412a.glb",
+   "photo": "https://cdn.shopify.com/s/files/1/0056/1827/0297/files/sn2l0ayasv0rjlflpii3.jpg?v=1788792323",
+   "photoIndex": 3,
+   "score": 0.931,
+   "wh": [
+    577,
+    800
+   ]
+  },
+  "g:101-copenhagen__arc-餐桌-120-咖啡黑橡木": {
+   "box": [
+    39,
+    131,
+    338,
+    413
+   ],
+   "extent": [
+    1.8967299461364746,
+    1.8967900276184082,
+    1.5607999563217163
+   ],
+   "file": "d23a12516451dad1.glb",
+   "photo": "https://cdn.shopify.com/s/files/1/0056/1827/0297/files/yasbb8zvubw49uzov1df.jpg?v=1788792317",
+   "photoIndex": 2,
+   "score": 0.934,
+   "wh": [
+    577,
+    800
+   ]
+  },
+  "g:101-copenhagen__arc拱形邊桌-大理石紋路": {
+   "box": [
+    138,
+    255,
+    611,
+    722
+   ],
+   "extent": [
+    1.6677900552749634,
+    1.9245200157165527,
+    1.2419699430465698
+   ],
+   "file": "f94f0cd622d2ed99.glb",
+   "photo": "https://cdn.shopify.com/s/files/1/0056/1827/0297/files/rwzj0dpp8u5agckrxzia_2048x_4ce5d134-4b0e-46ee-bdac-cecb1e523a49.webp?v=1788790993",
+   "photoIndex": 0,
+   "score": 0.804,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:101-copenhagen__artist邊桌-咖啡黑橡木": {
+   "box": [
+    267,
+    389,
+    538,
+    723
+   ],
+   "extent": [
+    1.558019995689392,
+    1.8898199796676636,
+    1.54653000831604
+   ],
+   "file": "91c452526ab58224.glb",
+   "photo": "https://cdn.shopify.com/s/files/1/0056/1827/0297/files/w8ojiqutngbn4sp8y6fn.jpg?v=1786463773",
+   "photoIndex": 2,
+   "score": 0.802,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:101-copenhagen__atsu椅-天然橡木": {
+   "box": [
+    203,
+    172,
+    559,
+    719
+   ],
+   "extent": [
+    1.016409993171692,
+    1.8144500255584717,
+    0.9877200126647949
+   ],
+   "file": "d1675f9b42e02df3.glb",
+   "photo": "https://cdn.shopify.com/s/files/1/0056/1827/0297/files/251044_Atsu_Chair_-_Natural_Oak_-_1.webp?v=1788792167",
+   "photoIndex": 0,
+   "score": 0.74,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:101-copenhagen__bow-拱門桌-白樺色": {
+   "box": [
+    231,
+    317,
+    586,
+    723
+   ],
+   "extent": [
+    1.6320899724960327,
+    1.8476300239562988,
+    1.2961000204086304
+   ],
+   "file": "6eacf96e27250a7f.glb",
+   "photo": "https://cdn.shopify.com/s/files/1/0056/1827/0297/files/18354616_251005_Bow_Console_-_Birch_-_1.jpg?v=1781751992",
+   "photoIndex": 0,
+   "score": 0.665,
+   "wh": [
+    799,
+    800
+   ]
+  },
+  "g:101-copenhagen__brutus茶几-天然橡木": {
+   "box": [
+    102,
+    418,
+    626,
+    684
+   ],
+   "extent": [
+    1.5550700426101685,
+    0.8984500169754028,
+    0.8912699818611145
+   ],
+   "file": "69035c3460971fa3.glb",
+   "photo": "https://cdn.shopify.com/s/files/1/0056/1827/0297/files/251042_Brutus_Coffee_Table_-_Natural_Oak_-_1.webp?v=1788792157",
+   "photoIndex": 0,
+   "score": 0.673,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:andersen__a2-模組": {
+   "box": [
+    25,
+    285,
+    725,
+    544
+   ],
+   "extent": [
+    1.8909599781036377,
+    0.6858699917793274,
+    0.9684000015258789
+   ],
+   "file": "383301c25ff199c8.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/61bc61c41e97df0032c30034/original.jpg?1639735748",
+   "photoIndex": 0,
+   "score": 0.872,
+   "wh": [
+    750,
+    750
+   ]
+  },
+  "g:andersen__s1-sideboard-邊櫃": {
+   "box": [
+    31,
+    311,
+    720,
+    557
+   ],
+   "extent": [
+    1.8967399597167969,
+    0.6662099957466125,
+    0.8955100178718567
+   ],
+   "file": "4b1c812dbbe37d6e.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/69cce492af457d7549873fd3/original.jpg?1775035538=&owner_id=5da92d129db3cb002ca18855",
+   "photoIndex": 0,
+   "score": 0.915,
+   "wh": [
+    750,
+    750
+   ]
+  },
+  "g:andersen__s10-壁櫃": {
+   "box": [
+    113,
+    117,
+    637,
+    633
+   ],
+   "extent": [
+    1.8955399990081787,
+    1.8752000331878662,
+    0.41835999488830566
+   ],
+   "file": "4976db5e46106867.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/61b2f8f68f70240029590e57/original.jpg?1639119094",
+   "photoIndex": 0,
+   "score": 0.82,
+   "wh": [
+    750,
+    750
+   ]
+  },
+  "g:andersen__s2-shelf-system-邊櫃-h51cm": {
+   "box": [
+    93,
+    252,
+    656,
+    496
+   ],
+   "extent": [
+    1.8957099914550781,
+    0.8638299703598022,
+    0.8911399841308594
+   ],
+   "file": "223dead2e015f677.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/69ccf4a5c141cbdaff4f7f17/original.jpg?1775039652=&owner_id=5da92d129db3cb002ca18855",
+   "photoIndex": 0,
+   "score": 0.93,
+   "wh": [
+    750,
+    749
+   ]
+  },
+  "g:andersen__s2-tv-module-電視邊櫃": {
+   "box": [
+    56,
+    283,
+    693,
+    470
+   ],
+   "extent": [
+    1.8964099884033203,
+    0.5182499885559082,
+    0.6109300255775452
+   ],
+   "file": "42ed69f3d1aeb23c.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/63a182d6006ed90014932ba1/original.jpg?1671529174",
+   "photoIndex": 0,
+   "score": 0.998,
+   "wh": [
+    750,
+    750
+   ]
+  },
+  "g:andersen__s3-storage-儲櫃": {
+   "box": [
+    47,
+    48,
+    506,
+    530
+   ],
+   "extent": [
+    1.812019944190979,
+    1.8827699422836304,
+    0.6214799880981445
+   ],
+   "file": "b76f2bdcd693f1a7.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/5dedc614a7c999002a69a5a2/original.jpg?1575863826",
+   "photoIndex": 0,
+   "score": 0.9,
+   "wh": [
+    550,
+    550
+   ]
+  },
+  "g:andersen__s5-storage-儲櫃": {
+   "box": [
+    118,
+    27,
+    431,
+    522
+   ],
+   "extent": [
+    1.1933599710464478,
+    1.8947900533676147,
+    0.6020100116729736
+   ],
+   "file": "7b9ffedfe0158e79.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/5dedcda3e85b2c002a0d5724/original.jpg?1575865761",
+   "photoIndex": 0,
+   "score": 0.927,
+   "wh": [
+    550,
+    550
+   ]
+  },
+  "g:andersen__s6-sideboard-邊櫃": {
+   "box": [
+    65,
+    189,
+    486,
+    396
+   ],
+   "extent": [
+    1.8962199687957764,
+    0.9706000089645386,
+    0.49323999881744385
+   ],
+   "file": "2e7bbd855201a959.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/5dedd3232e6977001edd17a0/original.jpg?1575867170",
+   "photoIndex": 0,
+   "score": 0.865,
+   "wh": [
+    550,
+    550
+   ]
+  },
+  "g:andersen__s7-sideboard-邊櫃": {
+   "box": [
+    26,
+    211,
+    535,
+    455
+   ],
+   "extent": [
+    1.8963700532913208,
+    0.9152799844741821,
+    0.5147600173950195
+   ],
+   "file": "ef11548c4a9b1f8a.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/5dede4bfe3b231003319b8fa/original.jpg?1575871677",
+   "photoIndex": 0,
+   "score": 0.881,
+   "wh": [
+    557,
+    594
+   ]
+  },
+  "g:andersen__s8-storage-儲櫃": {
+   "box": [
+    144,
+    112,
+    642,
+    749
+   ],
+   "extent": [
+    1.476289987564087,
+    1.8957699537277222,
+    0.8984599709510803
+   ],
+   "file": "2ee42adc6fbfce47.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/5dede77ab46f1e02e9e985c3/original.jpg?1575872377",
+   "photoIndex": 0,
+   "score": 0.993,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:andersen__unique-s-sideboard-邊櫃": {
+   "box": [
+    26,
+    196,
+    517,
+    435
+   ],
+   "extent": [
+    1.8961800336837769,
+    0.9171800017356873,
+    0.5085300207138062
+   ],
+   "file": "c54d352aacbb276e.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/5fc066f280369d003582cbe7/original.jpg?1606444786",
+   "photoIndex": 0,
+   "score": 0.928,
+   "wh": [
+    550,
+    550
+   ]
+  },
+  "g:andersen__現貨-s2-shelf-system-邊櫃-h32cm": {
+   "box": [
+    146,
+    209,
+    416,
+    365
+   ],
+   "extent": [
+    1.8836699724197388,
+    1.060770034790039,
+    1.1891000270843506
+   ],
+   "file": "48c6fd03c1f98f12.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/69ccec12e2130db087f00787/original.jpg?1775037457=&owner_id=5da92d129db3cb002ca18855",
+   "photoIndex": 0,
+   "score": 0.97,
+   "wh": [
+    557,
+    594
+   ]
+  },
+  "g:andersen__現貨-shelf-10-11-收納壁架": {
+   "box": [
+    93,
+    333,
+    663,
+    430
+   ],
+   "extent": [
+    1.8956199884414673,
+    0.21811999380588531,
+    0.7044600248336792
+   ],
+   "file": "08e37cec80f53ad0.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/66f4dc0fc03c800010dea33a/original.jpg?1727323150",
+   "photoIndex": 0,
+   "score": 0.722,
+   "wh": [
+    750,
+    750
+   ]
+  },
+  "g:andtradition__alima-nds2-收納推車-邊櫃": {
+   "box": [
+    139,
+    102,
+    703,
+    724
+   ],
+   "extent": [
+    1.3626500368118286,
+    1.601580023765564,
+    1.9006799459457397
+   ],
+   "file": "a9755daf74afc0c6.glb",
+   "photo": "https://www.loft29.com.tw/images/202607/20260729142415319.jpg",
+   "photoIndex": 0,
+   "score": 0.753,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:andtradition__alima-nds6-收納架": {
+   "box": [
+    226,
+    42,
+    612,
+    773
+   ],
+   "extent": [
+    0.5322999954223633,
+    0.8380399942398071,
+    1.809380054473877
+   ],
+   "file": "433ced154e54f8e2.glb",
+   "photo": "https://www.loft29.com.tw/images/202607/20260729175522769.jpg",
+   "photoIndex": 0,
+   "score": 0.791,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:andtradition__archivo-jh43-收納架": {
+   "box": [
+    64,
+    289,
+    733,
+    578
+   ],
+   "extent": [
+    1.896649956703186,
+    0.5142899751663208,
+    0.7775200009346008
+   ],
+   "file": "87faefd6eb27cb22.glb",
+   "photo": "https://www.loft29.com.tw/images/202511/20251120114253550.jpg",
+   "photoIndex": 0,
+   "score": 0.653,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:andtradition__cloud-ln1-單人": {
+   "box": [
+    68,
+    148,
+    732,
+    699
+   ],
+   "extent": [
+    1.8848700523376465,
+    1.6432199478149414,
+    1.7550599575042725
+   ],
+   "file": "e75ae89d36c8e90a.glb",
+   "photo": "https://www.loft29.com.tw/images/202309/20230904125103358.jpg",
+   "photoIndex": 0,
+   "score": 0.786,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:andtradition__cloud-ln2-ln3-雙人座": {
+   "box": [
+    25,
+    291,
+    771,
+    585
+   ],
+   "extent": [
+    1.890529990196228,
+    0.7894700169563293,
+    0.9135100245475769
+   ],
+   "file": "0c086e511448014b.glb",
+   "photo": "https://www.loft29.com.tw/images/202309/20230904133213017.jpg",
+   "photoIndex": 0,
+   "score": 0.791,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:andtradition__fly-sc1-單人": {
+   "box": [
+    54,
+    100,
+    748,
+    705
+   ],
+   "extent": [
+    1.8919199705123901,
+    1.7084300518035889,
+    1.580549955368042
+   ],
+   "file": "fd7faf3dd7a7d814.glb",
+   "photo": "https://www.loft29.com.tw/images/202309/20230904175813815.jpg",
+   "photoIndex": 0,
+   "score": 0.764,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:andtradition__fly-sc2-雙人": {
+   "box": [
+    39,
+    231,
+    766,
+    626
+   ],
+   "extent": [
+    1.8967299461364746,
+    0.964739978313446,
+    0.8977500200271606
+   ],
+   "file": "5643ba34552418ee.glb",
+   "photo": "https://www.loft29.com.tw/images/202309/20230911155154639.jpg",
+   "photoIndex": 0,
+   "score": 0.779,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:andtradition__fly-sc3-雙人": {
+   "box": [
+    39,
+    282,
+    762,
+    590
+   ],
+   "extent": [
+    1.8976800441741943,
+    0.6727200150489807,
+    0.572380006313324
+   ],
+   "file": "2a807679b72ce930.glb",
+   "photo": "https://www.loft29.com.tw/images/202309/20230905120305854.jpg",
+   "photoIndex": 0,
+   "score": 0.705,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:andtradition__guild-hm14-hm15-壁掛": {
+   "box": [
+    42,
+    378,
+    777,
+    507
+   ],
+   "extent": [
+    1.8972200155258179,
+    0.3681800067424774,
+    0.9571300148963928
+   ],
+   "file": "584003c21e3ae11b.glb",
+   "photo": "https://www.loft29.com.tw/images/202507/20250717095656871.jpg",
+   "photoIndex": 0,
+   "score": 0.688,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:andtradition__hi-lo-av54-單人": {
+   "box": [
+    55,
+    172,
+    753,
+    640
+   ],
+   "extent": [
+    1.8932499885559082,
+    1.3717800378799438,
+    1.5962899923324585
+   ],
+   "file": "58e187c6927b0d51.glb",
+   "photo": "https://www.loft29.com.tw/images/202511/20251125133420411.jpg",
+   "photoIndex": 0,
+   "score": 0.714,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:andtradition__inland-av21-單人": {
+   "box": [
+    67,
+    224,
+    734,
+    618
+   ],
+   "extent": [
+    1.8938299417495728,
+    1.3212100267410278,
+    1.7927500009536743
+   ],
+   "file": "f83df81db4eeee06.glb",
+   "photo": "https://www.loft29.com.tw/images/202503/20250303133238508.jpg",
+   "photoIndex": 0,
+   "score": 0.681,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:andtradition__inland-av22": {
+   "box": [
+    37,
+    291,
+    758,
+    583
+   ],
+   "extent": [
+    1.895799994468689,
+    0.7077599763870239,
+    1.0187000036239624
+   ],
+   "file": "704138ed13762128.glb",
+   "photo": "https://www.loft29.com.tw/images/202309/20230909132041334.jpg",
+   "photoIndex": 0,
+   "score": 0.864,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:andtradition__inland-av23": {
+   "box": [
+    27,
+    276,
+    774,
+    544
+   ],
+   "extent": [
+    1.8971600532531738,
+    0.5847700238227844,
+    0.8586000204086304
+   ],
+   "file": "2838ee59dc1969fb.glb",
+   "photo": "https://www.loft29.com.tw/images/202609/20260910201141086.jpg",
+   "photoIndex": 0,
+   "score": 0.848,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:andtradition__inland-av41-沙發組合": {
+   "box": [
+    25,
+    332,
+    775,
+    520
+   ],
+   "extent": [
+    1.8981000185012817,
+    0.47890999913215637,
+    1.863450050354004
+   ],
+   "file": "3d253dac7f5838ed.glb",
+   "photo": "https://www.loft29.com.tw/images/202503/20250303170559378.jpg",
+   "photoIndex": 0,
+   "score": 0.784,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:andtradition__inland-av42-沙發組合": {
+   "box": [
+    29,
+    338,
+    765,
+    529
+   ],
+   "extent": [
+    1.8972100019454956,
+    0.5066800117492676,
+    1.187119960784912
+   ],
+   "file": "d54a1d62346a4872.glb",
+   "photo": "https://www.loft29.com.tw/images/202503/20250303161846372.jpg",
+   "photoIndex": 0,
+   "score": 0.736,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:andtradition__little-petra-vb2": {
+   "box": [
+    33,
+    201,
+    774,
+    634
+   ],
+   "extent": [
+    1.8979699611663818,
+    0.9302899837493896,
+    1.0107100009918213
+   ],
+   "file": "8bd169ead64bd8a0.glb",
+   "photo": "https://www.loft29.com.tw/images/202403/20240315203747419.jpg",
+   "photoIndex": 0,
+   "score": 0.793,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:andtradition__loafer-sc23-單人": {
+   "box": [
+    80,
+    120,
+    676,
+    726
+   ],
+   "extent": [
+    1.808940052986145,
+    1.8995100259780884,
+    1.5806599855422974
+   ],
+   "file": "187b795a06a3e0df.glb",
+   "photo": "https://www.loft29.com.tw/images/202309/20230916172104852.jpg",
+   "photoIndex": 0,
+   "score": 0.892,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:andtradition__loafer-sc25-雙人": {
+   "box": [
+    61,
+    227,
+    724,
+    652
+   ],
+   "extent": [
+    1.8947399854660034,
+    0.9545199871063232,
+    0.8063300251960754
+   ],
+   "file": "cf52da00d6befc4c.glb",
+   "photo": "https://www.loft29.com.tw/images/202309/20230916172152701.jpg",
+   "photoIndex": 0,
+   "score": 0.802,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:andtradition__loafer-sc26-三人": {
+   "box": [
+    49,
+    235,
+    751,
+    623
+   ],
+   "extent": [
+    1.8973300457000732,
+    0.9976699948310852,
+    0.7037299871444702
+   ],
+   "file": "7e9ef8a029dc3c78.glb",
+   "photo": "https://www.loft29.com.tw/images/202309/20230916175706052.jpg",
+   "photoIndex": 0,
+   "score": 0.858,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:andtradition__margas-lc1-單人": {
+   "box": [
+    104,
+    130,
+    693,
+    676
+   ],
+   "extent": [
+    1.8679100275039673,
+    1.6691900491714478,
+    1.8822400569915771
+   ],
+   "file": "e0702aa6caeb5fe5.glb",
+   "photo": "https://www.loft29.com.tw/images/202611/20261119150456413.gif",
+   "photoIndex": 0,
+   "score": 0.746,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:andtradition__margas-lc2-旋轉": {
+   "box": [
+    98,
+    137,
+    694,
+    673
+   ],
+   "extent": [
+    1.8975900411605835,
+    1.6728500127792358,
+    1.8881700038909912
+   ],
+   "file": "950d540c8ca51ec9.glb",
+   "photo": "https://www.loft29.com.tw/images/202505/20250510134749501.jpg",
+   "photoIndex": 0,
+   "score": 0.863,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:andtradition__margas-lc4-弧形": {
+   "box": [
+    36,
+    265,
+    764,
+    593
+   ],
+   "extent": [
+    1.8965699672698975,
+    0.6824300289154053,
+    0.8620700240135193
+   ],
+   "file": "54e68f6ee6328bcb.glb",
+   "photo": "https://www.loft29.com.tw/images/202504/20250405140826640.jpg",
+   "photoIndex": 0,
+   "score": 0.848,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:andtradition__mayor-aj5-三座": {
+   "box": [
+    45,
+    283,
+    751,
+    575
+   ],
+   "extent": [
+    1.8963500261306763,
+    0.7919099926948547,
+    0.6038699746131897
+   ],
+   "file": "173d66ae3270dc48.glb",
+   "photo": "https://www.loft29.com.tw/images/202309/20230906163641748.jpg",
+   "photoIndex": 0,
+   "score": 0.805,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:andtradition__mayor-aj6-雙座": {
+   "box": [
+    68,
+    239,
+    736,
+    639
+   ],
+   "extent": [
+    1.8968299627304077,
+    1.1552400588989258,
+    0.9500799775123596
+   ],
+   "file": "046679e78ebb1cec.glb",
+   "photo": "https://www.loft29.com.tw/images/202309/20230906160643895.jpg",
+   "photoIndex": 0,
+   "score": 0.842,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:andtradition__meantime-av30-av31": {
+   "box": [
+    33,
+    271,
+    774,
+    588
+   ],
+   "extent": [
+    1.8963299989700317,
+    0.7791699767112732,
+    0.985729992389679
+   ],
+   "file": "0142760924780e2c.glb",
+   "photo": "https://www.loft29.com.tw/images/202507/20250717135155415.jpg",
+   "photoIndex": 0,
+   "score": 0.762,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:andtradition__rombe-if1": {
+   "box": [
+    245,
+    24,
+    536,
+    772
+   ],
+   "extent": [
+    0.28685998916625977,
+    0.715749979019165,
+    1.89683997631073
+   ],
+   "file": "97fa57e662eb41a9.glb",
+   "photo": "https://www.loft29.com.tw/images/202511/20251124132538620.jpg",
+   "photoIndex": 0,
+   "score": 0.669,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:andtradition__rombe-if3-櫃體": {
+   "box": [
+    247,
+    25,
+    542,
+    784
+   ],
+   "extent": [
+    0.2925899922847748,
+    0.7145000100135803,
+    1.8967100381851196
+   ],
+   "file": "8923021e4d485de5.glb",
+   "photo": "https://www.loft29.com.tw/images/202511/20251124135935993.jpg",
+   "photoIndex": 0,
+   "score": 0.7,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:andtradition__rotate-sc73-滑輪收納櫃": {
+   "box": [
+    153,
+    105,
+    633,
+    757
+   ],
+   "extent": [
+    1.1752899885177612,
+    1.897670030593872,
+    1.167009949684143
+   ],
+   "file": "3982b2168af53ab6.glb",
+   "photo": "https://www.loft29.com.tw/images/202608/20260812141127673.jpg",
+   "photoIndex": 0,
+   "score": 0.814,
+   "wh": [
+    800,
+    800
+   ]
+  },
   "g:artek__armchair-400-tank-坦克扶手椅": {
    "box": [
     45,
@@ -37,6 +1087,69 @@
    "photo": "https://www.nordic.com.tw/uploads/product_picture/58ce4c28c281c6X1qL_560.jpg",
    "photoIndex": 0,
    "score": 0.732,
+   "wh": [
+    560,
+    560
+   ]
+  },
+  "g:artek__kiki-三人座": {
+   "box": [
+    17,
+    229,
+    544,
+    371
+   ],
+   "extent": [
+    1.8941899538040161,
+    0.48583999276161194,
+    0.6050999760627747
+   ],
+   "file": "34748703ca5a6126.glb",
+   "photo": "https://www.nordic.com.tw/uploads/product_picture/67da405315a53ViuE7_560.jpg",
+   "photoIndex": 0,
+   "score": 0.77,
+   "wh": [
+    560,
+    560
+   ]
+  },
+  "g:artek__kiki-二人座": {
+   "box": [
+    35,
+    159,
+    525,
+    433
+   ],
+   "extent": [
+    1.8971400260925293,
+    1.1766400337219238,
+    1.0015599727630615
+   ],
+   "file": "c29ca94323ef745d.glb",
+   "photo": "https://www.nordic.com.tw/uploads/product_picture/65c0b1b119d895cZkL_560.jpg",
+   "photoIndex": 0,
+   "score": 0.657,
+   "wh": [
+    560,
+    560
+   ]
+  },
+  "g:artek__kiki-休閒主人椅": {
+   "box": [
+    142,
+    108,
+    420,
+    469
+   ],
+   "extent": [
+    1.720710039138794,
+    1.8933000564575195,
+    1.8678499460220337
+   ],
+   "file": "348c43d15223daf1.glb",
+   "photo": "https://www.nordic.com.tw/uploads/product_picture/65cdc16e417e2VQBIu_560.jpg",
+   "photoIndex": 0,
+   "score": 0.708,
    "wh": [
     560,
     560
@@ -105,6 +1218,27 @@
     560
    ]
   },
+  "g:artek__screen-100d-芬蘭松木屏風": {
+   "box": [
+    149,
+    168,
+    406,
+    439
+   ],
+   "extent": [
+    1.8959300518035889,
+    1.8361999988555908,
+    0.5146899819374084
+   ],
+   "file": "98a133467c13207a.glb",
+   "photo": "https://www.nordic.com.tw/uploads/product_picture/68ff1d9abcd526xMo2_560.jpg",
+   "photoIndex": 0,
+   "score": 0.921,
+   "wh": [
+    560,
+    560
+   ]
+  },
   "g:audo-copenhagen__conrad-咖啡桌": {
    "box": [
     50,
@@ -123,6 +1257,216 @@
    "score": 0.818,
    "wh": [
     600,
+    800
+   ]
+  },
+  "g:audo-copenhagen__eave-dining-沙發-平台底座款": {
+   "box": [
+    64,
+    281,
+    687,
+    533
+   ],
+   "extent": [
+    1.8954800367355347,
+    0.6100000143051147,
+    0.5942400097846985
+   ],
+   "file": "b34af3487b962d63.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/6a4f33a2c8a6deff7ba1fc64/original.jpg?1783575458=&owner_id=5da92d129db3cb002ca18855",
+   "photoIndex": 0,
+   "score": 0.849,
+   "wh": [
+    750,
+    749
+   ]
+  },
+  "g:audo-copenhagen__eave-dining-沙發-金屬腳座款": {
+   "box": [
+    152,
+    217,
+    587,
+    608
+   ],
+   "extent": [
+    1.7923799753189087,
+    1.8926899433135986,
+    1.7868000268936157
+   ],
+   "file": "b5a67fa73003e231.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/6881d58074cffa0012c333de/original.jpg?1753339264=&owner_id=5da92d129db3cb002ca18855",
+   "photoIndex": 0,
+   "score": 0.784,
+   "wh": [
+    750,
+    750
+   ]
+  },
+  "g:audo-copenhagen__eave-l-型單邊扶手沙發組": {
+   "box": [
+    32,
+    273,
+    767,
+    531
+   ],
+   "extent": [
+    1.8974900245666504,
+    0.5921199917793274,
+    1.0694999694824219
+   ],
+   "file": "9639d9a6bfc8670f.glb",
+   "photo": "https://www.loft29.com.tw/images/202609/20260916221750856.jpg",
+   "photoIndex": 0,
+   "score": 0.878,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:audo-copenhagen__eave-l-型沙發組": {
+   "box": [
+    39,
+    308,
+    762,
+    540
+   ],
+   "extent": [
+    1.8963600397109985,
+    0.5143399834632874,
+    0.8866599798202515
+   ],
+   "file": "c47e224f9a5b32f1.glb",
+   "photo": "https://www.loft29.com.tw/images/202310/20231028170905404.jpg",
+   "photoIndex": 0,
+   "score": 0.88,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:audo-copenhagen__eave-modular-模組": {
+   "box": [
+    92,
+    240,
+    670,
+    508
+   ],
+   "extent": [
+    1.897130012512207,
+    0.6884599924087524,
+    1.0001699924468994
+   ],
+   "file": "0a3435ab2fee74b0.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/671efccfbe22aa000cade108/original.jpg?1730084047",
+   "photoIndex": 0,
+   "score": 0.864,
+   "wh": [
+    750,
+    750
+   ]
+  },
+  "g:audo-copenhagen__eave-seamline-modular-模組": {
+   "box": [
+    164,
+    238,
+    596,
+    546
+   ],
+   "extent": [
+    1.8976099491119385,
+    1.5760799646377563,
+    1.8797500133514404
+   ],
+   "file": "a54b0c282b53706c.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/6891c7b76409e300184de638/original.jpg?1754384311",
+   "photoIndex": 0,
+   "score": 0.684,
+   "wh": [
+    750,
+    750
+   ]
+  },
+  "g:audo-copenhagen__eave-直式單邊扶手沙發組": {
+   "box": [
+    63,
+    324,
+    748,
+    569
+   ],
+   "extent": [
+    1.896880030632019,
+    0.5175700187683105,
+    0.6057100296020508
+   ],
+   "file": "f81456df4bb75938.glb",
+   "photo": "https://www.loft29.com.tw/images/202310/20231031161147247.jpg",
+   "photoIndex": 0,
+   "score": 0.848,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:audo-copenhagen__eave-直式沙發組": {
+   "box": [
+    44,
+    323,
+    758,
+    581
+   ],
+   "extent": [
+    1.896630048751831,
+    0.5835000276565552,
+    0.707319974899292
+   ],
+   "file": "5b28d359635ba49d.glb",
+   "photo": "https://www.loft29.com.tw/images/202310/20231028162212476.jpg",
+   "photoIndex": 0,
+   "score": 0.894,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:audo-copenhagen__eave模組沙發-86cm-右側轉角-2-5人座": {
+   "box": [
+    93,
+    307,
+    614,
+    491
+   ],
+   "extent": [
+    1.896299958229065,
+    0.6671000123023987,
+    1.1847599744796753
+   ],
+   "file": "fe5d194656364e6d.glb",
+   "photo": "https://cdn.shopify.com/s/files/1/0056/1827/0297/files/9986500-000100ZZ_Eave_Modular_Sofa_86_Configuration_8_Boucle_06_Angle.jpg?v=1758164775",
+   "photoIndex": 0,
+   "score": 0.785,
+   "wh": [
+    711,
+    800
+   ]
+  },
+  "g:audo-copenhagen__eave模組沙發-86cm-左側轉角-2-5人座": {
+   "box": [
+    97,
+    307,
+    617,
+    491
+   ],
+   "extent": [
+    1.8978300094604492,
+    0.6500999927520752,
+    1.093250036239624
+   ],
+   "file": "32ce9a2bda1f53fa.glb",
+   "photo": "https://cdn.shopify.com/s/files/1/0056/1827/0297/files/9986400-000000ZZ_Eave_Modular_Sofa_86_Configuration_7_Boucle_02_Angle.jpg?v=1758160472",
+   "photoIndex": 0,
+   "score": 0.864,
+   "wh": [
+    711,
     800
    ]
   },
@@ -231,6 +1575,27 @@
     800
    ]
   },
+  "g:audo-copenhagen__volume": {
+   "box": [
+    132,
+    232,
+    469,
+    690
+   ],
+   "extent": [
+    1.2693899869918823,
+    1.8951900005340576,
+    1.079949975013733
+   ],
+   "file": "a3c59b8fa17b72bc.glb",
+   "photo": "https://cdn.shopify.com/s/files/1/0056/1827/0297/files/7100009_Volume_Side_Table_angle_Web.webp?v=1741676877",
+   "photoIndex": 0,
+   "score": 0.786,
+   "wh": [
+    600,
+    800
+   ]
+  },
   "g:biba-salotti__cleo-床架": {
    "box": [
     61,
@@ -252,6 +1617,48 @@
     750
    ]
   },
+  "g:biba-salotti__dalia-床架": {
+   "box": [
+    62,
+    222,
+    693,
+    513
+   ],
+   "extent": [
+    1.8977999687194824,
+    0.9035900235176086,
+    1.8302299976348877
+   ],
+   "file": "2fb5dbc576e3556b.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/66ff85a907429600101db86f/original.jpg?1728021929",
+   "photoIndex": 0,
+   "score": 0.662,
+   "wh": [
+    750,
+    750
+   ]
+  },
+  "g:billiani__spy-664-貴妃躺椅": {
+   "box": [
+    58,
+    180,
+    500,
+    419
+   ],
+   "extent": [
+    1.8969199657440186,
+    0.9823700189590454,
+    0.9349200129508972
+   ],
+   "file": "da964828b3cdc334.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/5dc52b6109f50d0035f08f3a/original.jpg?1573202784",
+   "photoIndex": 0,
+   "score": 0.908,
+   "wh": [
+    557,
+    594
+   ]
+  },
   "g:dcw-ditions__vision-20-20": {
    "box": [
     228,
@@ -268,6 +1675,132 @@
    "photo": "https://www.loft29.com.tw/images/202408/20240803145328669.jpg",
    "photoIndex": 0,
    "score": 0.793,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:e15__mo-雙人床架": {
+   "box": [
+    32,
+    144,
+    528,
+    420
+   ],
+   "extent": [
+    1.7542099952697754,
+    0.6746799945831299,
+    1.8954099416732788
+   ],
+   "file": "c676937440e26352.glb",
+   "photo": "https://www.nordic.com.tw/uploads/product_picture/65ba05b781b13YldCv_560.jpg",
+   "photoIndex": 0,
+   "score": 0.736,
+   "wh": [
+    560,
+    560
+   ]
+  },
+  "g:e15__noah-內嵌式雙人床架": {
+   "box": [
+    42,
+    214,
+    525,
+    373
+   ],
+   "extent": [
+    1.734320044517517,
+    0.30632999539375305,
+    1.8965400457382202
+   ],
+   "file": "90a1e0981cd21c29.glb",
+   "photo": "https://www.nordic.com.tw/uploads/product_picture/6372fe159b6d2Tvxn0_560.jpg",
+   "photoIndex": 0,
+   "score": 0.695,
+   "wh": [
+    560,
+    560
+   ]
+  },
+  "g:esaila__edge-table": {
+   "box": [
+    236,
+    275,
+    565,
+    644
+   ],
+   "extent": [
+    1.8980499505996704,
+    1.8797500133514404,
+    1.8962199687957764
+   ],
+   "file": "ef5137af8ff24831.glb",
+   "photo": "https://cdn.shopify.com/s/files/1/0795/7826/7841/files/edge.jpg?v=1744080974",
+   "photoIndex": 0,
+   "score": 0.869,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:esaila__pedestal-table": {
+   "box": [
+    220,
+    172,
+    428,
+    474
+   ],
+   "extent": [
+    1.3103899955749512,
+    1.8960100412368774,
+    1.3138099908828735
+   ],
+   "file": "e6038ecb064da3d9.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/5e8dc65c4d6aa40015f61c88/original.jpg?1586349659",
+   "photoIndex": 2,
+   "score": 0.819,
+   "wh": [
+    650,
+    650
+   ]
+  },
+  "g:expormim__twins-躺椅": {
+   "box": [
+    29,
+    191,
+    776,
+    675
+   ],
+   "extent": [
+    1.9007600545883179,
+    1.1591299772262573,
+    1.8629900217056274
+   ],
+   "file": "392b488cbad7dbf4.glb",
+   "photo": "https://www.loft29.com.tw/images/202403/20240314131532398.jpg",
+   "photoIndex": 0,
+   "score": 0.693,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:ferm-living__desert-戶外": {
+   "box": [
+    172,
+    164,
+    623,
+    662
+   ],
+   "extent": [
+    1.4683400392532349,
+    1.7034800052642822,
+    1.9144400358200073
+   ],
+   "file": "4c8216e14cce2cc9.glb",
+   "photo": "https://cdn.shopify.com/s/files/1/0744/0467/files/Ferm-Living-Desert-_-Ferm-Living_-_-_-Luxury-Life-4095476.png?v=1793991032",
+   "photoIndex": 0,
+   "score": 0.757,
    "wh": [
     800,
     800
@@ -294,6 +1827,48 @@
     800
    ]
   },
+  "g:foscarini__twiggy": {
+   "box": [
+    105,
+    121,
+    592,
+    551
+   ],
+   "extent": [
+    1.898959994316101,
+    1.6726800203323364,
+    0.9086700081825256
+   ],
+   "file": "9b79bbee579baa06.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/5fa64d35c8376d001d15a6d8/original.png?1604734261",
+   "photoIndex": 0,
+   "score": 0.726,
+   "wh": [
+    700,
+    700
+   ]
+  },
+  "g:frama__aml-椅凳": {
+   "box": [
+    263,
+    172,
+    536,
+    541
+   ],
+   "extent": [
+    1.8747999668121338,
+    1.7549200057983398,
+    1.861649990081787
+   ],
+   "file": "ceb4fa218e1c134b.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/60a62580c1ef90001dc442a6/original.jpg?1621501312",
+   "photoIndex": 0,
+   "score": 0.691,
+   "wh": [
+    800,
+    640
+   ]
+  },
   "g:frama__ratio-trolley-推車": {
    "box": [
     238,
@@ -313,6 +1888,90 @@
    "wh": [
     800,
     640
+   ]
+  },
+  "g:frama__rivet-case-收納盒": {
+   "box": [
+    152,
+    199,
+    647,
+    439
+   ],
+   "extent": [
+    1.8802499771118164,
+    0.8917199969291687,
+    0.890779972076416
+   ],
+   "file": "0842d2e7137be5ef.glb",
+   "photo": "https://cdn.shopify.com/s/files/1/0056/1827/0297/files/gallery_927a9714-947e-46a4-9914-5a9401a97e65.webp?v=1786763946",
+   "photoIndex": 0,
+   "score": 0.875,
+   "wh": [
+    800,
+    640
+   ]
+  },
+  "g:frama__rivet-圓形": {
+   "box": [
+    139,
+    176,
+    725,
+    698
+   ],
+   "extent": [
+    1.8576500415802002,
+    1.3692599534988403,
+    1.8803800344467163
+   ],
+   "file": "ba74c5d06bd3e665.glb",
+   "photo": "https://www.loft29.com.tw/images/202602/20260209144428313.jpg",
+   "photoIndex": 0,
+   "score": 0.756,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:gubi__bohemian-72": {
+   "box": [
+    70,
+    93,
+    762,
+    705
+   ],
+   "extent": [
+    1.9032800197601318,
+    1.7366299629211426,
+    1.4007699489593506
+   ],
+   "file": "8f87ca6d21bdd0cd.glb",
+   "photo": "https://www.loft29.com.tw/images/202402/20240219183437233.jpg",
+   "photoIndex": 0,
+   "score": 0.656,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:gubi__bohemian-72-椅凳": {
+   "box": [
+    32,
+    162,
+    719,
+    588
+   ],
+   "extent": [
+    1.8922799825668335,
+    1.180899977684021,
+    1.8617199659347534
+   ],
+   "file": "39937fd8f2680dfb.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/621895e9e2c29700299d08a5/original.jpg?1645778409",
+   "photoIndex": 0,
+   "score": 0.84,
+   "wh": [
+    750,
+    750
    ]
   },
   "g:gubi__croissant": {
@@ -336,6 +1995,216 @@
     550
    ]
   },
+  "g:gubi__modern-line-daybed-床架": {
+   "box": [
+    40,
+    191,
+    513,
+    380
+   ],
+   "extent": [
+    1.8954499959945679,
+    0.6245599985122681,
+    1.770009994506836
+   ],
+   "file": "81fffe20183997af.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/6127507af39c7f0032510106/original.jpg?1629966458",
+   "photoIndex": 0,
+   "score": 0.71,
+   "wh": [
+    550,
+    550
+   ]
+  },
+  "g:gubi__pacha-戶外": {
+   "box": [
+    77,
+    151,
+    723,
+    652
+   ],
+   "extent": [
+    1.7439899444580078,
+    1.374169945716858,
+    1.892109990119934
+   ],
+   "file": "1267698d1e38faa7.glb",
+   "photo": "https://www.loft29.com.tw/images/202401/20240119173504841.jpg",
+   "photoIndex": 0,
+   "score": 0.738,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:gubi__tail-低背": {
+   "box": [
+    150,
+    116,
+    627,
+    743
+   ],
+   "extent": [
+    1.5720100402832031,
+    1.8957099914550781,
+    1.7958099842071533
+   ],
+   "file": "d9ac06e40bf3ff52.glb",
+   "photo": "https://www.loft29.com.tw/images/202402/20240220171106997.jpg",
+   "photoIndex": 0,
+   "score": 0.806,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:gubi__tail-高背": {
+   "box": [
+    114,
+    57,
+    377,
+    464
+   ],
+   "extent": [
+    1.2157700061798096,
+    1.897379994392395,
+    1.4683599472045898
+   ],
+   "file": "a6162c51d989ba30.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/5dd257b84c418e00308daaff/original.jpg?1574066103",
+   "photoIndex": 0,
+   "score": 0.808,
+   "wh": [
+    500,
+    500
+   ]
+  },
+  "g:gubi__tropique-戶外扶手椅": {
+   "box": [
+    76,
+    64,
+    678,
+    746
+   ],
+   "extent": [
+    1.1953500509262085,
+    1.5815800428390503,
+    1.8933700323104858
+   ],
+   "file": "fd28ccb2802100ae.glb",
+   "photo": "https://www.loft29.com.tw/images/202402/20240220134330634.jpg",
+   "photoIndex": 0,
+   "score": 0.728,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:gubi__tropique-戶外流蘇": {
+   "box": [
+    77,
+    55,
+    694,
+    744
+   ],
+   "extent": [
+    1.20169997215271,
+    1.6198699474334717,
+    1.8964300155639648
+   ],
+   "file": "af25ece980356e28.glb",
+   "photo": "https://www.loft29.com.tw/images/202402/20240220133607151.jpg",
+   "photoIndex": 0,
+   "score": 0.742,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:gubi__現貨-stay-床架": {
+   "box": [
+    73,
+    220,
+    667,
+    539
+   ],
+   "extent": [
+    1.6452499628067017,
+    0.9508600234985352,
+    1.8941199779510498
+   ],
+   "file": "d4b953c35a5d6f32.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/67a1d5c27478a0000d9cfa6f/original.jpg?1738659266",
+   "photoIndex": 0,
+   "score": 0.816,
+   "wh": [
+    750,
+    750
+   ]
+  },
+  "g:hay__dogs-寵物睡床": {
+   "box": [
+    87,
+    87,
+    671,
+    452
+   ],
+   "extent": [
+    1.296429991722107,
+    0.5100399851799011,
+    1.697700023651123
+   ],
+   "file": "36a592a88754abf1.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/6617b18a0038c90020e36aa9/original.jpg?1712828808",
+   "photoIndex": 0,
+   "score": 0.724,
+   "wh": [
+    800,
+    533
+   ]
+  },
+  "g:hay__dogs-拉鍊寵物睡床": {
+   "box": [
+    205,
+    146,
+    562,
+    392
+   ],
+   "extent": [
+    1.3250199556350708,
+    0.7974799871444702,
+    1.883579969406128
+   ],
+   "file": "c174ee6409030a82.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/69ce21f729581720d25c51f9/original.jpg?1775116790=&owner_id=64c86fbacdfa970067e53b7b",
+   "photoIndex": 0,
+   "score": 0.795,
+   "wh": [
+    800,
+    533
+   ]
+  },
+  "g:hay__rey-椅凳": {
+   "box": [
+    211,
+    180,
+    607,
+    660
+   ],
+   "extent": [
+    1.8627500534057617,
+    1.8938000202178955,
+    1.8868299722671509
+   ],
+   "file": "c2601febd506229f.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/65d6e89af5bf090017bdab5d/original.jpg?1708583066",
+   "photoIndex": 1,
+   "score": 0.665,
+   "wh": [
+    800,
+    800
+   ]
+  },
   "g:heller__swell-wall-catchall-收納壁掛架": {
    "box": [
     108,
@@ -354,6 +2223,279 @@
    "score": 0.861,
    "wh": [
     640,
+    800
+   ]
+  },
+  "g:hkliving__vida-栗棕-奶油白條紋床罩-230x275cm-vida-striped-bedspread-chestnut-cream-230x275cm": {
+   "box": [
+    119,
+    66,
+    678,
+    732
+   ],
+   "extent": [
+    1.6665500402450562,
+    1.8832600116729736,
+    0.10746999830007553
+   ],
+   "file": "25d70d7f591ee09a.glb",
+   "photo": "https://cdn.shopify.com/s/files/1/0056/1827/0297/files/tth0002_eg.jpg?v=1784261824",
+   "photoIndex": 0,
+   "score": 0.893,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:hkliving__vida-沙色-奶油白條紋床罩-230x275cm-vida-striped-bedspread-sand-cream-230x275cm": {
+   "box": [
+    115,
+    68,
+    685,
+    732
+   ],
+   "extent": [
+    1.6753100156784058,
+    1.884559988975525,
+    0.10730999708175659
+   ],
+   "file": "6bee6e2e8a66859b.glb",
+   "photo": "https://cdn.shopify.com/s/files/1/0056/1827/0297/files/tth0003_eg.jpg?v=1784261827",
+   "photoIndex": 0,
+   "score": 0.927,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:hkliving__床幔": {
+   "box": [
+    141,
+    28,
+    659,
+    761
+   ],
+   "extent": [
+    1.1980500221252441,
+    1.7726999521255493,
+    1.7783299684524536
+   ],
+   "file": "20d504256afba636.glb",
+   "photo": "https://cdn.shopify.com/s/files/1/0056/1827/0297/files/ttx0003_eg.jpg?v=1784261820",
+   "photoIndex": 0,
+   "score": 0.734,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:house-of-finn-juhl__45-chair-扶手椅": {
+   "box": [
+    71,
+    78,
+    488,
+    500
+   ],
+   "extent": [
+    1.6091599464416504,
+    1.442770004272461,
+    1.8948299884796143
+   ],
+   "file": "0dd2e98bf57d959e.glb",
+   "photo": "https://www.nordic.com.tw/uploads/product_picture/5f461bdd4fa748JJo2_560.jpg",
+   "photoIndex": 0,
+   "score": 0.72,
+   "wh": [
+    560,
+    560
+   ]
+  },
+  "g:house-of-finn-juhl__53-chair-扶手椅": {
+   "box": [
+    78,
+    104,
+    466,
+    483
+   ],
+   "extent": [
+    1.5179200172424316,
+    1.7514499425888062,
+    1.894950032234192
+   ],
+   "file": "dad0aee3f30f8958.glb",
+   "photo": "https://www.nordic.com.tw/uploads/product_picture/60ab7efd9fb72oIQSM_560.jpg",
+   "photoIndex": 1,
+   "score": 0.652,
+   "wh": [
+    560,
+    560
+   ]
+  },
+  "g:house-of-finn-juhl__chieftain-chair-酋長椅": {
+   "box": [
+    119,
+    123,
+    441,
+    418
+   ],
+   "extent": [
+    1.8963799476623535,
+    1.750440001487732,
+    0.17565999925136566
+   ],
+   "file": "db9094fedf6c5f28.glb",
+   "photo": "https://www.nordic.com.tw/uploads/product_picture/68513cbbc95153b4dm_560.jpg",
+   "photoIndex": 3,
+   "score": 0.967,
+   "wh": [
+    560,
+    560
+   ]
+  },
+  "g:house-of-finn-juhl__france-chair-法蘭西扶手椅": {
+   "box": [
+    50,
+    67,
+    512,
+    504
+   ],
+   "extent": [
+    1.8973000049591064,
+    1.8624600172042847,
+    1.8605400323867798
+   ],
+   "file": "bff88db9728a5c31.glb",
+   "photo": "https://www.nordic.com.tw/uploads/product_picture/58f5d09e0d1bdtJI9i_560.jpg",
+   "photoIndex": 1,
+   "score": 0.659,
+   "wh": [
+    560,
+    560
+   ]
+  },
+  "g:house-of-finn-juhl__the-kettelhut-chair-凱特赫-主人椅": {
+   "box": [
+    93,
+    74,
+    464,
+    489
+   ],
+   "extent": [
+    1.662369966506958,
+    1.895740032196045,
+    1.6624699831008911
+   ],
+   "file": "481c5e577d08e5e0.glb",
+   "photo": "https://www.nordic.com.tw/uploads/product_picture/6a4b5428e3745Xuhr8_560.png",
+   "photoIndex": 0,
+   "score": 0.708,
+   "wh": [
+    560,
+    560
+   ]
+  },
+  "g:house-of-finn-juhl__the-whisky-chair-威士忌主人椅": {
+   "box": [
+    82,
+    56,
+    489,
+    518
+   ],
+   "extent": [
+    1.686400055885315,
+    1.8987799882888794,
+    1.5412499904632568
+   ],
+   "file": "b2c8c8a232586fde.glb",
+   "photo": "https://www.nordic.com.tw/uploads/product_picture/62bebfc4cf72a0MFMG_560.jpg",
+   "photoIndex": 0,
+   "score": 0.688,
+   "wh": [
+    560,
+    560
+   ]
+  },
+  "g:house-of-finn-juhl__the-wilhelm-hansen-bed-實木床架": {
+   "box": [
+    30,
+    174,
+    543,
+    425
+   ],
+   "extent": [
+    1.6586999893188477,
+    0.6873700022697449,
+    1.8970099687576294
+   ],
+   "file": "a7b066bd74345df3.glb",
+   "photo": "https://www.nordic.com.tw/uploads/product_picture/6ad81fc12ea7eRKKxA_560.jpg",
+   "photoIndex": 0,
+   "score": 0.681,
+   "wh": [
+    560,
+    560
+   ]
+  },
+  "g:house-of-finn-juhl__the-willadsen-chair-威拉森-主人椅": {
+   "box": [
+    89,
+    98,
+    471,
+    478
+   ],
+   "extent": [
+    1.8974000215530396,
+    1.860069990158081,
+    1.5839300155639648
+   ],
+   "file": "f0b4c241e50eafd5.glb",
+   "photo": "https://www.nordic.com.tw/uploads/product_picture/680a0bf23313eXapGg_560.jpg",
+   "photoIndex": 0,
+   "score": 0.839,
+   "wh": [
+    560,
+    560
+   ]
+  },
+  "g:ingo-maurer__wo-tum-bu-2": {
+   "box": [
+    354,
+    16,
+    455,
+    776
+   ],
+   "extent": [
+    0.24946999549865723,
+    1.8934400081634521,
+    0.2582100033760071
+   ],
+   "file": "1349f5b7e02397bd.glb",
+   "photo": "https://www.loft29.com.tw/images/202411/20241114144701037.jpg",
+   "photoIndex": 1,
+   "score": 0.79,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:ingo-maurer__yoruba-rose": {
+   "box": [
+    146,
+    50,
+    689,
+    744
+   ],
+   "extent": [
+    1.5721900463104248,
+    1.8939599990844727,
+    0.806689977645874
+   ],
+   "file": "32d4370d8473004f.glb",
+   "photo": "https://www.loft29.com.tw/images/202411/20241115145010685.jpg",
+   "photoIndex": 2,
+   "score": 0.781,
+   "wh": [
+    800,
     800
    ]
   },
@@ -397,6 +2539,720 @@
    "wh": [
     800,
     800
+   ]
+  },
+  "g:karimoku-case__a-s02-單人": {
+   "box": [
+    89,
+    159,
+    727,
+    673
+   ],
+   "extent": [
+    1.8946900367736816,
+    1.4898699522018433,
+    1.8951599597930908
+   ],
+   "file": "86ceab2bb84bd202.glb",
+   "photo": "https://www.loft29.com.tw/images/202510/20251009182841786.jpg",
+   "photoIndex": 1,
+   "score": 0.913,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:karimoku-case__n-cc01": {
+   "box": [
+    111,
+    119,
+    673,
+    739
+   ],
+   "extent": [
+    1.7547399997711182,
+    1.8958899974822998,
+    1.6406699419021606
+   ],
+   "file": "3cdc911b16abb2c0.glb",
+   "photo": "https://www.loft29.com.tw/images/202310/20231004112757328.jpg",
+   "photoIndex": 0,
+   "score": 0.661,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:karimoku-case__n-cc02-雙人": {
+   "box": [
+    63,
+    237,
+    752,
+    646
+   ],
+   "extent": [
+    1.8976000547409058,
+    0.8609600067138672,
+    0.7752100229263306
+   ],
+   "file": "2918cd69b1d6463b.glb",
+   "photo": "https://www.loft29.com.tw/images/202310/20231004140033383.jpg",
+   "photoIndex": 1,
+   "score": 0.716,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:karimoku-case__n-s02": {
+   "box": [
+    90,
+    193,
+    718,
+    622
+   ],
+   "extent": [
+    1.8958899974822998,
+    1.381700038909912,
+    1.7856500148773193
+   ],
+   "file": "46e083f8ac7d0684.glb",
+   "photo": "https://www.loft29.com.tw/images/202310/20231017145637900.jpg",
+   "photoIndex": 0,
+   "score": 0.725,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:karimoku-case__n-s03-三人": {
+   "box": [
+    42,
+    291,
+    751,
+    568
+   ],
+   "extent": [
+    1.8963299989700317,
+    0.6108199954032898,
+    0.6950100064277649
+   ],
+   "file": "ad239bbd844bc1d3.glb",
+   "photo": "https://www.loft29.com.tw/images/202310/20231007135135746.jpg",
+   "photoIndex": 0,
+   "score": 0.833,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:karimoku-case__n-s03-單人": {
+   "box": [
+    99,
+    175,
+    704,
+    694
+   ],
+   "extent": [
+    1.8964899778366089,
+    1.6624200344085693,
+    1.7272100448608398
+   ],
+   "file": "85ba1fe7321a2193.glb",
+   "photo": "https://www.loft29.com.tw/images/202310/20231006123828975.jpg",
+   "photoIndex": 1,
+   "score": 0.807,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:karimoku-case__n-t01-推車": {
+   "box": [
+    144,
+    107,
+    674,
+    716
+   ],
+   "extent": [
+    1.6490999460220337,
+    1.0739599466323853,
+    1.8934400081634521
+   ],
+   "file": "1d53570b92e39124.glb",
+   "photo": "https://www.loft29.com.tw/images/202310/20231002184618612.jpg",
+   "photoIndex": 1,
+   "score": 0.731,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:karimoku-new-standard__elephant-長扶手沙發躺椅": {
+   "box": [
+    28,
+    274,
+    766,
+    590
+   ],
+   "extent": [
+    1.8939900398254395,
+    0.8469700217247009,
+    1.2872300148010254
+   ],
+   "file": "a6f80be948f6e2a0.glb",
+   "photo": "https://www.loft29.com.tw/images/202310/20231023131115049.jpg",
+   "photoIndex": 0,
+   "score": 0.913,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:kimu__扇變-屏風-單扇一座": {
+   "box": [
+    276,
+    81,
+    533,
+    736
+   ],
+   "extent": [
+    0.7778099775314331,
+    1.8972300291061401,
+    0.1798900067806244
+   ],
+   "file": "aeda16bfbaa969f1.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/5fbb489f013dd70029517d8a/original.jpg?1606109343",
+   "photoIndex": 0,
+   "score": 0.668,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:lago__air-soft-床架": {
+   "box": [
+    23,
+    119,
+    478,
+    408
+   ],
+   "extent": [
+    1.7168699502944946,
+    1.0160900354385376,
+    1.8893100023269653
+   ],
+   "file": "0de24c07ce1bf2b8.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/649959cff5b691001de8f580/original.jpg?1687771599",
+   "photoIndex": 0,
+   "score": 0.705,
+   "wh": [
+    500,
+    500
+   ]
+  },
+  "g:lago__air-wildwood-床架-壁掛式": {
+   "box": [
+    26,
+    105,
+    475,
+    419
+   ],
+   "extent": [
+    1.5448499917984009,
+    1.0791000127792358,
+    1.8957500457763672
+   ],
+   "file": "1a06a96ee04f91b8.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/649949e159480c0014917a6c/original.jpg?1687767521",
+   "photoIndex": 0,
+   "score": 0.658,
+   "wh": [
+    500,
+    500
+   ]
+  },
+  "g:lago__air-床架-壁掛式": {
+   "box": [
+    43,
+    116,
+    455,
+    404
+   ],
+   "extent": [
+    1.48062002658844,
+    1.0487500429153442,
+    1.8904800415039062
+   ],
+   "file": "d373a56cc5aa4571.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/6498f569d0d8f0001da71c08/original.jpg?1687745897",
+   "photoIndex": 0,
+   "score": 0.701,
+   "wh": [
+    500,
+    500
+   ]
+  },
+  "g:lago__air-床架-獨立式": {
+   "box": [
+    30,
+    158,
+    471,
+    395
+   ],
+   "extent": [
+    1.4195799827575684,
+    0.7180399894714355,
+    1.8891899585723877
+   ],
+   "file": "d748ca127f7a2ab5.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/6498f4f8b317d60017a650f9/original.jpg?1687745784",
+   "photoIndex": 0,
+   "score": 0.656,
+   "wh": [
+    500,
+    500
+   ]
+  },
+  "g:lago__bed-in-床架": {
+   "box": [
+    43,
+    151,
+    465,
+    364
+   ],
+   "extent": [
+    1.8650200366973877,
+    1.0825599431991577,
+    1.6785000562667847
+   ],
+   "file": "a169ac14db30c6e4.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/65c07d6ebbd76b00230826e1/original.jpg?1707113838",
+   "photoIndex": 0,
+   "score": 0.733,
+   "wh": [
+    500,
+    500
+   ]
+  },
+  "g:magis__in-side-潛彩雕塑扶手椅": {
+   "box": [
+    65,
+    122,
+    488,
+    497
+   ],
+   "extent": [
+    1.5813900232315063,
+    1.691409945487976,
+    1.5491000413894653
+   ],
+   "file": "d8a1259b9090061d.glb",
+   "photo": "https://www.nordic.com.tw/uploads/product_picture/68075ebd117a7YIVMH_560.gif",
+   "photoIndex": 0,
+   "score": 0.696,
+   "wh": [
+    560,
+    560
+   ]
+  },
+  "g:magis__officina-鐵焊-扶手椅": {
+   "box": [
+    105,
+    159,
+    468,
+    469
+   ],
+   "extent": [
+    1.895650029182434,
+    1.5642999410629272,
+    1.518399953842163
+   ],
+   "file": "6539d839e570c842.glb",
+   "photo": "https://www.nordic.com.tw/uploads/product_picture/64af754a45cbdvA1gf_560.jpg",
+   "photoIndex": 0,
+   "score": 0.874,
+   "wh": [
+    560,
+    560
+   ]
+  },
+  "g:magis__proust-普魯斯特扶手椅": {
+   "box": [
+    44,
+    50,
+    515,
+    510
+   ],
+   "extent": [
+    1.8970500230789185,
+    1.700469970703125,
+    1.1486899852752686
+   ],
+   "file": "567faf36e206d425.glb",
+   "photo": "https://www.nordic.com.tw/uploads/product_picture/5cad84d0ce419VCBU8_560.jpg",
+   "photoIndex": 0,
+   "score": 0.85,
+   "wh": [
+    560,
+    560
+   ]
+  },
+  "g:maruni60__frame-chair-標準框架扶手椅": {
+   "box": [
+    79,
+    90,
+    474,
+    509
+   ],
+   "extent": [
+    1.690659999847412,
+    1.8958899974822998,
+    1.7373499870300293
+   ],
+   "file": "69b5917a05dcc6c9.glb",
+   "photo": "https://www.nordic.com.tw/uploads/product_picture/68d37a6b6e20aAfHIh_560.jpg",
+   "photoIndex": 0,
+   "score": 0.673,
+   "wh": [
+    560,
+    560
+   ]
+  },
+  "g:maruni60__frame-chair-高背框架扶手椅": {
+   "box": [
+    72,
+    71,
+    476,
+    527
+   ],
+   "extent": [
+    1.4900100231170654,
+    1.8954999446868896,
+    1.7385300397872925
+   ],
+   "file": "2cab1e79baf04e91.glb",
+   "photo": "https://www.nordic.com.tw/uploads/product_picture/68ca6e9672a5e0fJTW_560.jpg",
+   "photoIndex": 0,
+   "score": 0.652,
+   "wh": [
+    560,
+    560
+   ]
+  },
+  "g:mazo__arch-lounge-chair": {
+   "box": [
+    108,
+    216,
+    524,
+    636
+   ],
+   "extent": [
+    1.707859992980957,
+    1.5966999530792236,
+    1.8967000246047974
+   ],
+   "file": "c403ae4bb84f9da9.glb",
+   "photo": "https://cdn.shopify.com/s/files/1/0056/1827/0297/files/Mazo-ARCH-Lounge-Chair.png?v=1741688707",
+   "photoIndex": 0,
+   "score": 0.688,
+   "wh": [
+    640,
+    800
+   ]
+  },
+  "g:naknak__screen-屏風滅火器架": {
+   "box": [
+    302,
+    75,
+    543,
+    740
+   ],
+   "extent": [
+    0.5238400101661682,
+    1.8973000049591064,
+    0.613789975643158
+   ],
+   "file": "d57a857dfd3d2cbd.glb",
+   "photo": "https://www.loft29.com.tw/images/202412/20241231134527833.jpg",
+   "photoIndex": 0,
+   "score": 0.721,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:nemo__projecteur-365": {
+   "box": [
+    157,
+    100,
+    651,
+    735
+   ],
+   "extent": [
+    1.5968600511550903,
+    1.897420048713684,
+    1.4189000129699707
+   ],
+   "file": "19536cca998b3d10.glb",
+   "photo": "https://www.loft29.com.tw/images/202309/20230921134720717.jpg",
+   "photoIndex": 0,
+   "score": 0.723,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:nm3__nm27-screen-金屬屏風": {
+   "box": [
+    144,
+    54,
+    424,
+    515
+   ],
+   "extent": [
+    1.1083099842071533,
+    1.890660047531128,
+    0.60698002576828
+   ],
+   "file": "a07ff5f68b209f97.glb",
+   "photo": "https://www.nordic.com.tw/uploads/product_picture/671b3b6dd60cfQDFdf_560.jpg",
+   "photoIndex": 0,
+   "score": 0.877,
+   "wh": [
+    560,
+    560
+   ]
+  },
+  "g:norr11__man-three-seater": {
+   "box": [
+    67,
+    249,
+    708,
+    543
+   ],
+   "extent": [
+    1.8970999717712402,
+    0.7636299729347229,
+    0.7715299725532532
+   ],
+   "file": "0774fa09ab3b100b.glb",
+   "photo": "https://cdn.shopify.com/s/files/1/0056/1827/0297/files/NORR11ManThree-SeaterSofaBarnumBoucleCol3.png?v=1784180387",
+   "photoIndex": 0,
+   "score": 0.662,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:norr11__studio-bench": {
+   "box": [
+    79,
+    271,
+    695,
+    549
+   ],
+   "extent": [
+    1.894860029220581,
+    0.7901300191879272,
+    0.8546599745750427
+   ],
+   "file": "5187e8db838fea16.glb",
+   "photo": "https://cdn.shopify.com/s/files/1/0056/1827/0297/files/NORR11_STUDIO-BENCH-SPECTRUM-MINERAL-side.png?v=1784181129",
+   "photoIndex": 0,
+   "score": 0.904,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:pulpo__bent": {
+   "box": [
+    248,
+    70,
+    437,
+    684
+   ],
+   "extent": [
+    0.6258599758148193,
+    1.8979899883270264,
+    0.4080899953842163
+   ],
+   "file": "c559127358a70de7.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/67652a082d899a000ed47614/original.jpg?1734683143",
+   "photoIndex": 0,
+   "score": 0.735,
+   "wh": [
+    750,
+    749
+   ]
+  },
+  "g:rareraw__home-clean-掃地機器人收納櫃": {
+   "box": [
+    219,
+    173,
+    583,
+    610
+   ],
+   "extent": [
+    1.5081100463867188,
+    1.939710021018982,
+    1.5826400518417358
+   ],
+   "file": "39b173c8c8224ec8.glb",
+   "photo": "https://cdn.shopify.com/s/files/1/0056/1827/0297/files/1_252d97cf-1ec3-4a01-8cf5-bb8c08f0f8cf.webp?v=1773204148",
+   "photoIndex": 0,
+   "score": 0.772,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:rareraw__rrr-double-hanger-雙層掛衣架": {
+   "box": [
+    133,
+    126,
+    667,
+    757
+   ],
+   "extent": [
+    1.6962900161743164,
+    1.8969299793243408,
+    1.8169900178909302
+   ],
+   "file": "9458a5a2d689c439.glb",
+   "photo": "https://cdn.shopify.com/s/files/1/0056/1827/0297/files/dbl_02.jpg?v=1793433465",
+   "photoIndex": 2,
+   "score": 0.677,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:rareraw__rrw-drawer": {
+   "box": [
+    136,
+    307,
+    397,
+    612
+   ],
+   "extent": [
+    1.75764000415802,
+    1.8983099460601807,
+    1.274150013923645
+   ],
+   "file": "dea70f83c652ff3f.glb",
+   "photo": "https://cdn.shopify.com/s/files/1/0056/1827/0297/files/dfd1c285106f1d73b7893180d3d9b5c2.jpg?v=1747127234",
+   "photoIndex": 0,
+   "score": 0.699,
+   "wh": [
+    533,
+    800
+   ]
+  },
+  "g:rubn__miller": {
+   "box": [
+    129,
+    55,
+    675,
+    764
+   ],
+   "extent": [
+    1.4897300004959106,
+    1.894610047340393,
+    0.7051299810409546
+   ],
+   "file": "f0cc420346de7559.glb",
+   "photo": "https://www.loft29.com.tw/images/202309/20230920111919898.jpg",
+   "photoIndex": 0,
+   "score": 0.672,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:santa-cole__fad-fija": {
+   "box": [
+    219,
+    41,
+    522,
+    764
+   ],
+   "extent": [
+    0.8580899834632874,
+    1.8973400592803955,
+    0.6854900121688843
+   ],
+   "file": "78cc0a66a46c8d59.glb",
+   "photo": "https://www.loft29.com.tw/images/202401/20240127132717633.jpg",
+   "photoIndex": 1,
+   "score": 0.703,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:tom-dixon__melt-cone-slim": {
+   "box": [
+    304,
+    80,
+    494,
+    755
+   ],
+   "extent": [
+    0.5335500240325928,
+    1.8963700532913208,
+    0.51146000623703
+   ],
+   "file": "0ab17448ef0a918a.glb",
+   "photo": "https://cdn.shopify.com/s/files/1/0744/0467/files/Tom-Dixon-Melt-Cone-Slim-_-Tom-Dixon_-_-_-Luxury-Life-4178415.png?v=1793991620",
+   "photoIndex": 1,
+   "score": 0.917,
+   "wh": [
+    800,
+    800
+   ]
+  },
+  "g:unknown__kimu-扇變屏風": {
+   "box": [
+    143,
+    65,
+    580,
+    688
+   ],
+   "extent": [
+    1.2775599956512451,
+    1.8972599506378174,
+    1.094499945640564
+   ],
+   "file": "d2ef0510d02bee1f.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/6246a0b0ea61ef002aab19b2/original.jpg?1648795824",
+   "photoIndex": 0,
+   "score": 0.759,
+   "wh": [
+    750,
+    750
+   ]
+  },
+  "g:unknown__naknak-screen屏風滅火器架": {
+   "box": [
+    277,
+    110,
+    470,
+    641
+   ],
+   "extent": [
+    0.5514000058174133,
+    1.8977700471878052,
+    0.5406399965286255
+   ],
+   "file": "e9092bc7c1e6e16d.glb",
+   "photo": "https://img.shoplineapp.com/media/image_clips/667e6bf41a97590016aeb4ac/original.jpg?1719561203",
+   "photoIndex": 0,
+   "score": 0.698,
+   "wh": [
+    750,
+    750
    ]
   }
  }

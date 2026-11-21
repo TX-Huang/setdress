@@ -252,7 +252,14 @@ def _one_size(rows: list[tuple], size: Size, single: bool, group: str) -> dict |
     if not deals:
         return None
     w, d, h = _full(size, group)
-    return {"w": w, "d": d, "h": h, "offers": deals, "seen": rugs._seen(counted), "key": size}
+    out = {"w": w, "d": d, "h": h, "offers": deals, "seen": rugs._seen(counted), "key": size}
+    est = _estimated(size)
+    return {**out, "est": est} if est else out
+
+
+def _estimated(size: Size) -> list[str]:
+    """照一般比例補的邊（店家沒標）：網頁不拿來算大小。"""
+    return [k for k, v in zip("wdh", size, strict=True) if not v]
 
 
 def _counts(row, size: Size, single: bool, group: str) -> bool:

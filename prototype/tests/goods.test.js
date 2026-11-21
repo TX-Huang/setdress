@@ -43,9 +43,27 @@ test('standeeSize：只有寬或只有高，就照那一個', () => {
   assert.deepEqual(G.standeeSize({ w: null, d: null, h: 90 }, [0, 0, 300, 600]), { w: 0.45, h: 0.9 });
 });
 
-test('sizeLabel：寫有的邊；猜的要說', () => {
+test('standeeSize：沒標尺寸的沙發（LN1 單人）：只照一般的高度 80 cm，寬度照照片比例，不會變成 2 公尺寬', () => {
+  const s = G.standeeSize({ w: 200, d: 90, h: 80, guess: true, mount: 'floor' }, [0, 0, 440, 400]);
+  assert.deepEqual(s, { w: 0.88, h: 0.8 });
+});
+
+test('standeeSize：沒標尺寸的吊燈：照一般的燈罩寬，電線照比例', () => {
+  assert.deepEqual(G.standeeSize({ w: 40, d: 40, h: 40, guess: true, mount: 'ceiling' }, [0, 0, 100, 400]), { w: 0.4, h: 1.6 });
+});
+
+test('standeeSize：估出來的邊（店家沒標、照比例補的）不拿來算大小', () => {
+  // 只標寬 90 cm 的單人沙發：高是照一般沙發比例補的 36 cm（不準），只照寬度算
+  assert.deepEqual(G.standeeSize({ w: 90, d: 40.5, h: 36, est: ['d', 'h'], mount: 'floor' }, [0, 0, 400, 400]), { w: 0.9, h: 0.9 });
+  // 估的高比真的大：也不能用它（不然 60 cm 寬的東西變 2 公尺）
+  assert.deepEqual(G.standeeSize({ w: 60, d: 30, h: 200, est: ['d', 'h'], mount: 'floor' }, [0, 0, 400, 400]), { w: 0.6, h: 0.6 });
+});
+
+test('sizeLabel：寫有的邊；估的邊寫「約」；沒標的寫照照片估出來的大小', () => {
   assert.equal(G.sizeLabel({ w: 200, d: 90, h: 80 }), '寬 200 × 深 90 × 高 80 cm');
-  assert.equal(G.sizeLabel({ w: 55, d: 55, h: 80, guess: true }), '寬 55 × 深 55 × 高 80 cm（沒標尺寸，用一般大小）');
+  assert.equal(G.sizeLabel({ w: 90, d: 40.5, h: 36, est: ['d', 'h'] }), '寬 90 cm（深、高沒標）');
+  assert.equal(G.sizeLabel({ w: 55, d: 55, h: 80, guess: true }), '沒標尺寸');
+  assert.equal(G.sizeLabel({ w: 55, d: 55, h: 80, guess: true }, { w: 0.884, h: 0.8 }), '沒標尺寸：照照片估約寬 88 × 高 80 cm');
 });
 
 test('startY：剛放進來的高度（底部離地）', () => {

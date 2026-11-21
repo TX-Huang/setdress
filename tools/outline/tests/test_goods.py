@@ -164,6 +164,15 @@ class TestSizesAndOffers:
         assert [o["price"] for o in size["offers"]] == [30000]
         assert size["seen"] == SEEN, "更新日期還是要有（Codex 審查）"
 
+    def test_sides_filled_in_from_the_ordinary_size_are_marked(self, tmp_path):
+        """只標寬：深、高照一般比例補，標成「估的」（網頁不拿來算大小）。"""
+        item = one(tmp_path, [("a", "", 900, None, None, None)], [("a", "jyt", 30000)])
+        (size,) = item["sizes"]
+        assert size["est"] == ["d", "h"]
+        (tmp_path / "x").mkdir()
+        full = one(tmp_path / "x", [("a", "", 1800, 900, 800, None)], [("a", "jyt", 1)])
+        assert "est" not in full["sizes"][0]
+
     def test_a_missing_side_never_rounds_to_zero(self, tmp_path):
         item = one(
             tmp_path,

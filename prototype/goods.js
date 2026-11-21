@@ -37,16 +37,32 @@
   // 立牌的大小（公尺）：形狀照照片裡商品的比例，大小照店家標的寬、高。
   // 寬和高各算一次「照片上一個像素是幾公尺」，取大的：店家常把座高、燈罩高當高度、
   // 吊燈照片連電線一起，標的邊偏小比偏大常見。box：照片裡商品的範圍 [x0, y0, x1, y1]（px）
+  // 店家沒標、照比例補的邊（est）不拿來算。都沒標（guess）：用一般大小裡最不會差的那一邊——
+  // 家具照高度（單人、三人沙發都差不多 80 cm 高，寬差很多；LN1 單人被當成 2 公尺寬就是這樣），
+  // 吊燈照寬度（燈罩差不多寬，照片又連著電線）
   function standeeSize(size, box) {
     const bw = box[2] - box[0], bh = box[3] - box[1];
-    const byW = size.w ? size.w / 100 / bw : 0, byH = size.h ? size.h / 100 / bh : 0;
+    const use = usableSides(size);
+    const byW = use.w ? size.w / 100 / bw : 0, byH = use.h ? size.h / 100 / bh : 0;
     const perPx = Math.max(byW, byH);
     return { w: round3(bw * perPx), h: round3(bh * perPx) };
   }
+  function usableSides(size) {
+    if (size.guess) return size.mount === 'ceiling' ? { w: true } : { h: true };
+    const est = size.est || [];
+    return { w: Boolean(size.w) && !est.includes('w'), h: Boolean(size.h) && !est.includes('h') };
+  }
 
-  function sizeLabel(s) {
-    const text = `寬 ${s.w} × 深 ${s.d} × 高 ${s.h} cm`;
-    return s.guess ? `${text}（沒標尺寸，用一般大小）` : text;
+  // 卡片上的尺寸：只寫店家標的；沒標的寫「沒標尺寸」，有照片估的大小（dims，公尺）就一起寫
+  function sizeLabel(s, dims) {
+    if (s.guess) {
+      return dims ? `沒標尺寸：照照片估約寬 ${Math.round(dims.w * 100)} × 高 ${Math.round(dims.h * 100)} cm` : '沒標尺寸';
+    }
+    const est = s.est || [];
+    const names = { w: '寬', d: '深', h: '高' };
+    const known = ['w', 'd', 'h'].filter((k) => !est.includes(k)).map((k) => `${names[k]} ${s[k]}`);
+    const missing = est.map((k) => names[k]).join('、');
+    return `${known.join(' × ')} cm${missing ? `（${missing}沒標）` : ''}`;
   }
 
   // 剛放進來時，底部離地多高（公尺）。h：商品高度、ceiling：天花板高度

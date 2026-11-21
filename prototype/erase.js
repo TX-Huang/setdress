@@ -23,17 +23,23 @@
     const scale = SAM_SIDE / Math.max(w, h);
     return { w: Math.round(w * scale), h: Math.round(h * scale), scale };
   }
-  // points：照片上的位置 [{x, y}]（像素）
-  function samPrompt(points, scale) {
-    const coords = new Float32Array((points.length + 1) * 2);
-    const labels = new Float32Array(points.length + 1);
-    points.forEach((p, i) => {
-      coords[2 * i] = p.x * scale;
-      coords[2 * i + 1] = p.y * scale;
-      labels[i] = 1;
+  // points：照片上的位置 [{x, y}]（像素）；box：拖出來的框 {x0, y0, x1, y1}（像素，可以沒有）。
+  // 有框：框的左上、右下兩個角接在點後面（標 2、3）；沒框：最後補一個 (0, 0)、標 -1（SAM 的規定）
+  function samPrompt(points, scale, box) {
+    const all = points.map((p) => [p.x, p.y, 1]);
+    if (box) {
+      all.push([Math.min(box.x0, box.x1), Math.min(box.y0, box.y1), 2]);
+      all.push([Math.max(box.x0, box.x1), Math.max(box.y0, box.y1), 3]);
+    }
+    const coords = new Float32Array((all.length + (box ? 0 : 1)) * 2);
+    const labels = new Float32Array(all.length + (box ? 0 : 1));
+    all.forEach(([x, y, label], i) => {
+      coords[2 * i] = x * scale;
+      coords[2 * i + 1] = y * scale;
+      labels[i] = label;
     });
-    labels[points.length] = -1;
-    return { coords, labels, count: points.length + 1 };
+    if (!box) labels[all.length] = -1;
+    return { coords, labels, count: labels.length };
   }
   // RGBA（canvas 的 ImageData）→ [高, 寬, 3] float
   function toHWC(rgba) {

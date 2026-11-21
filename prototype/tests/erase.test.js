@@ -17,6 +17,19 @@ test('點的位置換成 MobileSAM 的座標，最後補一個「沒有框」的
   assert.equal(p.count, 3);
 });
 
+test('拖一個框：框的兩個角（標 2、3）接在點後面，不加補位的點（大沙發一次圈起來）', () => {
+  const p = E.samPrompt([{ x: 100, y: 50 }], 0.5, { x0: 10, y0: 20, x1: 300, y1: 200 });
+  assert.deepEqual(Array.from(p.coords), [50, 25, 5, 10, 150, 100]);
+  assert.deepEqual(Array.from(p.labels), [1, 2, 3]);
+  assert.equal(p.count, 3);
+});
+
+test('只有框、沒有點也可以；框畫反了（由右下往左上拖）也對', () => {
+  const p = E.samPrompt([], 1, { x0: 300, y0: 200, x1: 10, y1: 20 });
+  assert.deepEqual(Array.from(p.coords), [10, 20, 300, 200]);
+  assert.deepEqual(Array.from(p.labels), [2, 3]);
+});
+
 test('照片像素（RGBA）換成 MobileSAM 要的 [高, 寬, 3]（0 到 255，不用先正規化）', () => {
   const rgba = Uint8ClampedArray.from([10, 20, 30, 255, 40, 50, 60, 255]);
   assert.deepEqual(Array.from(E.toHWC(rgba)), [10, 20, 30, 40, 50, 60]);

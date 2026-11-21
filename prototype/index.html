@@ -82,7 +82,8 @@ body {
 .tool[aria-pressed="true"] { background: #ffd400; border-color: #ffd400; color: #111; }
 /* 擦掉照片裡的東西（docs/erase.md）：圈到的範圍蓋在照片上、下面的按鈕列 */
 .erase-mask { position: absolute; pointer-events: none; }
-.erase-bar { position: absolute; left: 12px; right: 12px; top: 50px; display: grid; gap: 6px; padding: 8px 10px; border-radius: 8px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); font-size: 13px; }
+.erase-bar { display: grid; gap: 6px; padding: 8px 10px; border-radius: 8px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); font-size: 13px; }
+.erase-box { position: absolute; border: 2px dashed #ffd400; background: rgba(255, 212, 0, 0.12); pointer-events: none; }
 .erase-bar p { margin: 0; }
 .erase-bar div { display: flex; flex-wrap: wrap; gap: 6px; }
 .erase-bar .btn { min-height: 32px; padding: 0 12px; font-size: 13px; }
@@ -159,20 +160,22 @@ select, input[type="search"] { width: 100%; min-width: 0; font: inherit; min-hei
         <button class="tool" type="button" id="ruler-btn" aria-pressed="false">量尺</button>
       </div>
       <canvas class="erase-mask" id="erase-mask" aria-hidden="true" hidden></canvas>
-      <div class="erase-bar" id="erase-bar" role="group" aria-label="擦掉照片裡的東西" hidden>
-        <p id="erase-status" role="status" aria-live="polite">點照片上要擦掉的東西（圈不夠就再點一下沒圈到的地方）</p>
-        <div>
-          <button class="btn btn-primary" type="button" id="erase-do" disabled>擦掉</button>
-          <button class="btn" type="button" id="erase-cancel" disabled>重選</button>
-          <button class="btn" type="button" id="erase-undo" disabled>復原</button>
-          <button class="btn" type="button" id="erase-reset" disabled>全部還原</button>
-        </div>
-      </div>
+      <div class="erase-box" id="erase-box" hidden></div>
       <p class="ruler-label" id="ruler-label" hidden></p>
       <p class="toast" id="toast" role="status" aria-live="polite" hidden></p>
       <div class="ask" id="ai-ask" role="dialog" aria-labelledby="ai-ask-text" hidden>
         <p id="ai-ask-text">AI 自動對齊要先下載模型（71 MB，只有第一次，之後存在這台裝置上）。照片不會上傳。</p>
         <div><button class="btn btn-primary" type="button" id="ai-yes">下載並對齊</button><button class="btn" type="button" id="ai-no">先手動對齊</button></div>
+      </div>
+    </div>
+    <!-- 擦掉的按鈕列放在照片下面：放照片上會蓋住上面那一段，手機上點不到被蓋住的東西 -->
+    <div class="erase-bar" id="erase-bar" role="group" aria-label="擦掉照片裡的東西" hidden>
+      <p id="erase-status" role="status" aria-live="polite">點照片上要擦掉的東西；大的東西（沙發）用拖的，框起來</p>
+      <div>
+        <button class="btn btn-primary" type="button" id="erase-do" disabled>擦掉</button>
+        <button class="btn" type="button" id="erase-cancel" disabled>重選</button>
+        <button class="btn" type="button" id="erase-undo" disabled>復原</button>
+        <button class="btn" type="button" id="erase-reset" disabled>全部還原</button>
       </div>
     </div>
     <p class="caption"><span id="photo-name">示範房間（電腦畫的）</span>。照片只在這台電腦上處理，不會傳到網路上。</p>
@@ -965,7 +968,7 @@ scene.add(blob);
 const photo = { tex: null, aspect: 4 / 3, hemiBase: 2.2, baseDepth: null };
 // 擦掉照片裡的東西（docs/erase.md）：每一步存一份（照片、擦掉的範圍）；不用模型的計算在 erase.js
 const ER = window.SetdressErase;
-const erase = { on: false, busy: false, points: [], mask: null, emb: null, embFor: null, scale: 1, hist: null, sessions: {}, loading: {} };
+const erase = { on: false, busy: false, points: [], box: null, gesture: null, mask: null, emb: null, embFor: null, scale: 1, hist: null, sessions: {}, loading: {} };
 const currentPhoto = () => ER.current(erase.hist).canvas;
 
 function sampleColors(src) {
@@ -1002,7 +1005,7 @@ function setPhoto(src, camDefaults) {
   setBackground(src);
   photo.aspect = src.width / src.height;
   // 換照片：圈的範圍、擦掉的紀錄都清掉（docs/erase.md 第 8 句）
-  Object.assign(erase, { points: [], mask: null, emb: null, embFor: null, hist: ER.history({ canvas: src, erased: null }) });
+  Object.assign(erase, { points: [], box: null, mask: null, emb: null, embFor: null, hist: ER.history({ canvas: src, erased: null }) });
   syncErase();
   const s = sampleColors(src);
   hemi.color.copy(tint(s.top));
@@ -1552,7 +1555,7 @@ function renderPlacedCard(p) {
   const head = el('div', 'item-head'), names = el('div');
   const title = el('h3', null, `${item.brand} ${item.name}`);
   if (v.status === '3d') title.prepend(el('span', 'badge', '3D'));
-  names.append(title, el('p', 'spec', `${item.category} · ${G.sizeLabel(s)}`));
+  names.append(title, el('p', 'spec', `${item.category} · ${G.sizeLabel(s, v.dims)}`));
   head.append(names, el('span', 'price', fmtNT(best.offer.price)));
   const where = best.noneInStock ? `最便宜：${best.offer.store}（沒有一家標示有現貨）` : `最便宜有現貨：${best.offer.store}`;
   const shop = el('p', 'spec', `${where} · ${item.updated ? `更新於 ${item.updated} · ` : ''}`);
@@ -1862,7 +1865,7 @@ async function samEmbedding(c) {
 async function segment(c) {
   const emb = await samEmbedding(c);
   const decoder = await eraseSession('decoder');
-  const p = ER.samPrompt(erase.points, erase.scale), T = (data, dims) => new ai.ort.Tensor('float32', data, dims);
+  const p = ER.samPrompt(erase.points, erase.scale, erase.box), T = (data, dims) => new ai.ort.Tensor('float32', data, dims);
   const out = await decoder.run({
     image_embeddings: emb,
     point_coords: T(p.coords, [1, p.count, 2]),
@@ -1904,15 +1907,43 @@ async function eraseBusy(work) {
 }
 // 算完的時候照片已經換了（上傳了新的）：結果是舊照片的，丟掉（Codex 審查）
 const samePhoto = (original) => erase.hist && erase.hist.steps[0] === original;
-function addErasePoint(e) {
+// 擦掉：點一下加一個點；拖一個框把整個東西框起來（大沙發、上面堆了東西，一次圈起來）
+const BOX_MIN = 8; // 拖超過這麼多像素才算框，不然算點一下
+function photoXY(e) {
+  const c = currentPhoto(), r = canvas.getBoundingClientRect();
+  return { x: ((e.clientX - r.left) / r.width) * c.width, y: ((e.clientY - r.top) / r.height) * c.height, sx: e.clientX, sy: e.clientY };
+}
+function startEraseGesture(e) {
   if (erase.busy) return;
-  const c = currentPhoto(), r = canvas.getBoundingClientRect(), original = erase.hist.steps[0];
-  erase.points.push({ x: ((e.clientX - r.left) / r.width) * c.width, y: ((e.clientY - r.top) / r.height) * c.height });
+  erase.gesture = { start: photoXY(e), end: photoXY(e) };
+  canvas.setPointerCapture(e.pointerId);
+}
+function moveEraseGesture(e) {
+  erase.gesture.end = photoXY(e);
+  const { start: a, end: b } = erase.gesture, box = $('erase-box'), st = $('stage').getBoundingClientRect();
+  Object.assign(box.style, {
+    left: `${Math.min(a.sx, b.sx) - st.left}px`, top: `${Math.min(a.sy, b.sy) - st.top}px`,
+    width: `${Math.abs(b.sx - a.sx)}px`, height: `${Math.abs(b.sy - a.sy)}px`,
+  });
+  box.hidden = Math.hypot(b.sx - a.sx, b.sy - a.sy) <= BOX_MIN;
+}
+function finishEraseGesture(e) {
+  const g = erase.gesture;
+  erase.gesture = null;
+  if (canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId);
+  $('erase-box').hidden = true;
+  if (Math.hypot(g.end.sx - g.start.sx, g.end.sy - g.start.sy) > BOX_MIN) {
+    erase.box = { x0: g.start.x, y0: g.start.y, x1: g.end.x, y1: g.end.y };
+  } else erase.points.push({ x: g.start.x, y: g.start.y });
+  runSegment();
+}
+function runSegment() {
+  const c = currentPhoto(), original = erase.hist.steps[0];
   return eraseBusy(async () => {
     const mask = await segment(c);
     if (!samePhoto(original)) return;
     erase.mask = mask;
-    sayErase('紅色是要擦掉的。圈不夠就再點沒圈到的地方；對了就按「擦掉」');
+    sayErase('紅色是要擦掉的。圈不夠就再點沒圈到的地方、或重新拖一個框；對了就按「擦掉」');
   });
 }
 function doErase() {
@@ -1928,7 +1959,7 @@ function doErase() {
   });
 }
 function showEraseStep() {
-  Object.assign(erase, { points: [], mask: null });
+  Object.assign(erase, { points: [], box: null, mask: null });
   setBackground(currentPhoto());
   applyOccluder();
   update();
@@ -1958,7 +1989,7 @@ function syncErase() {
   $('erase-btn').setAttribute('aria-pressed', String(erase.on));
   $('erase-bar').hidden = !erase.on;
   $('erase-do').disabled = erase.busy || !erase.mask;
-  $('erase-cancel').disabled = erase.busy || !erase.points.length;
+  $('erase-cancel').disabled = erase.busy || (!erase.points.length && !erase.box);
   $('erase-undo').disabled = erase.busy || !undoable;
   $('erase-reset').disabled = erase.busy || !undoable;
   canvas.style.cursor = erase.on || ruler.on ? 'crosshair' : 'default';
@@ -1966,14 +1997,14 @@ function syncErase() {
 }
 function setErase(on) {
   if (on && ruler.on) setRuler(false); // 量尺和擦掉同時只開一個
-  Object.assign(erase, { on, points: [], mask: null });
-  if (on) sayErase('點照片上要擦掉的東西（圈不夠就再點一下沒圈到的地方）');
+  Object.assign(erase, { on, points: [], box: null, mask: null });
+  if (on) sayErase('點照片上要擦掉的東西；大的東西（沙發）用拖的，框起來');
   syncErase();
 }
 $('erase-btn').addEventListener('click', () => setErase(!erase.on));
 $('erase-do').addEventListener('click', doErase);
 $('erase-cancel').addEventListener('click', () => {
-  Object.assign(erase, { points: [], mask: null });
+  Object.assign(erase, { points: [], box: null, mask: null });
   sayErase('點照片上要擦掉的東西');
   syncErase();
 });
@@ -2025,7 +2056,7 @@ function select(key) {
 }
 
 canvas.addEventListener('pointerdown', (e) => {
-  if (erase.on) { e.preventDefault(); addErasePoint(e); return; } // 擦掉開著：圈東西，不拖商品
+  if (erase.on) { e.preventDefault(); startEraseGesture(e); return; } // 擦掉開著：圈東西，不拖商品
   if (ruler.on) { e.preventDefault(); addRulerMark(e); return; } // 量尺開著：放點，不拖商品
   setRay(e);
   const hit = pick();
@@ -2048,6 +2079,7 @@ canvas.addEventListener('pointerdown', (e) => {
   select(key);
 });
 canvas.addEventListener('pointermove', (e) => {
+  if (erase.gesture) { moveEraseGesture(e); return; }
   if (ruler.on) return;
   setRay(e);
   if (!drag) {
@@ -2078,6 +2110,7 @@ function syncPlacedHeight(p) {
   input.previousElementSibling.lastElementChild.textContent = meters(p.y);
 }
 function endDrag(e) {
+  if (erase.gesture) { finishEraseGesture(e); return; }
   if (!drag) return;
   drag = null;
   if (canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId);
