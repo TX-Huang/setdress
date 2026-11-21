@@ -43,6 +43,7 @@ KINDS = {
     },
 }  # fmt: skip
 FLOOR_FROM_CM = 60  # 擺飾這麼高以上放地上（落地花瓶、大盆），其他放桌上
+MIN_POINTS = 3  # 輪廓少於 3 個點只是一條線，不是形狀（描壞了），不放
 MAX_BANDS = 4
 MIN_BAND = 0.1  # 每段至少全高的一成
 SPLIT = 40.0  # 相鄰兩段的顏色差這麼多以上才分開（RGB 距離）
@@ -348,7 +349,7 @@ def _entry(row, product, rows, photo_for, kind: str = "lamps", own_photos=None) 
     brand, model, cat = product
     lathe = json.loads(lathe_json)
     deals = offers(rows, (width, height))
-    if not deals or not _wanted(kind, cat, model):
+    if not deals or not _wanted(kind, cat, model) or len(lathe) < MIN_POINTS:
         return None
     top = max(h for _, h in lathe)
     size = _size(width, height, lathe)

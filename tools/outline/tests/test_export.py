@@ -442,3 +442,18 @@ class TestVariantPhotoName:
         )  # 照片網址 u
         entry = ex.build([db], outlines, photo_for=lambda url: None)["lamps"][0]
         assert entry["variant"] == "白色"
+
+
+class TestTooSimple:
+    def test_an_outline_with_fewer_than_3_points_is_left_out(self, tmp_path):
+        db = make_db(
+            tmp_path / "a.db",
+            [("w", "白", None, None, 267, 500, 1)],
+            [("w", "nosa", 39900, 1, None, SEEN)],
+        )
+        outlines = outline_db(
+            tmp_path / "o.db", [("lp__ph-5", "ok", "w", 50, 26.7, [[20, 0], [25, 26.7]])]
+        )
+        assert ex.build([db], outlines, photo_for=lambda url: None)["lamps"] == [], (
+            "兩個點只是一條線，不是形狀"
+        )
